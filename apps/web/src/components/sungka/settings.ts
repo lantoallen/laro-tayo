@@ -1,6 +1,6 @@
 import type { BotLevel, Seat } from "@laro/games";
 
-export type SungkaMode = "bot" | "local";
+export type SungkaMode = "bot" | "local" | "online";
 export type FirstPlayer = "me" | "them" | "random";
 
 export interface SungkaSettings {

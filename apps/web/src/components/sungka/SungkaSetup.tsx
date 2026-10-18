@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import type { BotLevel } from "@laro/games";
+import { NameField } from "@/components/room/NameField";
+import { usePlayer } from "@/lib/player";
+import { ONLINE_ENABLED } from "@/lib/rooms";
 import { Rules } from "./Rules";
 import { LEVEL_LABELS, type FirstPlayer, type SungkaMode, type SungkaSettings } from "./settings";
 
@@ -42,12 +46,22 @@ export function SungkaSetup({
   settings,
   onChange,
   onStart,
+  onStartOnline,
 }: {
   settings: SungkaSettings;
   onChange: (settings: SungkaSettings) => void;
   onStart: () => void;
+  /** Makes a room and goes to it. Rejects with a message to show if that fails. */
+  onStartOnline: (name: string) => Promise<void>;
 }) {
   const vsBot = settings.mode === "bot";
+  const online = settings.mode === "online";
+  const saved = usePlayer();
+  // Null until the player types, so a saved name can fill the box once it loads.
+  const [typedName, setTypedName] = useState<string | null>(null);
+  const name = typedName ?? saved?.name ?? "";
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const levels = Object.keys(LEVEL_LABELS) as BotLevel[];
 
   return (
@@ -61,7 +75,13 @@ export function SungkaSetup({
         className="mt-6 space-y-5"
         onSubmit={(event) => {
           event.preventDefault();
-          onStart();
+          if (!online) return onStart();
+          setCreating(true);
+          setError(null);
+          onStartOnline(name).catch((reason: unknown) => {
+            setCreating(false);
+            setError(reason instanceof Error ? reason.message : "Couldn't make a room. Try again.");
+          });
         }}
       >
         <Segmented<SungkaMode>
@@ -72,10 +92,17 @@ export function SungkaSetup({
           options={[
             { value: "bot", label: "Bot" },
             { value: "local", label: "Pass and play" },
+            ...(ONLINE_ENABLED ? [{ value: "online" as const, label: "Online" }] : []),
           ]}
         />
-        {!vsBot && (
+        {settings.mode === "local" && (
           <p className="-mt-3 text-sm text-muted">Take turns on one phone. Player 1 is at the bottom.</p>
+        )}
+        {online && (
+          <>
+            <p className="-mt-3 text-sm text-muted">You&apos;ll get a link to send to a friend.</p>
+            <NameField value={name} onChange={setTypedName} />
+          </>
         )}
 
         {vsBot && (
@@ -88,21 +115,32 @@ export function SungkaSetup({
           />
         )}
 
-        <Segmented<FirstPlayer>
-          legend="Who goes first"
-          name="first"
-          value={settings.first}
-          onChange={(first) => onChange({ ...settings, first })}
-          options={[
-            { value: "me", label: vsBot ? "You" : "Player 1" },
-            { value: "them", label: vsBot ? "Bot" : "Player 2" },
-            { value: "random", label: "Random" },
-          ]}
-        />
+        {!online && (
+          <Segmented<FirstPlayer>
+            legend="Who goes first"
+            name="first"
+            value={settings.first}
+            onChange={(first) => onChange({ ...settings, first })}
+            options={[
+              { value: "me", label: vsBot ? "You" : "Player 1" },
+              { value: "them", label: vsBot ? "Bot" : "Player 2" },
+              { value: "random", label: "Random" },
+            ]}
+          />
+        )}
 
-        <button type="submit" className="w-full rounded-lg bg-blue py-3 font-semibold text-blue-ink">
-          Start
+        <button
+          type="submit"
+          disabled={creating}
+          className="w-full rounded-lg bg-blue py-3 font-semibold text-blue-ink disabled:opacity-60"
+        >
+          {!online ? "Start" : creating ? "Making a room..." : "Make a room"}
         </button>
+        {error && (
+          <p role="alert" className="-mt-2 text-sm text-red">
+            {error}
+          </p>
+        )}
       </form>
 
       <section aria-labelledby="how-to" className="mt-10 border-t border-line pt-6">
