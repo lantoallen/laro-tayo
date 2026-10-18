@@ -41,7 +41,9 @@ function connect(code, id, name) {
 async function until(client, condition, what) {
   const deadline = Date.now() + 5000;
   while (!condition()) {
-    if (Date.now() > deadline) throw new Error(`Timed out waiting for ${what}`);
+    if (Date.now() > deadline) {
+      throw new Error(`Timed out waiting for ${what}${client.errors.length ? ` (server said: ${client.errors.at(-1)})` : ""}`);
+    }
     await new Promise((resolve) => {
       client.waiters.push(resolve);
       setTimeout(resolve, 200);
@@ -87,6 +89,8 @@ let moves = 0;
 while (ana.room.phase === "playing") {
   const turn = ana.room.view.turn;
   const mover = players[turn];
+  // Over a real network the mover's copy can arrive a moment after Ana's.
+  await until(mover, () => mover.room.moveCount === ana.room.moveCount, "the mover to see the latest board");
   const houses = legalHouses(mover.room.view.board, turn);
   const before = ana.room.moveCount;
   mover.ws.send(JSON.stringify({ type: "move", move: houses[Math.floor(Math.random() * houses.length)] }));
