@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import type { Seat } from "@laro/games";
 import { chooseMove, legalMoves, result, setup, storeOf } from "@laro/games/sungka";
 import { Board } from "./Board";
-import { latestNotice, NOTICE_CLASSES } from "./notices";
+import { latestNotice } from "./notices";
+import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "./parts";
 import { RulesButton } from "./Rules";
 import { LEVEL_LABELS, seatNames, type SungkaSettings } from "./settings";
 import { DELAYS, useSowing, type Speed } from "./useSowing";
@@ -95,78 +96,30 @@ export function SungkaGame({
           captured={frame?.captured}
         />
         {outcome && (
-          <ResultCard winners={outcome.winners} scores={outcome.scores} settings={settings} onRematch={onRematch} onExit={onExit} />
+          <ResultCard
+            title={resultTitle(outcome.winners, settings)}
+            detail={`${names[0]} ${outcome.scores[0]}, ${names[1]} ${outcome.scores[1]}`}
+          >
+            <button type="button" onClick={onRematch} className={PRIMARY_BUTTON} autoFocus>
+              Play again
+            </button>
+            <button type="button" onClick={onExit} className={SECONDARY_BUTTON}>
+              Change settings
+            </button>
+          </ResultCard>
         )}
       </div>
 
       <PlayerRow name={names[0]} store={board[storeOf(0)]} active={mover === 0} />
 
-      <p aria-live="polite" className={`rounded-lg px-4 py-2.5 text-center font-semibold ${NOTICE_CLASSES[shownNotice?.tone ?? "none"]}`}>
-        {shownNotice?.text ?? status}
-      </p>
+      <StatusLine notice={shownNotice} status={status} />
     </main>
   );
 }
 
-function PlayerRow({ name, store, active }: { name: string; store: number; active: boolean }) {
-  return (
-    <div className="mx-auto flex w-full max-w-[58rem] items-center justify-between text-sm">
-      <span className="flex items-center gap-2 font-semibold">
-        <span aria-hidden="true" className={`size-2.5 rounded-full ${active ? "bg-yellow" : "bg-line"}`} />
-        {name}
-        {active && <span className="sr-only">(their turn)</span>}
-      </span>
-      <span className="text-muted">
-        Store: <b className="text-ink tabular-nums">{store}</b>
-      </span>
-    </div>
-  );
-}
-
-function ResultCard({
-  winners,
-  scores,
-  settings,
-  onRematch,
-  onExit,
-}: {
-  winners: Seat[];
-  scores: number[];
-  settings: SungkaSettings;
-  onRematch: () => void;
-  onExit: () => void;
-}) {
-  const vsBot = settings.mode === "bot";
-  const names = seatNames(settings.mode);
+function resultTitle(winners: Seat[], settings: SungkaSettings): string {
   const [winner] = winners;
-
-  let title: string;
-  if (winner === undefined) title = "It's a tie";
-  else if (vsBot) title = winner === 0 ? "You win" : "You lose";
-  else title = `${names[winner]} wins`;
-
-  return (
-    <div className="absolute inset-0 z-10 grid place-items-center p-4">
-      <div
-        role="dialog"
-        aria-labelledby="result-title"
-        className="w-full max-w-xs rounded-xl border border-line bg-surface p-5 text-center shadow-xl"
-      >
-        <h2 id="result-title" className="text-2xl font-bold">
-          {title}
-        </h2>
-        <p className="mt-1 text-muted tabular-nums">
-          {names[0]} {scores[0]}, {vsBot ? "Bot" : names[1]} {scores[1]}
-        </p>
-        <div className="mt-5 grid gap-2">
-          <button type="button" onClick={onRematch} className="rounded-lg bg-blue py-2.5 font-semibold text-blue-ink" autoFocus>
-            Play again
-          </button>
-          <button type="button" onClick={onExit} className="rounded-lg border border-line py-2.5 font-semibold">
-            Change settings
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  if (winner === undefined) return "It's a tie";
+  if (settings.mode === "bot") return winner === 0 ? "You win" : "You lose";
+  return `${seatNames(settings.mode)[winner]} wins`;
 }
