@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     siteName: "Laro Tayo!",
     title: "Laro Tayo!",
     description,
-    locale: "fil_PH",
+    locale: "en_PH",
     url: "/",
   },
 };
@@ -32,7 +32,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fil">
+    <html lang="en">
       <body className="min-h-svh antialiased">
         <header className="mx-auto flex h-14 max-w-4xl items-center px-4">
           <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight">
