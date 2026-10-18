@@ -76,9 +76,20 @@ export function useSowing(initial: () => SungkaState, speed: Speed) {
   const frame = useMemo(() => (sowing ? frameOf(sowing) : null), [sowing]);
   const events = sowing ? sowing.events.slice(0, sowing.shown) : (lastMove?.events ?? []);
 
+  /**
+   * Plays out a move that has already been decided, such as one sent by the server.
+   * If another move is still being shown, it jumps to that move's end first.
+   */
+  function show(seat: Seat, events: SungkaEvent[], final: SungkaState) {
+    const start = sowing ? sowing.final : game;
+    if (sowing) setGame(sowing.final);
+    setSowing({ seat, start: start.board, events, shown: 0, final });
+  }
+
   function move(seat: Seat, house: number) {
-    const { state: final, events } = play(game, seat, house);
-    setSowing({ seat, start: game.board, events, shown: 0, final });
+    const current = sowing ? sowing.final : game;
+    const { state: final, events } = play(current, seat, house);
+    show(seat, events, final);
   }
 
   function restart(state: SungkaState) {
@@ -87,5 +98,5 @@ export function useSowing(initial: () => SungkaState, speed: Speed) {
     setGame(state);
   }
 
-  return { game, sowing, frame, events, board: frame?.board ?? game.board, move, restart };
+  return { game, sowing, frame, events, board: frame?.board ?? game.board, move, show, restart };
 }
