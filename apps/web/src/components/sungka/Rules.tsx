@@ -7,27 +7,27 @@ export function Rules() {
     <>
       <ol className="list-decimal space-y-2 pl-5 marker:text-muted">
         <li>
-          Bawat player ay may 7 bahay (yung maliliit na butas) at isang ulo (yung malaki sa kaliwa mo). Tig-7 na sigay
-          ang bawat bahay sa simula.
+          Each player has 7 small houses and a big store on their left. Every house starts with 7 shells.
         </li>
         <li>
-          Kunin lahat ng sigay sa isa sa mga bahay mo, tapos ihulog isa-isa pa-clockwise. Hulugan mo rin ang ulo mo
-          pagdaan, pero laktawan ang ulo ng kalaban.
+          Pick up all the shells in one of your houses and drop them one at a time, clockwise. Drop one in your own
+          store as you pass it, but skip your opponent&apos;s.
         </li>
-        <li>Kapag sa ulo mo bumagsak ang huling sigay, tira ka ulit.</li>
-        <li>Kapag sa bahay na may laman bumagsak, kunin lahat ng laman nito at ituloy ang paghulog.</li>
+        <li>If your last shell lands in your store, you go again.</li>
+        <li>If it lands in a house that already has shells, pick those up and keep going.</li>
         <li>
-          Kapag sa bakanteng bahay mo bumagsak, kunin mo yon pati lahat ng sigay sa katapat na bahay, at ilagay sa ulo
-          mo.
+          If it lands in an empty house on your side, you capture it plus every shell in the house across, and they go
+          to your store.
         </li>
-        <li>Kapag sa bakanteng bahay ng kalaban bumagsak, tapos na ang tira mo.</li>
+        <li>If it lands in an empty house on the other side, your turn is over.</li>
         <li>
-          Kung wala nang sigay sa side mo, laktaw ka muna. Tapos ang laro kapag nasa mga ulo na lahat ng sigay, at
-          panalo ang may pinakamarami.
+          If your side is empty, your turn is skipped. The game ends when every shell is in a store, and whoever has
+          more wins.
         </li>
       </ol>
       <p className="mt-3 text-sm text-muted">
-        Sa tradisyonal na laro, sabay ang unang tira ng dalawang player. Dito, salitan na agad mula umpisa.
+        In the traditional game, both players make their first move at the same time. Here you take turns from the
+        start.
       </p>
     </>
   );
@@ -40,7 +40,7 @@ export function RulesButton() {
       <button
         type="button"
         onClick={() => dialog.current?.showModal()}
-        aria-label="Paano laruin"
+        aria-label="How to play"
         className="size-9 rounded-lg border border-line font-semibold"
       >
         ?
@@ -54,11 +54,11 @@ export function RulesButton() {
         }}
       >
         <h2 id="rules-title" className="mb-3 text-lg font-bold">
-          Paano laruin
+          How to play
         </h2>
         <Rules />
         <form method="dialog" className="mt-5">
-          <button className="w-full rounded-lg bg-blue py-2.5 font-semibold text-blue-ink">Sige</button>
+          <button className="w-full rounded-lg bg-blue py-2.5 font-semibold text-blue-ink">Got it</button>
         </form>
       </dialog>
     </>
