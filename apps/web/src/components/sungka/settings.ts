@@ -11,15 +11,15 @@ export interface SungkaSettings {
 
 export const DEFAULT_SETTINGS: SungkaSettings = { mode: "bot", level: "medium", first: "me" };
 
-export const LEVEL_LABELS: Record<BotLevel, { tl: string; en: string }> = {
-  easy: { tl: "Madali", en: "Easy" },
-  medium: { tl: "Katamtaman", en: "Medium" },
-  hard: { tl: "Mahirap", en: "Hard" },
+export const LEVEL_LABELS: Record<BotLevel, string> = {
+  easy: "Easy",
+  medium: "Medium",
+  hard: "Hard",
 };
 
 /** Seat 0 sits at the bottom of the screen, seat 1 at the top. */
 export function seatNames(mode: SungkaMode): [string, string] {
-  return mode === "bot" ? ["Ikaw", "Bot"] : ["Player 1", "Player 2"];
+  return mode === "bot" ? ["You", "Bot"] : ["Player 1", "Player 2"];
 }
 
 export function firstSeatFor(first: FirstPlayer): Seat {

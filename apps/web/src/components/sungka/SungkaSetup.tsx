@@ -53,7 +53,7 @@ export function SungkaSetup({
   return (
     <main className="mx-auto max-w-md px-4 pb-16">
       <Link href="/" className="text-sm text-muted hover:text-ink">
-        ← Mga laro
+        ← Games
       </Link>
       <h1 className="mt-2 text-3xl font-bold">Sungka</h1>
 
@@ -65,7 +65,7 @@ export function SungkaSetup({
         }}
       >
         <Segmented<SungkaMode>
-          legend="Kalaban"
+          legend="Opponent"
           name="mode"
           value={settings.mode}
           onChange={(mode) => onChange({ ...settings, mode })}
@@ -75,39 +75,39 @@ export function SungkaSetup({
           ]}
         />
         {!vsBot && (
-          <p className="-mt-3 text-sm text-muted">Salitan kayo sa iisang phone. Player 1 ang nasa ibaba.</p>
+          <p className="-mt-3 text-sm text-muted">Take turns on one phone. Player 1 is at the bottom.</p>
         )}
 
         {vsBot && (
           <Segmented<BotLevel>
-            legend="Hirap ng bot"
+            legend="Bot level"
             name="level"
             value={settings.level}
             onChange={(level) => onChange({ ...settings, level })}
-            options={levels.map((level) => ({ value: level, label: LEVEL_LABELS[level].tl }))}
+            options={levels.map((level) => ({ value: level, label: LEVEL_LABELS[level] }))}
           />
         )}
 
         <Segmented<FirstPlayer>
-          legend="Mauuna"
+          legend="Who goes first"
           name="first"
           value={settings.first}
           onChange={(first) => onChange({ ...settings, first })}
           options={[
-            { value: "me", label: vsBot ? "Ikaw" : "Player 1" },
+            { value: "me", label: vsBot ? "You" : "Player 1" },
             { value: "them", label: vsBot ? "Bot" : "Player 2" },
-            { value: "random", label: "Bahala na" },
+            { value: "random", label: "Random" },
           ]}
         />
 
         <button type="submit" className="w-full rounded-lg bg-blue py-3 font-semibold text-blue-ink">
-          Simulan
+          Start
         </button>
       </form>
 
       <section aria-labelledby="how-to" className="mt-10 border-t border-line pt-6">
         <h2 id="how-to" className="mb-3 text-lg font-bold">
-          Paano laruin
+          How to play
         </h2>
         <Rules />
       </section>

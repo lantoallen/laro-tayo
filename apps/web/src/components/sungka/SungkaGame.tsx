@@ -24,25 +24,25 @@ function noticeFor(event: SungkaEvent, settings: SungkaSettings): Notice | null 
       const seat = event.store === storeOf(0) ? 0 : 1;
       if (vsBot) {
         return seat === BOT_SEAT
-          ? { tone: "bad", text: `Nahuli ng bot ang ${event.count} sigay` }
-          : { tone: "good", text: `Huli! +${event.count} sigay` };
+          ? { tone: "bad", text: `The bot captured ${event.count} shells` }
+          : { tone: "good", text: `Captured! +${event.count} shells` };
       }
-      return { tone: "good", text: `Huli ni ${names[seat]}: +${event.count} sigay` };
+      return { tone: "good", text: `${names[seat]} captured ${event.count} shells` };
     }
     case "extraTurn":
       if (vsBot) {
         return event.seat === BOT_SEAT
-          ? { tone: "bad", text: "Tira ulit ang bot" }
-          : { tone: "good", text: "Tira ka ulit" };
+          ? { tone: "bad", text: "The bot goes again" }
+          : { tone: "good", text: "You go again" };
       }
-      return { tone: "good", text: `Tira ulit si ${names[event.seat]}` };
+      return { tone: "good", text: `${names[event.seat]} goes again` };
     case "pass":
       if (vsBot) {
         return event.seat === BOT_SEAT
-          ? { tone: "good", text: "Walang sigay ang bot, ikaw ulit" }
-          : { tone: "info", text: "Wala kang sigay, laktaw ka muna" };
+          ? { tone: "good", text: "The bot has no shells, so you go again" }
+          : { tone: "info", text: "You have no shells, so your turn is skipped" };
       }
-      return { tone: "info", text: `Walang sigay si ${names[event.seat]}, laktaw muna` };
+      return { tone: "info", text: `${names[event.seat]} has no shells, so their turn is skipped` };
     default:
       return null;
   }
@@ -95,11 +95,11 @@ export function SungkaGame({
   const mover = sowing ? null : game.turn;
   const playing = sowing?.seat ?? game.turn;
   let status: string;
-  if (playing === null) status = "Tapos na ang laro";
-  else if (vsBot && playing === BOT_SEAT) status = "Tira ng bot...";
-  else if (vsBot) status = sowing ? "Tira mo..." : "Ikaw na. Pumili ng bahay.";
-  else if (sowing) status = `Tira ni ${names[playing]}...`;
-  else status = `${names[playing]}, ikaw na (${playing === 0 ? "sa ibaba" : "sa itaas"})`;
+  if (playing === null) status = "Game over";
+  else if (vsBot && playing === BOT_SEAT) status = "Bot's turn...";
+  else if (vsBot) status = sowing ? "Your move..." : "Your turn. Pick a house.";
+  else if (sowing) status = `${names[playing]}'s move...`;
+  else status = `${names[playing]}, your turn (${playing === 0 ? "bottom" : "top"})`;
 
   const noticeTone =
     shownNotice?.tone === "good"
@@ -112,14 +112,14 @@ export function SungkaGame({
     <main className="mx-auto flex max-w-4xl flex-col gap-3 px-4 pb-8">
       <div className="flex items-center justify-between gap-2">
         <button type="button" onClick={onExit} className="text-sm text-muted hover:text-ink">
-          ← Bumalik
+          ← Back
         </button>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setSpeed(speed === "normal" ? "fast" : "normal")}
             aria-pressed={speed === "fast"}
-            aria-label="Bilisan"
+            aria-label="Faster"
             className="h-9 rounded-lg border border-line px-3 text-sm font-semibold aria-pressed:bg-ink aria-pressed:text-bg"
           >
             2x
@@ -129,7 +129,7 @@ export function SungkaGame({
       </div>
 
       <PlayerRow
-        name={vsBot ? `Bot (${LEVEL_LABELS[settings.level].tl})` : names[1]}
+        name={vsBot ? `Bot (${LEVEL_LABELS[settings.level]})` : names[1]}
         store={board[storeOf(1)]}
         active={mover === 1}
       />
@@ -164,10 +164,10 @@ function PlayerRow({ name, store, active }: { name: string; store: number; activ
       <span className="flex items-center gap-2 font-semibold">
         <span aria-hidden="true" className={`size-2.5 rounded-full ${active ? "bg-yellow" : "bg-line"}`} />
         {name}
-        {active && <span className="sr-only">(siya ang titira)</span>}
+        {active && <span className="sr-only">(their turn)</span>}
       </span>
       <span className="text-muted">
-        Ulo: <b className="text-ink tabular-nums">{store}</b>
+        Store: <b className="text-ink tabular-nums">{store}</b>
       </span>
     </div>
   );
@@ -191,9 +191,9 @@ function ResultCard({
   const [winner] = winners;
 
   let title: string;
-  if (winner === undefined) title = "Tabla";
-  else if (vsBot) title = winner === 0 ? "Panalo ka" : "Talo ka";
-  else title = `Panalo si ${names[winner]}`;
+  if (winner === undefined) title = "It's a tie";
+  else if (vsBot) title = winner === 0 ? "You win" : "You lose";
+  else title = `${names[winner]} wins`;
 
   return (
     <div className="absolute inset-0 z-10 grid place-items-center p-4">
@@ -210,10 +210,10 @@ function ResultCard({
         </p>
         <div className="mt-5 grid gap-2">
           <button type="button" onClick={onRematch} className="rounded-lg bg-blue py-2.5 font-semibold text-blue-ink" autoFocus>
-            Isa pa
+            Play again
           </button>
           <button type="button" onClick={onExit} className="rounded-lg border border-line py-2.5 font-semibold">
-            Palitan ang settings
+            Change settings
           </button>
         </div>
       </div>

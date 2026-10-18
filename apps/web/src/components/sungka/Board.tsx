@@ -92,7 +92,7 @@ export function Board({
         ]
           .filter(Boolean)
           .join(" ");
-        const label = `${owner}, ${store ? "ulo" : `bahay ${(slot % 8) + 1}`}: ${count} sigay`;
+        const label = `${owner}, ${store ? "store" : `house ${(slot % 8) + 1}`}: ${count} shells`;
 
         const contents = (
           <>
