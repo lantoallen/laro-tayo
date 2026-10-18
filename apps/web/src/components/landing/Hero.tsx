@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SungkaDemo } from "@/components/sungka/SungkaDemo";
+import { ONLINE_ENABLED } from "@/lib/rooms";
 
 export function Hero() {
   return (
@@ -8,8 +9,9 @@ export function Hero() {
         Sungka, no board needed.
       </h1>
       <p className="mt-3 max-w-xl text-lg text-muted">
-        Play the Filipino shell game on your phone, against a bot or with a friend on the same phone. It&apos;s free,
-        has no ads, and runs in your browser.
+        Play the Filipino shell game on your phone, against a bot or a friend
+        {ONLINE_ENABLED ? ", on one phone or online" : " on the same phone"}. It&apos;s free, has no ads, and runs in
+        your browser.
       </p>
       <div className="mt-6 flex flex-wrap gap-3">
         <Link href="/sungka" className="rounded-lg bg-blue px-5 py-3 font-semibold text-blue-ink">

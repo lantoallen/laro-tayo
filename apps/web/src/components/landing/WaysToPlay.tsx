@@ -1,3 +1,5 @@
+import { ONLINE_ENABLED } from "@/lib/rooms";
+
 const WAYS = [
   {
     title: "Against a bot",
@@ -9,7 +11,9 @@ const WAYS = [
   },
   {
     title: "Online",
-    text: "In the works. You'll send a friend a link and play from anywhere.",
+    text: ONLINE_ENABLED
+      ? "Make a room, send the link to a friend, and play on your own phones from anywhere."
+      : "In the works. You'll send a friend a link and play from anywhere.",
   },
 ];
 
