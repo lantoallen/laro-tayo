@@ -3,13 +3,24 @@ import Link from "next/link";
 import { SunMark } from "@/components/SunMark";
 import "./globals.css";
 
+const description = "Filipino games you can play on your phone, against a bot or with a friend.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://laro-tayo.vercel.app"),
   title: {
     default: "Laro Tayo!",
     template: "%s | Laro Tayo!",
   },
-  description: "Filipino games you can play on your phone, against a bot or with a friend.",
+  description,
   applicationName: "Laro Tayo!",
+  openGraph: {
+    type: "website",
+    siteName: "Laro Tayo!",
+    title: "Laro Tayo!",
+    description,
+    locale: "fil_PH",
+    url: "/",
+  },
 };
 
 export const viewport: Viewport = {
