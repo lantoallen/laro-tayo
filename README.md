@@ -1,6 +1,6 @@
 # Laro Tayo!
 
-Mga larong Pinoy na pwedeng laruin sa phone.
+Filipino games you can play on your phone, at https://laro-tayo.vercel.app.
 
 Right now there's Sungka. You can play it against a bot (easy, medium or hard) or pass one phone back and forth with a friend. Next up are online rooms so you can play friends through a link, then Pusoy Dos and a yes-or-no guessing game.
 
