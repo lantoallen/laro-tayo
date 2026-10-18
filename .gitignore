@@ -3,6 +3,7 @@ node_modules/
 coverage/
 *.tsbuildinfo
 .env*
+!.env.example
 .vercel
 .wrangler
 .claude/
