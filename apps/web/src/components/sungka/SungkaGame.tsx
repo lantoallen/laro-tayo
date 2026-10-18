@@ -2,58 +2,14 @@
 
 import { useEffect, useState } from "react";
 import type { Seat } from "@laro/games";
-import { chooseMove, legalMoves, result, setup, storeOf, type SungkaEvent } from "@laro/games/sungka";
+import { chooseMove, legalMoves, result, setup, storeOf } from "@laro/games/sungka";
 import { Board } from "./Board";
+import { latestNotice, NOTICE_CLASSES } from "./notices";
 import { RulesButton } from "./Rules";
 import { LEVEL_LABELS, seatNames, type SungkaSettings } from "./settings";
 import { DELAYS, useSowing, type Speed } from "./useSowing";
 
 const BOT_SEAT: Seat = 1;
-
-interface Notice {
-  tone: "good" | "bad" | "info";
-  text: string;
-}
-
-/** In a bot game the notices talk to the player at the bottom. In pass and play they use names. */
-function noticeFor(event: SungkaEvent, settings: SungkaSettings): Notice | null {
-  const vsBot = settings.mode === "bot";
-  const names = seatNames(settings.mode);
-  switch (event.type) {
-    case "capture": {
-      const seat = event.store === storeOf(0) ? 0 : 1;
-      if (vsBot) {
-        return seat === BOT_SEAT
-          ? { tone: "bad", text: `The bot captured ${event.count} shells` }
-          : { tone: "good", text: `Captured! +${event.count} shells` };
-      }
-      return { tone: "good", text: `${names[seat]} captured ${event.count} shells` };
-    }
-    case "extraTurn":
-      if (vsBot) {
-        return event.seat === BOT_SEAT
-          ? { tone: "bad", text: "The bot goes again" }
-          : { tone: "good", text: "You go again" };
-      }
-      return { tone: "good", text: `${names[event.seat]} goes again` };
-    case "pass":
-      if (vsBot) {
-        return event.seat === BOT_SEAT
-          ? { tone: "good", text: "The bot has no shells, so you go again" }
-          : { tone: "info", text: "You have no shells, so your turn is skipped" };
-      }
-      return { tone: "info", text: `${names[event.seat]} has no shells, so their turn is skipped` };
-    default:
-      return null;
-  }
-}
-
-/** The most recent message from the move being shown, or from the last move. */
-function latestNotice(events: SungkaEvent[], settings: SungkaSettings): Notice | null {
-  let notice: Notice | null = null;
-  for (const event of events) notice = noticeFor(event, settings) ?? notice;
-  return notice;
-}
 
 export function SungkaGame({
   settings,
@@ -91,7 +47,8 @@ export function SungkaGame({
     if (humanToMove) move(game.turn!, house);
   }
 
-  const shownNotice = outcome ? null : latestNotice(events, settings);
+  // In a bot game the messages talk to the player at the bottom. In pass and play they use names.
+  const shownNotice = outcome ? null : latestNotice(events, vsBot ? ["You", "The bot"] : names, vsBot ? 0 : null);
   const mover = sowing ? null : game.turn;
   const playing = sowing?.seat ?? game.turn;
   let status: string;
@@ -100,13 +57,6 @@ export function SungkaGame({
   else if (vsBot) status = sowing ? "Your move..." : "Your turn. Pick a house.";
   else if (sowing) status = `${names[playing]}'s move...`;
   else status = `${names[playing]}, your turn (${playing === 0 ? "bottom" : "top"})`;
-
-  const noticeTone =
-    shownNotice?.tone === "good"
-      ? "bg-yellow text-yellow-ink"
-      : shownNotice?.tone === "bad"
-        ? "border border-red text-red"
-        : "bg-surface";
 
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-3 px-4 pb-8">
@@ -151,7 +101,7 @@ export function SungkaGame({
 
       <PlayerRow name={names[0]} store={board[storeOf(0)]} active={mover === 0} />
 
-      <p aria-live="polite" className={`rounded-lg px-4 py-2.5 text-center font-semibold ${noticeTone}`}>
+      <p aria-live="polite" className={`rounded-lg px-4 py-2.5 text-center font-semibold ${NOTICE_CLASSES[shownNotice?.tone ?? "none"]}`}>
         {shownNotice?.text ?? status}
       </p>
     </main>
