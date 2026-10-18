@@ -1,10 +1,11 @@
 import type { CSSProperties } from "react";
+import type { Seat } from "@laro/games";
 import { BOARD_SIZE, isStore, ownerOf } from "@laro/games/sungka";
 import "./board.css";
 
 interface BoardProps {
   board: readonly number[];
-  /** Names for seat 0 (bottom) and seat 1 (top). */
+  /** Names for seat 0 and seat 1. */
   names: [string, string];
   /** Houses the current player may tap. */
   playable: readonly number[];
@@ -16,6 +17,8 @@ interface BoardProps {
   captured?: readonly number[];
   /** Extra classes for the board, such as a size modifier. */
   className?: string;
+  /** The seat drawn at the bottom of the board. Online, each player sees their own side there. */
+  perspective?: Seat;
 }
 
 /** Grid positions for each slot, for the tall (phone) and long (wide screen) layouts. */
@@ -74,10 +77,13 @@ export function Board({
   hand = 0,
   captured = [],
   className,
+  perspective = 0,
 }: BoardProps) {
   return (
     <div className={className ? `sk-board ${className}` : "sk-board"}>
       {Array.from({ length: BOARD_SIZE }, (_, slot) => {
+        // Where this slot is drawn. Turning the board around is a shift by half the ring.
+        const place = (slot + 8 * perspective) % BOARD_SIZE;
         const store = isStore(slot);
         const owner = names[ownerOf(slot)];
         const count = board[slot];
@@ -85,7 +91,7 @@ export function Board({
         const className = [
           "sk-slot",
           store && "sk-store",
-          `sk-side-${ownerOf(slot)}`,
+          `sk-side-${ownerOf(place)}`,
           canPlay && "sk-playable",
           active === slot && "sk-active",
           captured.includes(slot) && "sk-captured",
@@ -104,7 +110,7 @@ export function Board({
 
         if (store) {
           return (
-            <div key={slot} role="img" className={className} style={slotPosition(slot)} aria-label={label}>
+            <div key={slot} role="img" className={className} style={slotPosition(place)} aria-label={label}>
               {contents}
             </div>
           );
@@ -114,7 +120,7 @@ export function Board({
             key={slot}
             type="button"
             className={className}
-            style={slotPosition(slot)}
+            style={slotPosition(place)}
             disabled={!canPlay}
             onClick={() => onPlay(slot)}
             aria-label={label}
