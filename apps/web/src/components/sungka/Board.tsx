@@ -14,6 +14,8 @@ interface BoardProps {
   /** Shells still being sown. */
   hand?: number;
   captured?: readonly number[];
+  /** Extra classes for the board, such as a size modifier. */
+  className?: string;
 }
 
 /** Grid positions for each slot, for the tall (phone) and long (wide screen) layouts. */
@@ -63,9 +65,18 @@ function Shells({ count, store }: { count: number; store: boolean }) {
   ));
 }
 
-export function Board({ board, names, playable, onPlay, active = null, hand = 0, captured = [] }: BoardProps) {
+export function Board({
+  board,
+  names,
+  playable,
+  onPlay,
+  active = null,
+  hand = 0,
+  captured = [],
+  className,
+}: BoardProps) {
   return (
-    <div className="sk-board">
+    <div className={className ? `sk-board ${className}` : "sk-board"}>
       {Array.from({ length: BOARD_SIZE }, (_, slot) => {
         const store = isStore(slot);
         const owner = names[ownerOf(slot)];

@@ -9,7 +9,7 @@
   grid-template-rows: 1.35fr repeat(7, minmax(0, 1fr)) 1.35fr;
   gap: 6px;
   width: min(100%, 21rem);
-  height: min(62svh, 36rem);
+  height: var(--board-height, min(62svh, 36rem));
   margin-inline: auto;
   padding: 10px;
   border-radius: 28px;
@@ -170,6 +170,11 @@
 .sk-captured {
   outline: 3px solid var(--red);
   outline-offset: 1px;
+}
+
+/* A shorter tall board, for showing a game next to other content. */
+.sk-small {
+  --board-height: min(50svh, 26rem);
 }
 
 /* Shells still in hand while sowing. */
