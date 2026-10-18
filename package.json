@@ -1,0 +1,16 @@
+{
+  "name": "laro-tayo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @laro/web",
+    "build": "npm run build -w @laro/web",
+    "start": "npm run start -w @laro/web",
+    "lint": "npm run lint -w @laro/web",
+    "test": "npm test -w @laro/games",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  }
+}
