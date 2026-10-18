@@ -1,3 +1,4 @@
+import { About } from "@/components/landing/About";
 import { GameList } from "@/components/landing/GameList";
 import { Hero } from "@/components/landing/Hero";
 import { WaysToPlay } from "@/components/landing/WaysToPlay";
@@ -8,6 +9,7 @@ export default function Home() {
       <Hero />
       <GameList />
       <WaysToPlay />
+      <About />
     </main>
   );
 }
