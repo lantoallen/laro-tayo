@@ -1,0 +1,20 @@
+{
+  "name": "@laro/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types",
+    "typecheck": "wrangler types >/dev/null && tsc --noEmit"
+  },
+  "dependencies": {
+    "@laro/games": "*",
+    "@laro/rooms": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "wrangler": "^4"
+  }
+}
