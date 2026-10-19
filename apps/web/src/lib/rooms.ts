@@ -1,7 +1,9 @@
 import { isRoomCode, type GameId } from "@laro/rooms";
 
-/** Where the room server runs. Online play stays hidden when this isn't set. */
-export const ROOMS_URL = (process.env.NEXT_PUBLIC_ROOMS_URL ?? "").replace(/\/$/, "");
+/** The deployed room server. NEXT_PUBLIC_ROOMS_URL overrides it, and setting that to "" hides online play. */
+const DEFAULT_ROOMS_URL = "https://laro-tayo-rooms.lantoallen.workers.dev";
+
+export const ROOMS_URL = (process.env.NEXT_PUBLIC_ROOMS_URL ?? DEFAULT_ROOMS_URL).replace(/\/$/, "");
 export const ONLINE_ENABLED = ROOMS_URL !== "";
 
 /** Makes a new room on the server and returns its code. */

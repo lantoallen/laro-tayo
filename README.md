@@ -77,7 +77,7 @@ This uses Cloudflare's free Workers plan.
    npm run deploy -w @laro/server
    ```
 3. Wrangler prints the server's address, like `https://laro-tayo-rooms.<your-subdomain>.workers.dev`. Check it with `node apps/server/scripts/smoke-test.mjs <that address>`.
-4. In the Vercel project settings, add an environment variable named `NEXT_PUBLIC_ROOMS_URL` set to that address, then redeploy. The Online option shows up once it's set.
+4. Put that address in `DEFAULT_ROOMS_URL` in `apps/web/src/lib/rooms.ts` and push. You can also set `NEXT_PUBLIC_ROOMS_URL` in Vercel instead, which overrides it.
 
 If the site moves to a new domain, add it to `ALLOWED_ORIGINS` in `apps/server/wrangler.jsonc` and deploy again.
 
