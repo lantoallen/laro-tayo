@@ -5,7 +5,7 @@ import { useIsClient } from "@/lib/player";
 import { roomPath } from "@/lib/rooms";
 
 /** The invite link for a room, with buttons to copy it or open the phone's share sheet. */
-export function ShareLink({ code }: { code: string }) {
+export function ShareLink({ code, gameName }: { code: string; gameName: string }) {
   const isClient = useIsClient();
   const [copied, setCopied] = useState(false);
   const url = isClient ? `${window.location.origin}${roomPath(code)}` : roomPath(code);
@@ -40,7 +40,7 @@ export function ShareLink({ code }: { code: string }) {
         {canShare && (
           <button
             type="button"
-            onClick={() => navigator.share({ title: "Play Sungka with me", url }).catch(() => {})}
+            onClick={() => navigator.share({ title: `Play ${gameName} with me`, url }).catch(() => {})}
             className="btn btn-secondary flex-1"
           >
             Share
