@@ -98,7 +98,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-3 px-4 pb-8">
       <div className="flex items-center justify-between gap-2">
-        <Link href="/" className="text-sm text-muted hover:text-ink">
+        <Link href="/games" className="text-sm text-muted hover:text-ink">
           ← Leave
         </Link>
         <span className="text-sm text-muted">
@@ -182,7 +182,7 @@ function OnlineResult({
           </button>
         </>
       )}
-      <Link href="/" className={SECONDARY_BUTTON}>
+      <Link href="/games" className={SECONDARY_BUTTON}>
         Leave
       </Link>
     </ResultCard>

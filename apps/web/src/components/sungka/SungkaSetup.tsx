@@ -66,7 +66,7 @@ export function SungkaSetup({
 
   return (
     <main className="mx-auto max-w-md px-4 pb-16">
-      <Link href="/" className="text-sm text-muted hover:text-ink">
+      <Link href="/games" className="text-sm text-muted hover:text-ink">
         ← Games
       </Link>
       <h1 className="mt-2 text-3xl font-bold">Sungka</h1>
