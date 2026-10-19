@@ -49,9 +49,11 @@ export const GAMES: GameInfo[] = [
   {
     id: "hulaan-mo",
     name: "Hulaan Mo",
-    players: "2 to 8 players",
-    description: "One player sees the word. Everyone else asks yes-or-no questions to guess it.",
+    players: "4 or more players",
+    description: "The guesser holds the phone to their forehead and asks yes-or-no questions until they get the word.",
     color: "ink",
+    href: "/hulaan-mo",
+    ways: "Party game for 2 to 4 teams on one phone.",
   },
 ];
 

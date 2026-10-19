@@ -2,7 +2,7 @@
 
 Filipino games you can play on your phone, at https://laro-tayo.vercel.app.
 
-There are three games so far. Sungka and Dama (Filipino checkers) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Pusoy Dos, the card game, is played against three bots. A yes-or-no guessing game is next.
+There are four games so far. Sungka and Dama (Filipino checkers) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Pusoy Dos, the card game, is played against three bots. Hulaan Mo is a guessing game for a group sharing one phone.
 
 ## Running it
 
@@ -45,12 +45,15 @@ packages/games   Game rules in plain TypeScript, no React
   src/sungka     Sungka rules, bot, and tests
   src/dama       Dama rules, bot, and tests
   src/pusoy-dos  Pusoy Dos cards, rules, bots, and tests
+  src/hulaan-mo  Hulaan Mo word packs, game logic, and tests
 packages/rooms   Online room logic: seats, turns, rematches, and the messages sent over the socket
 apps/server      The room server, a Cloudflare Worker
 apps/web         The Next.js app
 ```
 
 Every game implements the same small interface (`setup`, `legalMoves`, `play`, `view`, `result`, `bot`) in `packages/games/src/engine/types.ts`. The screens and the online rooms only use that interface, so adding a game shouldn't mean touching shared code. `view` is there for games with hidden information: it decides what each player is allowed to see, so in Pusoy Dos nobody's phone will ever receive another player's cards.
+
+Hulaan Mo is the exception. It has no moves to choose between and no bot, just a timer and two buttons, so it's a plain reducer (`createGame` and `reduce`) with its own tests instead.
 
 Some details about Sungka:
 
@@ -118,6 +121,16 @@ These follow the descriptions on [BoardGameGeek](https://boardgamegeek.com/wiki/
 - House rules differ on two points, so this version picks one each: a 2 can't be part of a straight, and flushes are compared by suit first.
 
 Each player only ever receives their own hand. The bots decide from that same limited view, so a test checks that shuffling the other players' cards never changes what a bot plays.
+
+## Hulaan Mo rules used here
+
+- Split into 2 to 4 teams. Each turn, one player holds the phone to their forehead so only the rest of their team can see the word.
+- The guesser asks yes-or-no questions. The team can only answer yes, no, or maybe.
+- A teammate taps Got it when the guesser says the word, or Skip to move on. Every word guessed before the timer runs out is a point.
+- Each team gets the same number of turns (1 to 3), and the team with the most points wins. Turns are 60, 90, or 120 seconds.
+- Words come from three packs of 40: Filipino food, places in the Philippines, and everyday things. Mixed uses all 120.
+
+It's based on Pinoy Henyo from Eat Bulaga, where the answers are "oo", "hindi", and "pwede". The screen stays on during a turn where the browser allows it, and the phone buzzes when time runs out.
 
 ---
 

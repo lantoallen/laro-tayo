@@ -36,21 +36,23 @@ export function GameList() {
         ))}
       </ul>
 
-      <section aria-labelledby="upcoming-heading" className="mt-10">
-        <h2 id="upcoming-heading" className="mb-2 text-sm font-semibold tracking-wide text-muted uppercase">
-          In the works
-        </h2>
-        <ul className="divide-y divide-line border-y border-line">
-          {UPCOMING.map((game) => (
-            <li key={game.id} className="py-4">
-              <h3 className="font-bold">
-                {game.name} <span className="font-normal text-muted">· {game.players}</span>
-              </h3>
-              <p className="mt-0.5 text-muted">{game.description}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {UPCOMING.length > 0 && (
+        <section aria-labelledby="upcoming-heading" className="mt-10">
+          <h2 id="upcoming-heading" className="mb-2 text-sm font-semibold tracking-wide text-muted uppercase">
+            In the works
+          </h2>
+          <ul className="divide-y divide-line border-y border-line">
+            {UPCOMING.map((game) => (
+              <li key={game.id} className="py-4">
+                <h3 className="font-bold">
+                  {game.name} <span className="font-normal text-muted">· {game.players}</span>
+                </h3>
+                <p className="mt-0.5 text-muted">{game.description}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </>
   );
 }
