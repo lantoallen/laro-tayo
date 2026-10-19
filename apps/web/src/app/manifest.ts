@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Filipino games you can play on your phone, against a bot or with a friend.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f6f1e7",
-    theme_color: "#0038a8",
+    background_color: "#fdf3d9",
+    theme_color: "#fcd116",
     icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
   };
 }

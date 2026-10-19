@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import type { ReactNode } from "react";
 import { ImageResponse } from "next/og";
 
@@ -20,13 +22,14 @@ function Tile({ name, children }: { name: string; children: ReactNode }) {
           width: 300,
           height: 190,
           borderRadius: 24,
-          background: "#fffdf8",
-          border: "3px solid #ddd3c3",
+          background: "#fffaf0",
+          border: "5px solid #1b1b1b",
+          boxShadow: "6px 6px 0 #1b1b1b",
         }}
       >
         {children}
       </div>
-      <div style={{ display: "flex", fontSize: 34, fontWeight: 700 }}>{name}</div>
+      <div style={{ display: "flex", fontSize: 34 }}>{name}</div>
     </div>
   );
 }
@@ -56,8 +59,7 @@ function Card({ label, color, turn }: { label: string; color: string; turn: numb
         border: "3px solid #ddd3c3",
         transform: `rotate(${turn}deg)`,
         fontSize: 48,
-        fontWeight: 700,
-        color,
+                color,
       }}
     >
       {label}
@@ -66,7 +68,9 @@ function Card({ label, color, turn }: { label: string; color: string; turn: numb
 }
 
 /** The preview image shown when the link is shared: the headline and a tile for each game. */
-export default function OpenGraphImage() {
+export default async function OpenGraphImage() {
+  // The same sign lettering as the site. The font's license is next to it in assets/fonts.
+  const bungee = await readFile(join(process.cwd(), "assets/fonts/Bungee-Regular.ttf"));
   return new ImageResponse(
     (
       <div
@@ -77,15 +81,31 @@ export default function OpenGraphImage() {
           flexDirection: "column",
           justifyContent: "center",
           padding: "60px 80px",
-          background: "#f6f1e7",
-          color: "#1f1a14",
+          background: "#fdf3d9",
+          color: "#1b1b1b",
+          fontFamily: "Bungee",
         }}
       >
-        <div style={{ display: "flex", fontSize: 40, fontWeight: 700, color: BLUE }}>Laro Tayo!</div>
-        <div style={{ display: "flex", fontSize: 60, fontWeight: 700, marginTop: 8 }}>
+        <div
+          style={{
+            display: "flex",
+            alignSelf: "flex-start",
+            gap: 16,
+            padding: "10px 22px",
+            borderRadius: 18,
+            background: "#fcd116",
+            border: "5px solid #1b1b1b",
+            boxShadow: "8px 8px 0 #ce1126",
+            fontSize: 52,
+                        color: BLUE,
+          }}
+        >
+          LARO <span style={{ color: "#ce1126" }}>TAYO!</span>
+        </div>
+        <div style={{ display: "flex", fontSize: 56, marginTop: 32 }}>
           Filipino games you can play on your phone.
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 48 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 40 }}>
           <Tile name="Sungka">
             <div
               style={{
@@ -117,8 +137,7 @@ export default function OpenGraphImage() {
                 background: BLUE,
                 color: "white",
                 fontSize: 60,
-                fontWeight: 700,
-              }}
+                              }}
             >
               ?
             </div>
@@ -126,6 +145,6 @@ export default function OpenGraphImage() {
         </div>
       </div>
     ),
-    size,
+    { ...size, fonts: [{ name: "Bungee", data: bungee, weight: 400, style: "normal" }] },
   );
 }
