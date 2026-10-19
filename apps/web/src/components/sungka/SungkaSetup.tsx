@@ -6,41 +6,9 @@ import type { BotLevel } from "@laro/games";
 import { NameField } from "@/components/room/NameField";
 import { usePlayer } from "@/lib/player";
 import { ONLINE_ENABLED } from "@/lib/rooms";
+import { Segmented } from "@/components/game/Segmented";
 import { Rules } from "./Rules";
 import { LEVEL_LABELS, type FirstPlayer, type SungkaMode, type SungkaSettings } from "./settings";
-
-/** A row of radio buttons that looks like a segmented control. */
-function Segmented<T extends string>(props: {
-  legend: string;
-  name: string;
-  value: T;
-  options: { value: T; label: string }[];
-  onChange: (value: T) => void;
-}) {
-  return (
-    <fieldset>
-      <legend className="mb-2 font-semibold">{props.legend}</legend>
-      <div className="flex rounded-xl border-[3px] border-outline bg-surface p-1 shadow-[3px_3px_0_var(--outline)]">
-        {props.options.map((option) => (
-          <label
-            key={option.value}
-            className="flex-1 cursor-pointer rounded-md px-2 py-2 text-center text-sm font-medium text-muted has-checked:bg-blue has-checked:text-blue-ink has-focus-visible:outline-3 has-focus-visible:outline-blue"
-          >
-            <input
-              type="radio"
-              name={props.name}
-              value={option.value}
-              checked={props.value === option.value}
-              onChange={() => props.onChange(option.value)}
-              className="sr-only"
-            />
-            {option.label}
-          </label>
-        ))}
-      </div>
-    </fieldset>
-  );
-}
 
 export function SungkaSetup({
   settings,

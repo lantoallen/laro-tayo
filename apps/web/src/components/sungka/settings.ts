@@ -1,8 +1,9 @@
-import type { BotLevel, Seat } from "@laro/games";
+import type { BotLevel } from "@laro/games";
+import type { FirstPlayer } from "@/components/game/settings";
+
+export { firstSeatFor, LEVEL_LABELS, type FirstPlayer } from "@/components/game/settings";
 
 export type SungkaMode = "bot" | "local" | "online";
-export type FirstPlayer = "me" | "them" | "random";
-
 export interface SungkaSettings {
   mode: SungkaMode;
   level: BotLevel;
@@ -11,19 +12,7 @@ export interface SungkaSettings {
 
 export const DEFAULT_SETTINGS: SungkaSettings = { mode: "bot", level: "medium", first: "me" };
 
-export const LEVEL_LABELS: Record<BotLevel, string> = {
-  easy: "Easy",
-  medium: "Medium",
-  hard: "Hard",
-};
-
 /** Seat 0 sits at the bottom of the screen, seat 1 at the top. */
 export function seatNames(mode: SungkaMode): [string, string] {
   return mode === "bot" ? ["You", "Bot"] : ["Player 1", "Player 2"];
-}
-
-export function firstSeatFor(first: FirstPlayer): Seat {
-  if (first === "me") return 0;
-  if (first === "them") return 1;
-  return Math.random() < 0.5 ? 0 : 1;
 }

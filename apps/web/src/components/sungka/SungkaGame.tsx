@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import type { Seat } from "@laro/games";
 import { chooseMove, legalMoves, result, setup, storeOf } from "@laro/games/sungka";
+import { LeaveButton } from "@/components/game/LeaveButton";
+import { RulesButton } from "@/components/game/RulesButton";
+import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { Board } from "./Board";
-import { LeaveButton } from "./LeaveButton";
+import { Rules } from "./Rules";
 import { latestNotice } from "./notices";
-import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "./parts";
-import { RulesButton } from "./Rules";
 import { LEVEL_LABELS, seatNames, type SungkaSettings } from "./settings";
 import { DELAYS, useSowing, type Speed } from "./useSowing";
 
@@ -81,13 +82,15 @@ export function SungkaGame({
           >
             2x
           </button>
-          <RulesButton />
+          <RulesButton>
+            <Rules />
+          </RulesButton>
         </div>
       </div>
 
       <PlayerRow
         name={vsBot ? `Bot (${LEVEL_LABELS[settings.level]})` : names[1]}
-        store={board[storeOf(1)]}
+        stat={{ label: "Store", value: board[storeOf(1)] }}
         active={mover === 1}
       />
 
@@ -116,7 +119,7 @@ export function SungkaGame({
         )}
       </div>
 
-      <PlayerRow name={names[0]} store={board[storeOf(0)]} active={mover === 0} />
+      <PlayerRow name={names[0]} stat={{ label: "Store", value: board[storeOf(0)] }} active={mover === 0} />
 
       <StatusLine notice={shownNotice} status={status} />
     </main>

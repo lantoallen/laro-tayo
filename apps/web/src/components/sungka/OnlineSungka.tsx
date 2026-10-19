@@ -6,13 +6,14 @@ import { useEffect, useState } from "react";
 import type { Seat } from "@laro/games";
 import { legalMoves, result, storeOf, type SungkaEvent, type SungkaState } from "@laro/games/sungka";
 import type { ClientMessage } from "@laro/rooms";
+import { LeaveButton } from "@/components/game/LeaveButton";
+import { RulesButton } from "@/components/game/RulesButton";
+import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine, type Notice } from "@/components/game/parts";
 import { ShareLink } from "@/components/room/ShareLink";
 import type { ConnectionStatus, RoomUpdate } from "@/lib/useRoom";
 import { Board } from "./Board";
-import { LeaveButton } from "./LeaveButton";
-import { latestNotice, type Notice } from "./notices";
-import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "./parts";
-import { RulesButton } from "./Rules";
+import { Rules } from "./Rules";
+import { latestNotice } from "./notices";
 import { useSowing } from "./useSowing";
 
 interface OnlineProps {
@@ -123,12 +124,14 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
         <span className="text-sm text-muted">
           {you === null ? "Watching" : "Room"} <b className="font-mono tracking-widest text-ink">{room.code}</b>
         </span>
-        <RulesButton />
+        <RulesButton>
+            <Rules />
+          </RulesButton>
       </div>
 
       <PlayerRow
         name={label(top)}
-        store={board[storeOf(top)]}
+        stat={{ label: "Store", value: board[storeOf(top)] }}
         active={!sowing && game.turn === top}
         note={connected[top] ? undefined : "offline"}
       />
@@ -149,7 +152,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
 
       <PlayerRow
         name={label(bottom)}
-        store={board[storeOf(bottom)]}
+        stat={{ label: "Store", value: board[storeOf(bottom)] }}
         active={!sowing && game.turn === bottom}
         note={connected[bottom] ? undefined : "offline"}
       />

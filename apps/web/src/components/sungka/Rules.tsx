@@ -1,7 +1,3 @@
-"use client";
-
-import { useRef } from "react";
-
 export function Rules() {
   return (
     <>
@@ -29,38 +25,6 @@ export function Rules() {
         In the traditional game, both players make their first move at the same time. Here you take turns from the
         start.
       </p>
-    </>
-  );
-}
-
-export function RulesButton() {
-  const dialog = useRef<HTMLDialogElement>(null);
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => dialog.current?.showModal()}
-        aria-label="How to play"
-        className="btn btn-secondary btn-small size-9 px-0"
-      >
-        ?
-      </button>
-      <dialog
-        ref={dialog}
-        aria-labelledby="rules-title"
-        className="card m-auto w-[min(32rem,calc(100%-2rem))] p-5 text-ink backdrop:bg-black/50"
-        onClick={(event) => {
-          if (event.target === dialog.current) dialog.current.close();
-        }}
-      >
-        <h2 id="rules-title" className="mb-3 text-lg font-bold">
-          How to play
-        </h2>
-        <Rules />
-        <form method="dialog" className="mt-5">
-          <button className="btn btn-primary w-full">Got it</button>
-        </form>
-      </dialog>
     </>
   );
 }

@@ -1,7 +1,29 @@
 import type { ReactNode } from "react";
-import { NOTICE_CLASSES, type Notice } from "./notices";
 
-export function PlayerRow({ name, store, active, note }: { name: string; store: number; active: boolean; note?: string }) {
+export interface Notice {
+  tone: "good" | "bad" | "info";
+  text: string;
+}
+
+export const NOTICE_CLASSES: Record<Notice["tone"] | "none", string> = {
+  good: "border-outline bg-yellow text-yellow-ink",
+  bad: "border-red bg-surface text-red",
+  info: "border-outline bg-surface",
+  none: "border-outline bg-surface",
+};
+
+/** A player's name above or below the board, with one number about how they're doing. */
+export function PlayerRow({
+  name,
+  stat,
+  active,
+  note,
+}: {
+  name: string;
+  stat: { label: string; value: number };
+  active: boolean;
+  note?: string;
+}) {
   return (
     <div className="mx-auto flex w-full max-w-[58rem] items-center justify-between text-sm">
       <span className="flex items-center gap-2 font-semibold">
@@ -11,7 +33,7 @@ export function PlayerRow({ name, store, active, note }: { name: string; store: 
         {note && <span className="font-normal text-muted">{note}</span>}
       </span>
       <span className="text-muted">
-        Store: <b className="text-ink tabular-nums">{store}</b>
+        {stat.label}: <b className="text-ink tabular-nums">{stat.value}</b>
       </span>
     </div>
   );

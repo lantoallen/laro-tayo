@@ -1,17 +1,6 @@
 import type { Seat } from "@laro/games";
 import { storeOf, type SungkaEvent } from "@laro/games/sungka";
-
-export interface Notice {
-  tone: "good" | "bad" | "info";
-  text: string;
-}
-
-export const NOTICE_CLASSES: Record<Notice["tone"] | "none", string> = {
-  good: "border-outline bg-yellow text-yellow-ink",
-  bad: "border-red bg-surface text-red",
-  info: "border-outline bg-surface",
-  none: "border-outline bg-surface",
-};
+import type { Notice } from "@/components/game/parts";
 
 /**
  * A short message about something that happened during a move. `you` is the seat
