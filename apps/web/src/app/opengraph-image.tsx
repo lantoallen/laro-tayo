@@ -3,7 +3,7 @@ import { join } from "node:path";
 import type { ReactNode } from "react";
 import { ImageResponse } from "next/og";
 
-export const alt = "Laro Tayo! Filipino games you can play on your phone: Sungka, Pusoy Dos, and Hulaan Mo.";
+export const alt = "Laro Tayo! Filipino games you can play on your phone: Sungka, Dama, Pusoy Dos, and Hulaan Mo.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -19,8 +19,8 @@ function Tile({ name, children }: { name: string; children: ReactNode }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          width: 300,
-          height: 190,
+          width: 236,
+          height: 180,
           borderRadius: 24,
           background: "#fffaf0",
           border: "5px solid #1b1b1b",
@@ -119,6 +119,33 @@ export default async function OpenGraphImage() {
             >
               <Pits />
               <Pits />
+            </div>
+          </Tile>
+          <Tile name="Dama">
+            <div style={{ display: "flex", flexDirection: "column", border: "4px solid #1b1b1b" }}>
+              {[0, 1, 2, 3].map((row) => (
+                <div key={row} style={{ display: "flex" }}>
+                  {[0, 1, 2, 3].map((col) => {
+                    const dark = (row + col) % 2 === 1;
+                    const piece = dark && row !== 1 && row !== 2 ? (row === 0 ? BLUE : "#ce1126") : null;
+                    return (
+                      <div
+                        key={col}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: 30,
+                          height: 30,
+                          background: dark ? WOOD : "#f3dfb4",
+                        }}
+                      >
+                        {piece && <div style={{ display: "flex", width: 22, height: 22, borderRadius: 999, background: piece }} />}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           </Tile>
           <Tile name="Pusoy Dos">
