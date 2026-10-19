@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { GAMES } from "@/lib/games";
 import { ONLINE_ENABLED } from "@/lib/rooms";
-import { SungkaArt } from "./SungkaArt";
+import { GameArt } from "./GameArt";
 
 const UPCOMING = GAMES.filter((game) => !game.href);
 
@@ -14,7 +14,7 @@ export function GameList() {
           className="group grid overflow-hidden rounded-xl border border-line bg-surface hover:border-blue sm:grid-cols-[2fr_3fr]"
         >
           <div className="grid place-items-center bg-bg p-6">
-            <SungkaArt className="w-full max-w-72" />
+            <GameArt id="sungka" className="w-full max-w-72" />
           </div>
           <div className="p-5">
             <h2 id="sungka-heading" className="text-2xl font-bold">
