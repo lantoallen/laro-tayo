@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Seat } from "@laro/games";
 import { legalMoves, result, storeOf, type SungkaEvent, type SungkaState } from "@laro/games/sungka";
@@ -8,6 +9,7 @@ import type { ClientMessage } from "@laro/rooms";
 import { ShareLink } from "@/components/room/ShareLink";
 import type { ConnectionStatus, RoomUpdate } from "@/lib/useRoom";
 import { Board } from "./Board";
+import { LeaveButton } from "./LeaveButton";
 import { latestNotice, type Notice } from "./notices";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "./parts";
 import { RulesButton } from "./Rules";
@@ -52,6 +54,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   const view = room.view as SungkaState;
   const you = room.you;
   const { game, sowing, frame, events, board, show, restart } = useSowing(() => view, "normal");
+  const router = useRouter();
 
   // When the server sends a new move, play it out if it follows the one on screen.
   // If moves were missed, for example after a reconnect, jump straight to the new board.
@@ -98,9 +101,14 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-3 px-4 pb-8">
       <div className="flex items-center justify-between gap-2">
-        <Link href="/games" className="text-sm text-muted hover:text-ink">
-          ← Leave
-        </Link>
+        <LeaveButton
+          label="← Leave"
+          ask={you !== null && room.phase === "playing"}
+          title="Leave the room?"
+          detail="Your seat stays yours. Open the room link again to come back to the game."
+          leaveLabel="Leave"
+          onLeave={() => router.push("/games")}
+        />
         <span className="text-sm text-muted">
           {you === null ? "Watching" : "Room"} <b className="font-mono tracking-widest text-ink">{room.code}</b>
         </span>

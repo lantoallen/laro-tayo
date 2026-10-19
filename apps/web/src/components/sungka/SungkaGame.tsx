@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { Seat } from "@laro/games";
 import { chooseMove, legalMoves, result, setup, storeOf } from "@laro/games/sungka";
 import { Board } from "./Board";
+import { LeaveButton } from "./LeaveButton";
 import { latestNotice } from "./notices";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "./parts";
 import { RulesButton } from "./Rules";
@@ -62,9 +63,14 @@ export function SungkaGame({
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-3 px-4 pb-8">
       <div className="flex items-center justify-between gap-2">
-        <button type="button" onClick={onExit} className="text-sm text-muted hover:text-ink">
-          ← Back
-        </button>
+        <LeaveButton
+          label="← Back"
+          ask={game.turns > 0 && game.turn !== null}
+          title="Leave this game?"
+          detail="The game ends and the board isn't saved."
+          leaveLabel="Leave game"
+          onLeave={onExit}
+        />
         <div className="flex items-center gap-2">
           <button
             type="button"
