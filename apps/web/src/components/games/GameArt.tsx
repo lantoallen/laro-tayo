@@ -3,6 +3,7 @@ import type { GameId } from "@/lib/games";
 /** Each drawing's own frame, so the narrow ones fill a tile as well as the board does. */
 const FRAMES: Record<GameId, string> = {
   sungka: "0 0 160 60",
+  dama: "46 0 68 60",
   "pusoy-dos": "38 0 84 60",
   "hulaan-mo": "28 2 116 56",
 };
@@ -12,6 +13,7 @@ export function GameArt({ id, className }: { id: GameId; className?: string }) {
   return (
     <svg viewBox={FRAMES[id]} className={className} aria-hidden="true">
       {id === "sungka" && <SungkaBoard />}
+      {id === "dama" && <Checkers />}
       {id === "pusoy-dos" && <Cards />}
       {id === "hulaan-mo" && <Question />}
     </svg>
@@ -44,6 +46,33 @@ function SungkaBoard() {
         <ellipse key={`${x}-${y}`} cx={x} cy={y} rx="2.6" ry="1.9" fill="var(--shell)" />
       ))}
     </>
+  );
+}
+
+/** A corner of a dama board with a red king. */
+function Checkers() {
+  const squares = [0, 1, 2, 3].flatMap((row) => [0, 1, 2, 3].map((col) => ({ row, col })));
+  const pieces = [
+    { row: 0, col: 1, color: "#0038a8" },
+    { row: 0, col: 3, color: "#0038a8" },
+    { row: 2, col: 1, color: "#ce1126" },
+    { row: 3, col: 2, color: "#ce1126", king: true },
+  ];
+  return (
+    <g transform="translate(52 3)">
+      <rect width="56" height="56" rx="4" fill="#f3dfb4" stroke="#1b1b1b" strokeWidth="2" />
+      {squares
+        .filter(({ row, col }) => (row + col) % 2 === 1)
+        .map(({ row, col }) => (
+          <rect key={`${row}-${col}`} x={col * 14} y={row * 14} width="14" height="14" fill="var(--wood)" />
+        ))}
+      {pieces.map(({ row, col, color, king }) => (
+        <g key={`${row}-${col}`}>
+          <circle cx={col * 14 + 7} cy={row * 14 + 7} r="5.2" fill={color} stroke="#1b1b1b" strokeWidth="1.2" />
+          {king && <circle cx={col * 14 + 7} cy={row * 14 + 7} r="2.2" fill="#fcd116" />}
+        </g>
+      ))}
+    </g>
   );
 }
 
