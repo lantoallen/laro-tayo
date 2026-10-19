@@ -7,7 +7,8 @@
     ".": "./src/index.ts",
     "./sungka": "./src/sungka/index.ts",
     "./dama": "./src/dama/index.ts",
-    "./pusoy-dos": "./src/pusoy-dos/index.ts"
+    "./pusoy-dos": "./src/pusoy-dos/index.ts",
+    "./hulaan-mo": "./src/hulaan-mo/index.ts"
   },
   "scripts": {
     "test": "vitest run",
