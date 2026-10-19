@@ -1,0 +1,85 @@
+/* Playing cards. They stay white in dark mode, like real cards. */
+.pd-card {
+  --card-width: 56px;
+  position: relative;
+  width: var(--card-width);
+  aspect-ratio: 5 / 7;
+  padding: 3px 4px;
+  border: 2px solid #1b1b1b;
+  border-radius: 8px;
+  background: #fffdf6;
+  box-shadow: 2px 2px 0 rgb(0 0 0 / 0.25);
+  color: #1b1b1b;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  line-height: 1;
+  text-align: left;
+  user-select: none;
+}
+
+.pd-small {
+  --card-width: 42px;
+  font-size: 0.72rem;
+}
+
+.pd-red {
+  color: #ce1126;
+}
+
+.pd-corner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: fit-content;
+}
+
+.pd-pip {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+}
+
+.pd-small .pd-pip {
+  font-size: 1.1rem;
+}
+
+.pd-back {
+  background:
+    repeating-linear-gradient(45deg, transparent 0 5px, rgb(252 209 22 / 0.35) 5px 7px),
+    #0038a8;
+}
+
+button.pd-card {
+  cursor: pointer;
+  transition: transform 100ms ease;
+}
+
+.pd-selected {
+  transform: translateY(-14px);
+  outline: 3px solid #fcd116;
+  outline-offset: 1px;
+}
+
+/*
+ * The hand overlaps cards to fit the screen: every card but the last gets an
+ * equal share of the width, and the last one shows in full.
+ */
+.pd-hand {
+  display: grid;
+  grid-template-columns: repeat(calc(var(--count) - 1), minmax(0, 1fr)) 56px;
+  max-width: calc(var(--count) * 60px);
+  margin-inline: auto;
+  padding-top: 16px;
+}
+
+.pd-hand > * {
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.pd-card {
+    transition: none;
+  }
+}
