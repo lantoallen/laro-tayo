@@ -33,7 +33,7 @@ export function LeaveButton({
       <dialog
         ref={dialog}
         aria-labelledby="leave-title"
-        className="m-auto w-[min(22rem,calc(100%-2rem))] rounded-xl border border-line bg-surface p-5 text-ink backdrop:bg-black/50"
+        className="card m-auto w-[min(22rem,calc(100%-2rem))] p-5 text-ink backdrop:bg-black/50"
       >
         <h2 id="leave-title" className="text-lg font-bold">
           {title}

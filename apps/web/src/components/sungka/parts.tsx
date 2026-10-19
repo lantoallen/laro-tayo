@@ -22,7 +22,7 @@ export function StatusLine({ notice, status }: { notice: Notice | null; status: 
   return (
     <p
       aria-live="polite"
-      className={`rounded-lg px-4 py-2.5 text-center font-semibold ${NOTICE_CLASSES[notice?.tone ?? "none"]}`}
+      className={`rounded-xl border-2 px-4 py-2.5 text-center font-semibold ${NOTICE_CLASSES[notice?.tone ?? "none"]}`}
     >
       {notice?.text ?? status}
     </p>
@@ -36,7 +36,7 @@ export function ResultCard({ title, detail, children }: { title: string; detail:
       <div
         role="dialog"
         aria-labelledby="result-title"
-        className="w-full max-w-xs rounded-xl border border-line bg-surface p-5 text-center shadow-xl"
+        className="card w-full max-w-xs p-5 text-center"
       >
         <h2 id="result-title" className="text-2xl font-bold">
           {title}
@@ -48,5 +48,5 @@ export function ResultCard({ title, detail, children }: { title: string; detail:
   );
 }
 
-export const PRIMARY_BUTTON = "rounded-lg bg-blue py-2.5 font-semibold text-blue-ink disabled:opacity-60";
-export const SECONDARY_BUTTON = "rounded-lg border border-line py-2.5 text-center font-semibold";
+export const PRIMARY_BUTTON = "btn btn-primary";
+export const SECONDARY_BUTTON = "btn btn-secondary";

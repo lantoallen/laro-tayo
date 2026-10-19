@@ -5,7 +5,7 @@ export default function NotFound() {
     <main className="mx-auto max-w-md px-4 pt-10 pb-16">
       <h1 className="text-2xl font-bold">This page doesn&apos;t exist</h1>
       <p className="mt-2 text-muted">The link may have a typo, or the page was moved.</p>
-      <Link href="/games" className="mt-6 inline-block rounded-lg bg-blue px-5 py-2.5 font-semibold text-blue-ink">
+      <Link href="/games" className="btn btn-primary mt-6">
         Go to the games
       </Link>
     </main>

@@ -14,7 +14,8 @@
   padding: 10px;
   border-radius: 28px;
   background: var(--wood);
-  border: 3px solid var(--wood-dark);
+  border: 3px solid var(--outline);
+  box-shadow: 5px 5px 0 var(--outline);
 }
 
 .sk-slot {

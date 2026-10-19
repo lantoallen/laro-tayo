@@ -50,7 +50,7 @@ function JoinForm() {
         }}
       >
         <NameField value={name} onChange={setName} />
-        <button type="submit" className="w-full rounded-lg bg-blue py-3 font-semibold text-blue-ink">
+        <button type="submit" className="btn btn-primary w-full py-3.5">
           Join
         </button>
       </form>
@@ -65,7 +65,7 @@ function Room({ code, player }: { code: string; player: LocalPlayer }) {
     return (
       <RoomMessage title="This room doesn't exist">
         <p>The link may be wrong, or the room was closed after a day without any games.</p>
-        <Link href="/sungka" className="inline-block rounded-lg bg-blue px-5 py-2.5 font-semibold text-blue-ink">
+        <Link href="/sungka" className="btn btn-primary">
           Start a new game
         </Link>
       </RoomMessage>

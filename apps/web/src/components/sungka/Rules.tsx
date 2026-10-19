@@ -41,14 +41,14 @@ export function RulesButton() {
         type="button"
         onClick={() => dialog.current?.showModal()}
         aria-label="How to play"
-        className="size-9 rounded-lg border border-line font-semibold"
+        className="btn btn-secondary btn-small size-9 px-0"
       >
         ?
       </button>
       <dialog
         ref={dialog}
         aria-labelledby="rules-title"
-        className="m-auto w-[min(32rem,calc(100%-2rem))] rounded-xl border border-line bg-surface p-5 text-ink backdrop:bg-black/50"
+        className="card m-auto w-[min(32rem,calc(100%-2rem))] p-5 text-ink backdrop:bg-black/50"
         onClick={(event) => {
           if (event.target === dialog.current) dialog.current.close();
         }}
@@ -58,7 +58,7 @@ export function RulesButton() {
         </h2>
         <Rules />
         <form method="dialog" className="mt-5">
-          <button className="w-full rounded-lg bg-blue py-2.5 font-semibold text-blue-ink">Got it</button>
+          <button className="btn btn-primary w-full">Got it</button>
         </form>
       </dialog>
     </>

@@ -11,9 +11,9 @@ export function GameList() {
       <section aria-labelledby="sungka-heading" className="mt-6">
         <Link
           href="/sungka"
-          className="group grid overflow-hidden rounded-xl border border-line bg-surface hover:border-blue sm:grid-cols-[2fr_3fr]"
+          className="card group grid overflow-hidden sm:grid-cols-[2fr_3fr]"
         >
-          <div className="grid place-items-center bg-bg p-6">
+          <div className="grid place-items-center border-b-[3px] border-outline bg-blue p-6 sm:border-r-[3px] sm:border-b-0">
             <GameArt id="sungka" className="w-full max-w-72" />
           </div>
           <div className="p-5">
@@ -28,7 +28,7 @@ export function GameList() {
                 ? "Play a bot, pass one phone around, or play a friend online."
                 : "Play a bot or pass one phone around."}
             </p>
-            <span className="mt-5 inline-block rounded-lg bg-blue px-5 py-2.5 font-semibold text-blue-ink group-hover:opacity-90">
+            <span className="btn btn-primary mt-5">
               Play Sungka
             </span>
           </div>

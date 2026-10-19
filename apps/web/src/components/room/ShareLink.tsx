@@ -31,17 +31,17 @@ export function ShareLink({ code }: { code: string }) {
         readOnly
         value={url}
         onFocus={(event) => event.target.select()}
-        className="w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm"
+        className="field text-sm"
       />
       <div className="mt-3 flex gap-2">
-        <button type="button" onClick={copy} className="flex-1 rounded-lg bg-blue py-2.5 font-semibold text-blue-ink">
+        <button type="button" onClick={copy} className="btn btn-primary flex-1">
           {copied ? "Copied" : "Copy link"}
         </button>
         {canShare && (
           <button
             type="button"
             onClick={() => navigator.share({ title: "Play Sungka with me", url }).catch(() => {})}
-            className="flex-1 rounded-lg border border-line py-2.5 font-semibold"
+            className="btn btn-secondary flex-1"
           >
             Share
           </button>

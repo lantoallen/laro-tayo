@@ -77,7 +77,7 @@ export function SungkaGame({
             onClick={() => setSpeed(speed === "normal" ? "fast" : "normal")}
             aria-pressed={speed === "fast"}
             aria-label="Faster"
-            className="h-9 rounded-lg border border-line px-3 text-sm font-semibold aria-pressed:bg-ink aria-pressed:text-bg"
+            className="btn btn-secondary btn-small h-9 aria-pressed:bg-yellow aria-pressed:text-yellow-ink"
           >
             2x
           </button>

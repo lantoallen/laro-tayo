@@ -7,10 +7,10 @@ export interface Notice {
 }
 
 export const NOTICE_CLASSES: Record<Notice["tone"] | "none", string> = {
-  good: "bg-yellow text-yellow-ink",
-  bad: "border border-red text-red",
-  info: "bg-surface",
-  none: "bg-surface",
+  good: "border-outline bg-yellow text-yellow-ink",
+  bad: "border-red bg-surface text-red",
+  info: "border-outline bg-surface",
+  none: "border-outline bg-surface",
 };
 
 /**

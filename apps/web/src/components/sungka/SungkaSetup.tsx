@@ -20,11 +20,11 @@ function Segmented<T extends string>(props: {
   return (
     <fieldset>
       <legend className="mb-2 font-semibold">{props.legend}</legend>
-      <div className="flex rounded-lg border border-line bg-surface p-1">
+      <div className="flex rounded-xl border-[3px] border-outline bg-surface p-1 shadow-[3px_3px_0_var(--outline)]">
         {props.options.map((option) => (
           <label
             key={option.value}
-            className="flex-1 cursor-pointer rounded-md px-2 py-2 text-center text-sm font-medium text-muted has-checked:bg-ink has-checked:text-bg has-focus-visible:outline-3 has-focus-visible:outline-blue"
+            className="flex-1 cursor-pointer rounded-md px-2 py-2 text-center text-sm font-medium text-muted has-checked:bg-blue has-checked:text-blue-ink has-focus-visible:outline-3 has-focus-visible:outline-blue"
           >
             <input
               type="radio"
@@ -132,7 +132,7 @@ export function SungkaSetup({
         <button
           type="submit"
           disabled={creating}
-          className="w-full rounded-lg bg-blue py-3 font-semibold text-blue-ink disabled:opacity-60"
+          className="btn btn-primary w-full py-3.5"
         >
           {!online ? "Start" : creating ? "Making a room..." : "Make a room"}
         </button>
