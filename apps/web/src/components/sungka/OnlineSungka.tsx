@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Seat } from "@laro/games";
 import { legalMoves, result, storeOf, type SungkaEvent, type SungkaState } from "@laro/games/sungka";
 import type { ClientMessage } from "@laro/rooms";
@@ -81,6 +81,17 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   const yourTurn = !sowing && you !== null && game.turn === you && status === "open" && !waitingForServer;
   const playable = yourTurn ? legalMoves(game, you) : [];
   const over = !sowing && game.turn === null;
+  const yourMove = !sowing && you !== null && game.turn === you;
+
+  // Show it in the tab title too, so someone who switched tabs can see it's their move.
+  useEffect(() => {
+    if (!yourMove) return;
+    const previous = document.title;
+    document.title = "Your turn | Laro Tayo!";
+    return () => {
+      document.title = previous;
+    };
+  }, [yourMove]);
 
   function playHouse(house: number) {
     if (yourTurn && send({ type: "move", move: house })) setSentAt(room.moveCount);
