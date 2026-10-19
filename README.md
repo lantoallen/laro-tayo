@@ -2,7 +2,7 @@
 
 Filipino games you can play on your phone, at https://laro-tayo.vercel.app.
 
-Right now there's Sungka. You can play it against a bot (easy, medium or hard), pass one phone back and forth with a friend, or make an online room and send a friend the link. Pusoy Dos and a yes-or-no guessing game are next.
+There are two games so far. Sungka can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Dama, Filipino checkers, can be played against a bot or by passing one phone around. Pusoy Dos and a yes-or-no guessing game are next.
 
 ## Running it
 
@@ -43,6 +43,7 @@ npm run build
 packages/games   Game rules in plain TypeScript, no React
   src/engine     The interface every game follows, plus a seeded random number generator
   src/sungka     Sungka rules, bot, and tests
+  src/dama       Dama rules, bot, and tests
 packages/rooms   Online room logic: seats, turns, rematches, and the messages sent over the socket
 apps/server      The room server, a Cloudflare Worker
 apps/web         The Next.js app
@@ -93,6 +94,18 @@ House rules for Sungka vary between regions. This version:
 - In the traditional game both players make their first move at the same time. Here players take turns from the start.
 
 These follow the descriptions from [Sparkle Stories](https://www.sparklestories.com/blog/post/sparkle-craft-sungka/) and the [Ludii game database](https://ludii.games/data.php?gameId=121).
+
+## Dama rules used here
+
+Dama is the Filipino version of checkers. This version:
+
+- An 8 by 8 board, with 12 pieces each on the dark squares of the three rows nearest each player.
+- Pieces move one square diagonally forward, and capture by jumping, forward or backward.
+- Capturing is required. So is continuing a jump, and taking the line that captures the most pieces.
+- A piece that ends its move on the far row becomes a king. Kings move and capture any distance along a diagonal, but can't jump their own pieces or two pieces in a row. Captured pieces come off once the whole move is done, so a piece can't be jumped twice.
+- You win by taking all the other player's pieces or leaving them with no moves. To make sure every game ends, 40 moves in a row with no capture and no regular piece moved is a draw. That last rule is this app's own.
+
+These follow the descriptions on [BoardGameGeek](https://boardgamegeek.com/wiki/page/thing:430395) and [Checkers Online](https://checkersonline.io/rules/filipino-checkers/). Some sources say kings can only capture in one direction per turn. This version lets them change direction, as most do.
 
 ---
 
