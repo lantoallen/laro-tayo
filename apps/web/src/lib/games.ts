@@ -13,6 +13,8 @@ export interface GameInfo {
   href?: string;
   /** Whether it can be played online once the room server is set up. */
   online?: boolean;
+  /** How it can be played, when that isn't the usual bot or pass and play. */
+  ways?: string;
 }
 
 /** Every game in Laro Tayo!, in the order they're shown. */
@@ -39,8 +41,10 @@ export const GAMES: GameInfo[] = [
     id: "pusoy-dos",
     name: "Pusoy Dos",
     players: "4 players",
-    description: "A card game where you race to get rid of your cards. Bots take any empty seats.",
+    description: "The card game where you race to be the first to get rid of all 13 cards.",
     color: "yellow",
+    href: "/pusoy-dos",
+    ways: "Play against three bots.",
   },
   {
     id: "hulaan-mo",

@@ -24,9 +24,10 @@ export function GameList() {
                 </h2>
                 <p className="mt-2 text-muted">{game.description}</p>
                 <p className="mt-2 text-sm text-muted">
-                  {game.online && ONLINE_ENABLED
-                    ? "Play a bot, pass one phone around, or play a friend online."
-                    : "Play a bot or pass one phone around."}
+                  {game.ways ??
+                    (game.online && ONLINE_ENABLED
+                      ? "Play a bot, pass one phone around, or play a friend online."
+                      : "Play a bot or pass one phone around.")}
                 </p>
                 <span className="btn btn-primary mt-5">Play {game.name}</span>
               </div>

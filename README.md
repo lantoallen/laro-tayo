@@ -2,7 +2,7 @@
 
 Filipino games you can play on your phone, at https://laro-tayo.vercel.app.
 
-There are two games so far: Sungka and Dama, Filipino checkers. Both can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Pusoy Dos and a yes-or-no guessing game are next.
+There are three games so far. Sungka and Dama (Filipino checkers) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Pusoy Dos, the card game, is played against three bots. A yes-or-no guessing game is next.
 
 ## Running it
 
@@ -44,6 +44,7 @@ packages/games   Game rules in plain TypeScript, no React
   src/engine     The interface every game follows, plus a seeded random number generator
   src/sungka     Sungka rules, bot, and tests
   src/dama       Dama rules, bot, and tests
+  src/pusoy-dos  Pusoy Dos cards, rules, bots, and tests
 packages/rooms   Online room logic: seats, turns, rematches, and the messages sent over the socket
 apps/server      The room server, a Cloudflare Worker
 apps/web         The Next.js app
@@ -106,6 +107,17 @@ Dama is the Filipino version of checkers. This version:
 - You win by taking all the other player's pieces or leaving them with no moves. To make sure every game ends, 40 moves in a row with no capture and no regular piece moved is a draw. That last rule is this app's own.
 
 These follow the descriptions on [BoardGameGeek](https://boardgamegeek.com/wiki/page/thing:430395) and [Checkers Online](https://checkersonline.io/rules/filipino-checkers/). Some sources say kings can only capture in one direction per turn. This version lets them change direction, as most do.
+
+## Pusoy Dos rules used here
+
+- Four players get 13 cards each. Cards rank from 3 up to 2, and suits break ties: clubs, spades, hearts, then diamonds.
+- Whoever has the 3♣ goes first, and the first play has to include it.
+- A play is one card, a pair, three of a kind, or a five-card hand: straight, flush, full house, four of a kind with any fifth card, or straight flush, from weakest to strongest.
+- The next players beat it with the same number of cards or pass. Passing doesn't take you out of the round. When everyone else passes, the last player starts a new round with anything.
+- The first player out of cards wins.
+- House rules differ on two points, so this version picks one each: a 2 can't be part of a straight, and flushes are compared by suit first.
+
+Each player only ever receives their own hand. The bots decide from that same limited view, so a test checks that shuffling the other players' cards never changes what a bot plays.
 
 ---
 
