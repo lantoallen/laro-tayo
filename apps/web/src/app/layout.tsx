@@ -34,11 +34,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
       <body className="min-h-svh antialiased">
-        <header className="mx-auto flex h-14 max-w-4xl items-center px-4">
+        <header className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight">
             <SunMark className="size-6" />
             Laro Tayo!
           </Link>
+          <nav aria-label="Main">
+            <Link href="/games" className="rounded-lg px-3 py-2 font-semibold hover:bg-surface">
+              Games
+            </Link>
+          </nav>
         </header>
         {children}
       </body>
