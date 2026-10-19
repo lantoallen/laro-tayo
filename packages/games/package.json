@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./sungka": "./src/sungka/index.ts",
-    "./dama": "./src/dama/index.ts"
+    "./dama": "./src/dama/index.ts",
+    "./pusoy-dos": "./src/pusoy-dos/index.ts"
   },
   "scripts": {
     "test": "vitest run",

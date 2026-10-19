@@ -32,7 +32,8 @@ export interface Game<State, Move, Event, View = State> {
   name: string;
   minSeats: number;
   maxSeats: number;
-  setup(options: { seats: number; firstSeat?: Seat }): State;
+  /** `rng` shuffles anything random at the start, like a deck of cards. */
+  setup(options: { seats: number; firstSeat?: Seat; rng?: Rng }): State;
   /** Whose turn it is, or null once the game is over. */
   turn(state: State): Seat | null;
   legalMoves(state: State, seat: Seat): Move[];
