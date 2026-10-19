@@ -5,10 +5,10 @@ import { RoomScreen } from "@/components/room/RoomScreen";
 
 export const metadata: Metadata = {
   title: "Join my game",
-  description: "Open this link to play Sungka with me on Laro Tayo!",
+  description: "Open this link to play with me on Laro Tayo!",
   openGraph: {
-    title: "Join my Sungka game",
-    description: "Open this link to play Sungka with me on Laro Tayo!",
+    title: "Join my game",
+    description: "Open this link to play with me on Laro Tayo!",
   },
   // Room links are private invites, so keep them out of search results.
   robots: { index: false },

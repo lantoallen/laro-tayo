@@ -1,7 +1,7 @@
 import type { BotLevel } from "@laro/games";
 import type { FirstPlayer } from "@/components/game/settings";
 
-export type DamaMode = "bot" | "local";
+export type DamaMode = "bot" | "local" | "online";
 
 export interface DamaSettings {
   mode: DamaMode;

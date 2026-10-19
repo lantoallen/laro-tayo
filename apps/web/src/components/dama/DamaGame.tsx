@@ -12,10 +12,9 @@ import { Rules } from "./Rules";
 import { latestNotice } from "./notices";
 import { seatNames, type DamaSettings } from "./settings";
 import { DELAYS, useDamaPlayback, type Speed } from "./useDamaPlayback";
+import { useMoveSelection } from "./useMoveSelection";
 
 const BOT_SEAT: Seat = 1;
-
-const samePrefix = (move: number[], prefix: number[]) => prefix.every((square, i) => move[i] === square);
 
 export function DamaGame({
   settings,
@@ -30,24 +29,13 @@ export function DamaGame({
 }) {
   const [speed, setSpeed] = useState<Speed>("normal");
   const { game, playing, frame, board, last, events, mover, move } = useDamaPlayback(() => setup({ firstSeat }), speed);
-  // The piece being moved, then any landing squares picked so far.
-  const [selection, setSelection] = useState<number[]>([]);
-
   const vsBot = settings.mode === "bot";
   const names = seatNames(settings.mode);
   const botToMove = vsBot && !playing && game.turn === BOT_SEAT;
   const humanSeat = !playing && game.turn !== null && !(vsBot && game.turn === BOT_SEAT) ? game.turn : null;
   const moves = humanSeat === null ? [] : legalMoves(game, humanSeat);
   const mustCapture = humanSeat !== null && fullMoves(game.board, humanSeat).some((m) => m.captured.length > 0);
-  const movable = [...new Set(moves.map((m) => m[0]))];
-  const targets =
-    selection.length === 0
-      ? []
-      : [
-          ...new Set(
-            moves.filter((m) => m.length > selection.length && samePrefix(m, selection)).map((m) => m[selection.length]),
-          ),
-        ];
+  const { selection, movable, targets, tap } = useMoveSelection(moves);
   const outcome = playing ? null : result(game);
 
   // Let the bot take its turn after a short pause.
@@ -61,20 +49,9 @@ export function DamaGame({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [botToMove, game, settings.level, speed]);
 
-  function tap(square: number) {
-    if (humanSeat === null) return;
-    if (targets.includes(square)) {
-      const next = [...selection, square];
-      const complete = moves.find((m) => m.length === next.length && samePrefix(m, next));
-      if (complete) {
-        setSelection([]);
-        move(humanSeat, complete);
-      } else {
-        setSelection(next);
-      }
-    } else if (movable.includes(square) && selection.length <= 1) {
-      setSelection(selection[0] === square ? [] : [square]);
-    }
+  function tapSquare(square: number) {
+    const complete = tap(square);
+    if (complete && humanSeat !== null) move(humanSeat, complete);
   }
 
   const turnName = humanSeat === null ? "" : vsBot ? "Your turn" : `${names[humanSeat]}'s turn`;
@@ -133,7 +110,7 @@ export function DamaGame({
           path={selection}
           captured={frame?.captured}
           last={last}
-          onTap={humanSeat === null ? undefined : tap}
+          onTap={humanSeat === null ? undefined : tapSquare}
         />
         {outcome && (
           <ResultCard

@@ -33,6 +33,7 @@ export const GAMES: GameInfo[] = [
     description: "Filipino checkers. Kings fly across the board, and you always have to take the biggest capture.",
     color: "red",
     href: "/dama",
+    online: true,
   },
   {
     id: "pusoy-dos",

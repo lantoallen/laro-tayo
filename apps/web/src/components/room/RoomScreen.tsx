@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { isRoomCode } from "@laro/rooms";
+import { OnlineDama } from "@/components/dama/OnlineDama";
 import { OnlineSungka } from "@/components/sungka/OnlineSungka";
 import { savePlayerName, useIsClient, usePlayer, type LocalPlayer } from "@/lib/player";
 import { ONLINE_ENABLED } from "@/lib/rooms";
@@ -65,7 +66,7 @@ function Room({ code, player }: { code: string; player: LocalPlayer }) {
     return (
       <RoomMessage title="This room doesn't exist">
         <p>The link may be wrong, or the room was closed after a day without any games.</p>
-        <Link href="/sungka" className="btn btn-primary">
+        <Link href="/games" className="btn btn-primary">
           Start a new game
         </Link>
       </RoomMessage>
@@ -74,5 +75,7 @@ function Room({ code, player }: { code: string; player: LocalPlayer }) {
   if (!update) {
     return <RoomMessage title={status === "reconnecting" ? "Can't reach the room. Trying again..." : "Joining the room..."} />;
   }
-  return <OnlineSungka update={update} status={status} error={error} send={send} />;
+  const props = { update, status, error, send };
+  if (update.room.gameId === "dama") return <OnlineDama {...props} />;
+  return <OnlineSungka {...props} />;
 }

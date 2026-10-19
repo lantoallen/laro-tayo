@@ -2,7 +2,7 @@
 
 Filipino games you can play on your phone, at https://laro-tayo.vercel.app.
 
-There are two games so far. Sungka can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Dama, Filipino checkers, can be played against a bot or by passing one phone around. Pusoy Dos and a yes-or-no guessing game are next.
+There are two games so far: Sungka and Dama, Filipino checkers. Both can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Pusoy Dos and a yes-or-no guessing game are next.
 
 ## Running it
 
@@ -58,7 +58,7 @@ Some details about Sungka:
 
 ## Online rooms
 
-Each room is a [Durable Object](https://developers.cloudflare.com/durable-objects/), a small server with its own storage that Cloudflare runs close to the players. The room holds the real game. Browsers only send "I want to play house 3", and the room checks it with the same rules package the bot uses, so a player can't move out of turn or edit their copy of the board to cheat.
+Each room is a [Durable Object](https://developers.cloudflare.com/durable-objects/), a small server with its own storage that Cloudflare runs close to the players. The room holds the real game. Browsers only send the move, like "play house 3" in Sungka or "jump from c3 to e5" in Dama, and the room checks it with the same rules package the bot uses, so a player can't move out of turn or edit their copy of the board to cheat.
 
 - After each move the room sends every player their own view of the game plus the move's events, and each screen animates the move from those events.
 - A browser keeps a random player id. If the connection drops, it reconnects with the same id and gets its seat back. Anyone who opens the link after both seats are taken watches.
