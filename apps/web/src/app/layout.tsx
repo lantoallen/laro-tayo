@@ -1,5 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { Bungee, Rubik } from "next/font/google";
 import "./globals.css";
+
+// Bungee is the hand-painted sign lettering. Rubik is for everything else.
+const bungee = Bungee({ weight: "400", subsets: ["latin"], variable: "--font-bungee" });
+const rubik = Rubik({ subsets: ["latin"], variable: "--font-rubik" });
 
 const description = "Filipino games you can play on your phone, against a bot or with a friend.";
 
@@ -23,14 +28,14 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f1e7" },
-    { media: "(prefers-color-scheme: dark)", color: "#161310" },
+    { media: "(prefers-color-scheme: light)", color: "#fdf3d9" },
+    { media: "(prefers-color-scheme: dark)", color: "#15120d" },
   ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${bungee.variable} ${rubik.variable}`}>
       <body className="min-h-svh antialiased">{children}</body>
     </html>
   );

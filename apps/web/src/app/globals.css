@@ -1,17 +1,23 @@
 @import "tailwindcss";
 
-/* Colors from the Philippine flag, on warm paper. */
+/*
+ * Jeepney sign style: flag colors on cream, thick black outlines, and hard
+ * offset shadows, like hand-painted signage. `--outline` draws the outlines
+ * and shadows, and turns cream in dark mode so they still show.
+ */
 :root {
-  --bg: #f6f1e7;
-  --surface: #fffdf8;
-  --ink: #1f1a14;
-  --muted: #6b6157;
-  --line: #ddd3c3;
+  --bg: #fdf3d9;
+  --surface: #fffaf0;
+  --ink: #1b1b1b;
+  --muted: #6b5a3e;
+  --line: #e6d3a8;
+  --outline: #1b1b1b;
   --blue: #0038a8;
   --blue-ink: #ffffff;
   --red: #ce1126;
+  --red-ink: #ffffff;
   --yellow: #fcd116;
-  --yellow-ink: #1f1a14;
+  --yellow-ink: #1b1b1b;
   --wood: #a5672f;
   --wood-dark: #74441c;
   --pit: #3d210c;
@@ -22,14 +28,15 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #161310;
-    --surface: #1f1b17;
-    --ink: #efe7db;
-    --muted: #a89c8d;
-    --line: #352e27;
+    --bg: #15120d;
+    --surface: #221c14;
+    --ink: #fdf3d9;
+    --muted: #c9b48e;
+    --line: #3d3223;
+    --outline: #fdf3d9;
     --blue: #7aa2ff;
     --blue-ink: #0b1630;
-    --red: #ff6b6b;
+    --red: #e23a4f;
     --wood: #8a5429;
     --wood-dark: #5a3314;
     --pit: #2a1607;
@@ -43,11 +50,15 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-outline: var(--outline);
   --color-blue: var(--blue);
   --color-blue-ink: var(--blue-ink);
   --color-red: var(--red);
+  --color-red-ink: var(--red-ink);
   --color-yellow: var(--yellow);
   --color-yellow-ink: var(--yellow-ink);
+  --font-sans: var(--font-rubik), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bungee), var(--font-rubik), ui-sans-serif, sans-serif;
 }
 
 body {
@@ -56,7 +67,108 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Bungee has one weight, so headings never get a fake bold. */
+h1,
+h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-synthesis: none;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+}
+
 :focus-visible {
   outline: 3px solid var(--blue);
-  outline-offset: 2px;
+  outline-offset: 3px;
+}
+
+@layer components {
+  /* Buttons press down into their shadow when tapped. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.25rem;
+    border: 3px solid var(--outline);
+    border-radius: 12px;
+    box-shadow: 3px 3px 0 var(--outline);
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
+    text-align: center;
+    transition:
+      transform 80ms ease,
+      box-shadow 80ms ease;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--outline);
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+  }
+
+  .btn-primary {
+    background: var(--red);
+    color: var(--red-ink);
+  }
+
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--ink);
+  }
+
+  .btn-small {
+    padding: 0.3rem 0.7rem;
+    border-width: 2px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 0 var(--outline);
+    font-size: 0.8rem;
+  }
+
+  .card {
+    border: 3px solid var(--outline);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: 4px 4px 0 var(--outline);
+  }
+
+  .field {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 2px solid var(--outline);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+
+  /* The Laro Tayo! sign. Its colors stay the same in dark mode, like a real painted sign. */
+  .sign {
+    display: inline-flex;
+    gap: 0.3em;
+    padding: 0.3em 0.6em;
+    border: 3px solid #1b1b1b;
+    border-radius: 12px;
+    background: #fcd116;
+    box-shadow: 3px 3px 0 #ce1126;
+    color: #0038a8;
+    font-family: var(--font-display);
+    line-height: 1;
+  }
+
+  .sign-large {
+    flex-direction: column;
+    gap: 0;
+    padding: 0.35em 0.5em;
+    border-width: 4px;
+    border-radius: 18px;
+    box-shadow: 6px 6px 0 #ce1126;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn {
+      transition: none;
+    }
+  }
 }
