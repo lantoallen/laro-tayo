@@ -1,19 +1,9 @@
 import Link from "next/link";
+import { GAMES } from "@/lib/games";
 import { ONLINE_ENABLED } from "@/lib/rooms";
 import { SungkaArt } from "./SungkaArt";
 
-const UPCOMING = [
-  {
-    name: "Pusoy Dos",
-    players: "4 players",
-    description: "A card game where you race to get rid of your cards. Bots take any empty seats.",
-  },
-  {
-    name: "Hulaan Mo",
-    players: "2 to 8 players",
-    description: "One player sees the word. Everyone else asks yes-or-no questions to guess it.",
-  },
-];
+const UPCOMING = GAMES.filter((game) => !game.href);
 
 export function GameList() {
   return (
@@ -51,7 +41,7 @@ export function GameList() {
         </h2>
         <ul className="divide-y divide-line border-y border-line">
           {UPCOMING.map((game) => (
-            <li key={game.name} className="py-4">
+            <li key={game.id} className="py-4">
               <h3 className="font-bold">
                 {game.name} <span className="font-normal text-muted">· {game.players}</span>
               </h3>
