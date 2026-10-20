@@ -19,6 +19,7 @@ function notice(state: MemoryState, names: readonly [string, string], you: Seat 
 export const MEMORY: BoardGameConfig<MemoryState, MemoryMove> = {
   game: memory,
   href: "/memory",
+  roomId: "memory",
   tagline: "Turn over two cards at a time and find the pairs.",
   colors: ["Red", "Blue"],
   Board: MemoryBoard,

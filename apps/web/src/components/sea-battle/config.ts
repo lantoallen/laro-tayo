@@ -28,6 +28,7 @@ function notice(state: SeaState, names: readonly [string, string], you: Seat | n
 export const SEA_BATTLE: BoardGameConfig<SeaState, SeaMove> = {
   game: seaBattle,
   href: "/sea-battle",
+  roomId: "sea-battle",
   tagline: "Find the other side's hidden ships and sink them all first.",
   colors: ["Red", "Blue"],
   passAndPlay: false,

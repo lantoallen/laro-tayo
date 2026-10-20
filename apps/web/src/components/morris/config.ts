@@ -33,6 +33,7 @@ function notice(state: MorrisState, names: readonly [string, string], you: Seat 
 export const MORRIS: BoardGameConfig<MorrisState, MorrisMove> = {
   game: morris,
   href: "/nine-mens-morris",
+  roomId: "morris",
   tagline: "Make lines of three to take the other player's pieces.",
   colors: ["Red", "Blue"],
   Board: MorrisBoard,
