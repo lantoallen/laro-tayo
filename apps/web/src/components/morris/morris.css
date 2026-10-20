@@ -1,0 +1,106 @@
+.mr-board {
+  position: relative;
+  width: min(100%, 30rem);
+  aspect-ratio: 1;
+  margin-inline: auto;
+  border: 3px solid var(--outline);
+  border-radius: 16px;
+  background: #e8c58c;
+  box-shadow: 5px 5px 0 var(--outline);
+}
+
+.mr-lines {
+  position: absolute;
+  overflow: visible;
+  fill: none;
+  stroke: #5a3314;
+  stroke-width: 0.07;
+}
+
+/* Every point is drawn at its center. Empty ones are small dots. */
+.mr-point {
+  position: absolute;
+  width: 11%;
+  aspect-ratio: 1;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  transform: translate(-50%, -50%);
+}
+
+.mr-point::before {
+  content: "";
+  position: absolute;
+  inset: 34%;
+  border-radius: 999px;
+  background: #5a3314;
+}
+
+.mr-piece::before {
+  inset: 2%;
+  border: 2px solid #1b1b1b;
+  box-shadow: 0 3px 0 rgb(0 0 0 / 0.35);
+  transition: transform 120ms ease;
+}
+
+.mr-red::before {
+  background: #ce1126;
+}
+
+.mr-blue::before {
+  background: #0038a8;
+}
+
+/* Where a piece can go next. */
+.mr-target::before {
+  inset: 30%;
+  border: 2px solid #1b1b1b;
+  background: #fcd116;
+}
+
+.mr-movable::before {
+  outline: 3px solid color-mix(in srgb, #fcd116 75%, transparent);
+  outline-offset: 1px;
+}
+
+.mr-selected::before {
+  outline: 3px solid #fcd116;
+  outline-offset: 2px;
+  transform: scale(1.08);
+}
+
+/* Pieces that can be taken after a mill. */
+.mr-takeable::after {
+  content: "";
+  position: absolute;
+  inset: -12%;
+  border: 3px dashed #fcd116;
+  border-radius: 999px;
+}
+
+.mr-last:not(.mr-piece)::before {
+  background: #a5672f;
+}
+
+.mr-last.mr-piece::after {
+  content: "";
+  position: absolute;
+  inset: 36%;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.7);
+}
+
+button.mr-point {
+  cursor: pointer;
+}
+
+button.mr-point:focus-visible {
+  outline: 3px solid #1b1b1b;
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mr-piece::before {
+    transition: none;
+  }
+}
