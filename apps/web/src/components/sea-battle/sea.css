@@ -1,0 +1,95 @@
+.sb-board {
+  width: min(100%, 26rem);
+  margin-inline: auto;
+}
+
+.sb-grid {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 2px;
+  width: 100%;
+  aspect-ratio: 1;
+  margin-inline: auto;
+  padding: 2px;
+  overflow: hidden;
+  border: 3px solid var(--outline);
+  border-radius: 12px;
+  background: #7fa8d6;
+  box-shadow: 4px 4px 0 var(--outline);
+}
+
+.sb-small {
+  gap: 1px;
+  padding: 1px;
+  border-width: 2px;
+  border-radius: 8px;
+  box-shadow: 2px 2px 0 var(--outline);
+}
+
+.sb-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border: 0;
+  padding: 0;
+  background: #cfe2f6;
+}
+
+.sb-ship {
+  background: #6b7280;
+}
+
+.sb-sunk {
+  background: #374151;
+}
+
+/* A miss is a small dot in the water. */
+.sb-miss::after {
+  content: "";
+  width: 26%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: #1b1b1b;
+  opacity: 0.5;
+}
+
+/* A hit is a red mark with a dark outline. */
+.sb-hit::after {
+  content: "";
+  width: 62%;
+  aspect-ratio: 1;
+  border: 2px solid #1b1b1b;
+  border-radius: 999px;
+  background: #ce1126;
+}
+
+.sb-last {
+  box-shadow: inset 0 0 0 2px #fcd116;
+}
+
+.sb-last::after {
+  animation: sb-land 260ms ease-out;
+}
+
+button.sb-cell {
+  cursor: pointer;
+}
+
+button.sb-cell:hover,
+button.sb-cell:focus-visible {
+  background: #fcd116;
+  outline: none;
+}
+
+@keyframes sb-land {
+  from {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-last::after {
+    animation: none;
+  }
+}
