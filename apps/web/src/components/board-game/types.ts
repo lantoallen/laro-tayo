@@ -5,6 +5,8 @@ import type { Notice } from "@/components/game/parts";
 
 export interface BoardProps<State, Move> {
   state: State;
+  /** The seat of whoever is looking at the board, or null in pass and play and for someone watching. */
+  you: Seat | null;
   /** Plays a move. Missing while the player looking at the board can't move. */
   onMove?: (move: Move) => void;
 }
@@ -26,8 +28,12 @@ export interface BoardGameConfig<State, Move> {
   Rules: ComponentType;
   /** The number shown next to each player's name. */
   stat: { label: string; value: (state: State, seat: Seat) => number };
-  /** Said after "Your turn." */
-  prompt: string;
+  /** Said after "Your turn.", like "Pick a column." */
+  prompt: string | ((state: State) => string);
+  /** False for games with hidden pieces, which can't be shared on one screen. */
+  passAndPlay?: boolean;
+  /** How long the bot waits before each move. */
+  botDelayMs?: number;
   /**
    * A message about the last move. `you` is the seat of whoever is looking at
    * the screen, or null in pass and play, where every message uses names.
@@ -43,4 +49,8 @@ export function resultTitle(winners: Seat[], names: readonly [string, string], y
   if (winner === undefined) return "It's a draw";
   if (you !== null) return winner === you ? "You win" : "You lose";
   return `${names[winner]} wins`;
+}
+
+export function promptFor<State, Move>(config: BoardGameConfig<State, Move>, state: State): string {
+  return typeof config.prompt === "string" ? config.prompt : config.prompt(state);
 }

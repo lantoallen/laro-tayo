@@ -11,7 +11,7 @@ import {
   WaitingRoom,
   type OnlineProps,
 } from "@/components/room/online";
-import type { BoardGameConfig } from "./types";
+import { promptFor, type BoardGameConfig } from "./types";
 
 type Props<State, Move> = OnlineProps & { config: BoardGameConfig<State, Move> };
 
@@ -56,7 +56,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
   if (status === "reconnecting") statusText = "Connection lost. Reconnecting...";
   else if (turn === null) statusText = "Game over";
   else if (turn === you && pending.waiting) statusText = "Sending your move...";
-  else if (turn === you) statusText = `Your turn. ${config.prompt}`;
+  else if (turn === you) statusText = `Your turn. ${promptFor(config, state)}`;
   else if (!connected[turn]) statusText = `Waiting for ${names[turn]} to come back...`;
   else statusText = `${names[turn]}'s turn`;
 
@@ -80,7 +80,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
       <RoomBar room={room} rules={<Rules />} />
       {row(top)}
       <div className="mx-auto w-full max-w-[32rem]">
-        <Board state={state} onMove={yourTurn ? move : undefined} />
+        <Board state={state} you={you} onMove={yourTurn ? move : undefined} />
       </div>
       {row(bottom)}
       {outcome ? (

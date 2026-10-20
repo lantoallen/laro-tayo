@@ -1,0 +1,18 @@
+export function Rules() {
+  return (
+    <>
+      <ol className="list-decimal space-y-2 pl-5 marker:text-muted">
+        <li>30 cards are laid face down: 15 pairs.</li>
+        <li>On your turn, turn over two cards. If they match, you keep them and go again.</li>
+        <li>
+          If they don&apos;t match, they stay up until the next card is turned, then go back face down. Try to remember
+          where they were.
+        </li>
+        <li>Once every pair is taken, whoever has more pairs wins.</li>
+      </ol>
+      <p className="mt-3 text-sm text-muted">
+        The bot&apos;s memory gets better with each level. On hard it never forgets a card.
+      </p>
+    </>
+  );
+}

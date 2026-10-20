@@ -63,7 +63,7 @@ export function BoardGameSetup<State, Move>({
           onChange={(mode) => onChange({ ...settings, mode })}
           options={[
             { value: "bot", label: "Bot" },
-            { value: "local", label: "Pass and play" },
+            ...(config.passAndPlay === false ? [] : [{ value: "local" as const, label: "Pass and play" }]),
             ...(config.roomId && ONLINE_ENABLED ? [{ value: "online" as const, label: "Online" }] : []),
           ]}
         />
