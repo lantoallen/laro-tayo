@@ -9,6 +9,7 @@ const DISCS_EACH = 21;
 export const FOUR_IN_A_ROW: BoardGameConfig<FourState, FourMove> = {
   game: fourInARow,
   href: "/four-in-a-row",
+  roomId: "four-in-a-row",
   tagline: "Drop discs and line up four before the other player does.",
   colors: ["Red", "Yellow"],
   Board: FourBoard,

@@ -1,0 +1,101 @@
+"use client";
+
+import type { Seat } from "@laro/games";
+import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
+import {
+  RoomBar,
+  RoomResult,
+  roomNames,
+  usePendingMove,
+  useTurnTitle,
+  WaitingRoom,
+  type OnlineProps,
+} from "@/components/room/online";
+import type { BoardGameConfig } from "./types";
+
+type Props<State, Move> = OnlineProps & { config: BoardGameConfig<State, Move> };
+
+/** A two-player game against someone on another phone. The server holds the real game, and this shows it. */
+export function OnlineBoardGame<State, Move>(props: Props<State, Move>) {
+  const { room } = props.update;
+  if (room.phase === "waiting" || room.view === null) {
+    return (
+      <WaitingRoom
+        code={room.code}
+        status={props.status}
+        gameName={props.config.game.name}
+        gameHref={props.config.href}
+      />
+    );
+  }
+  return <OnlineTable {...props} />;
+}
+
+function OnlineTable<State, Move>({ config, update, status, error, send }: Props<State, Move>) {
+  const { game, Board, Rules } = config;
+  const { room } = update;
+  const state = room.view as State;
+  const you = room.you;
+  const pending = usePendingMove(room.moveCount, error);
+  const names = roomNames(room);
+  // Each player sees themselves at the bottom. Someone watching sees seat 0 at the bottom.
+  const bottom: Seat = you ?? 0;
+  const top: Seat = bottom === 0 ? 1 : 0;
+  const connected = room.seats.map((seat) => seat?.connected ?? false);
+  const turn = game.turn(state);
+  const outcome = game.result(state);
+  const yourMove = you !== null && turn === you;
+  const yourTurn = yourMove && status === "open" && !pending.waiting;
+  useTurnTitle(yourMove);
+
+  function move(next: Move) {
+    if (send({ type: "move", move: next })) pending.markSent();
+  }
+
+  let statusText: string;
+  if (status === "reconnecting") statusText = "Connection lost. Reconnecting...";
+  else if (turn === null) statusText = "Game over";
+  else if (turn === you && pending.waiting) statusText = "Sending your move...";
+  else if (turn === you) statusText = `Your turn. ${config.prompt}`;
+  else if (!connected[turn]) statusText = `Waiting for ${names[turn]} to come back...`;
+  else statusText = `${names[turn]}'s turn`;
+
+  const errorNotice: Notice | null = error ? { tone: "bad", text: error } : null;
+  const notice = errorNotice ?? config.notice?.(state, names, you) ?? null;
+
+  const row = (seat: Seat) => {
+    const color = config.colors[seat].toLowerCase();
+    return (
+      <PlayerRow
+        name={seat === you ? `${names[seat]} (you, ${color})` : `${names[seat]} (${color})`}
+        stat={{ label: config.stat.label, value: config.stat.value(state, seat) }}
+        active={turn === seat}
+        note={connected[seat] ? undefined : "offline"}
+      />
+    );
+  };
+
+  return (
+    <main className="mx-auto flex max-w-4xl flex-col gap-3 px-4 pb-8">
+      <RoomBar room={room} rules={<Rules />} />
+      {row(top)}
+      <div className="mx-auto w-full max-w-[32rem]">
+        <Board state={state} onMove={yourTurn ? move : undefined} />
+      </div>
+      {row(bottom)}
+      {outcome ? (
+        <RoomResult
+          inline
+          room={room}
+          outcome={outcome}
+          names={names}
+          detail={config.resultDetail(state, names)}
+          tieTitle="It's a draw"
+          send={send}
+        />
+      ) : (
+        <StatusLine notice={notice} status={statusText} />
+      )}
+    </main>
+  );
+}

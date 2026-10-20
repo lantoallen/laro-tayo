@@ -17,6 +17,7 @@ function notice(state: DotsState, names: readonly [string, string], you: Seat | 
 export const DOTS_AND_BOXES: BoardGameConfig<DotsState, DotsMove> = {
   game: dotsAndBoxes,
   href: "/dots-and-boxes",
+  roomId: "dots-and-boxes",
   tagline: "Draw lines between dots. Close a box to claim it and go again.",
   colors: ["Red", "Blue"],
   Board: DotsBoard,

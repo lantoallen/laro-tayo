@@ -17,6 +17,7 @@ function notice(state: ReversiState, names: readonly [string, string], you: Seat
 export const REVERSI: BoardGameConfig<ReversiState, ReversiMove> = {
   game: reversi,
   href: "/reversi",
+  roomId: "reversi",
   tagline: "Trap the other player's discs to flip them to your color.",
   colors: ["Black", "White"],
   Board: ReversiBoard,

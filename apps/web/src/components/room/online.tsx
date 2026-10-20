@@ -122,6 +122,7 @@ export function RoomResult({
   names,
   detail,
   tieTitle,
+  inline = false,
   send,
 }: {
   room: RoomSnapshot;
@@ -129,6 +130,8 @@ export function RoomResult({
   names: [string, string];
   detail: string;
   tieTitle: string;
+  /** Show the result under the board instead of over it. */
+  inline?: boolean;
   send: (message: ClientMessage) => boolean;
 }) {
   const you = room.you;
@@ -143,7 +146,7 @@ export function RoomResult({
   const theyAsked = other !== null && room.rematch.includes(other);
 
   return (
-    <ResultCard title={title} detail={detail}>
+    <ResultCard title={title} detail={detail} inline={inline}>
       {other !== null && (
         <>
           {theyAsked && !youAsked && <p className="-mt-2 mb-1 text-sm text-muted">{names[other]} wants to play again.</p>}
