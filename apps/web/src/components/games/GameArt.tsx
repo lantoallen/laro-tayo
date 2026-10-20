@@ -9,6 +9,9 @@ const FRAMES: Record<GameId, string> = {
   "four-in-a-row": "40 0 80 60",
   reversi: "50 0 60 60",
   "dots-and-boxes": "50 0 60 60",
+  memory: "34 0 92 60",
+  "sea-battle": "50 0 60 60",
+  morris: "50 0 60 60",
 };
 
 /** A small drawing for each game, used on the game tiles and the games page. */
@@ -22,6 +25,9 @@ export function GameArt({ id, className }: { id: GameId; className?: string }) {
       {id === "four-in-a-row" && <FourGrid />}
       {id === "reversi" && <ReversiCorner />}
       {id === "dots-and-boxes" && <DotsGrid />}
+      {id === "memory" && <MemoryCards />}
+      {id === "sea-battle" && <SeaGrid />}
+      {id === "morris" && <MorrisSquares />}
     </svg>
   );
 }
@@ -180,20 +186,23 @@ function ReversiCorner() {
   );
 }
 
-/** A small Dots and Boxes game with one box each. */
+/** A small Dots and Boxes game with one box each and a few lines drawn. */
 function DotsGrid() {
   const at = (i: number) => 9 + i * 14;
+  // Lines from one dot to the next, as [column, row, column, row].
   const lines: [number, number, number, number][] = [
     [0, 0, 1, 0],
+    [1, 0, 2, 0],
+    [0, 1, 1, 1],
+    [1, 1, 2, 1],
     [0, 0, 0, 1],
     [1, 0, 1, 1],
-    [0, 1, 1, 1],
-    [1, 0, 2, 0],
     [2, 0, 2, 1],
-    [1, 1, 2, 1],
-    [2, 1, 3, 1],
+    [3, 0, 3, 1],
+    [0, 2, 1, 2],
+    [2, 2, 3, 2],
     [1, 2, 1, 3],
-    [2, 2, 2, 3],
+    [2, 3, 3, 3],
   ];
   return (
     <g transform="translate(54 4)">
@@ -215,6 +224,90 @@ function DotsGrid() {
       {[0, 1, 2, 3].flatMap((row) =>
         [0, 1, 2, 3].map((col) => <circle key={`${row}-${col}`} cx={at(col)} cy={at(row)} r="2" fill="#1b1b1b" />),
       )}
+    </g>
+  );
+}
+
+/** One card face down and a matching pair turned up. */
+function MemoryCards() {
+  const star = "M0-9.5l2.8 6 6.6.8-4.9 4.5 1.3 6.6L0 5.2l-5.8 3.2 1.3-6.6-4.9-4.5 6.6-.8z";
+  return (
+    <>
+      <g transform="rotate(-8 52 30)">
+        <rect x="40" y="10" width="26" height="36" rx="4" fill="#0038a8" stroke="#1b1b1b" strokeWidth="2" />
+        <rect x="44" y="14" width="18" height="28" rx="2" fill="none" stroke="#fffaf0" strokeWidth="1.5" />
+      </g>
+      {[80, 108].map((x, i) => (
+        <g key={x} transform={`rotate(${i === 0 ? 0 : 8} ${x} 30)`}>
+          <rect x={x - 13} y="12" width="26" height="36" rx="4" fill="#fffaf0" stroke="#1b1b1b" strokeWidth="2" />
+          <path
+            d={star}
+            transform={`translate(${x} 30) scale(0.9)`}
+            fill="#fcd116"
+            stroke="#1b1b1b"
+            strokeWidth="1.2"
+          />
+        </g>
+      ))}
+    </>
+  );
+}
+
+/** A corner of the water with a ship, a hit, and a few misses. */
+function SeaGrid() {
+  const step = 10.4;
+  const at = (i: number) => 2 + i * step;
+  return (
+    <g transform="translate(54 4)">
+      <rect width="52" height="52" rx="5" fill="#cfe2f6" stroke="#1b1b1b" strokeWidth="2" />
+      {[1, 2, 3, 4].map((i) => (
+        <g key={i} stroke="#7fa8d6" strokeWidth="0.8">
+          <line x1={at(i)} y1="1" x2={at(i)} y2="51" />
+          <line x1="1" y1={at(i)} x2="51" y2={at(i)} />
+        </g>
+      ))}
+      <rect x={at(1)} y={at(1)} width={step * 3} height={step} fill="#6b7280" />
+      <circle cx={at(2) + step / 2} cy={at(1) + step / 2} r="3.3" fill="#ce1126" stroke="#1b1b1b" strokeWidth="1" />
+      {[
+        [0, 3],
+        [3, 4],
+        [4, 0],
+      ].map(([col, row]) => (
+        <circle
+          key={`${col}-${row}`}
+          cx={at(col) + step / 2}
+          cy={at(row) + step / 2}
+          r="1.4"
+          fill="#1b1b1b"
+          opacity="0.5"
+        />
+      ))}
+    </g>
+  );
+}
+
+/** The three squares of a Morris board with a few pieces on it. */
+function MorrisSquares() {
+  const pieces: [number, number, string][] = [
+    [0, 0, "#ce1126"],
+    [24, 0, "#ce1126"],
+    [48, 0, "#ce1126"],
+    [16, 16, "#0038a8"],
+    [32, 24, "#0038a8"],
+    [0, 48, "#0038a8"],
+  ];
+  return (
+    <g transform="translate(61 11) scale(0.8)">
+      <rect x="-6" y="-6" width="60" height="60" rx="6" fill="#e8c58c" stroke="#1b1b1b" strokeWidth="2.5" />
+      <g fill="none" stroke="#5a3314" strokeWidth="1.6">
+        <rect width="48" height="48" />
+        <rect x="8" y="8" width="32" height="32" />
+        <rect x="16" y="16" width="16" height="16" />
+        <path d="M24 0V16M24 32V48M0 24H16M32 24H48" />
+      </g>
+      {pieces.map(([x, y, fill]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r="4.6" fill={fill} stroke="#1b1b1b" strokeWidth="1.2" />
+      ))}
     </g>
   );
 }

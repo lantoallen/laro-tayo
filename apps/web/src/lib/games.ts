@@ -1,4 +1,14 @@
-export type GameId = "sungka" | "dama" | "pusoy-dos" | "hulaan-mo" | "four-in-a-row" | "reversi" | "dots-and-boxes";
+export type GameId =
+  | "sungka"
+  | "dama"
+  | "pusoy-dos"
+  | "hulaan-mo"
+  | "four-in-a-row"
+  | "reversi"
+  | "dots-and-boxes"
+  | "memory"
+  | "sea-battle"
+  | "morris";
 
 /** Games are shown in two groups: ones from the Philippines, and classics played everywhere. */
 export type GameGroup = "filipino" | "classic";
@@ -92,6 +102,36 @@ export const GAMES: GameInfo[] = [
     group: "classic",
     color: "blue",
     href: "/dots-and-boxes",
+    modes: ["bot", "local", "online"],
+  },
+  {
+    id: "memory",
+    name: "Memory",
+    players: "2 players",
+    tagline: "Turn over two cards at a time and find the pairs.",
+    group: "classic",
+    color: "red",
+    href: "/memory",
+    modes: ["bot", "local", "online"],
+  },
+  {
+    id: "sea-battle",
+    name: "Sea Battle",
+    players: "2 players",
+    tagline: "Find the other side's hidden ships and sink them first.",
+    group: "classic",
+    color: "ink",
+    href: "/sea-battle",
+    modes: ["bot", "online"],
+  },
+  {
+    id: "morris",
+    name: "Nine Men's Morris",
+    players: "2 players",
+    tagline: "Make lines of three to take the other player's pieces.",
+    group: "classic",
+    color: "blue",
+    href: "/nine-mens-morris",
     modes: ["bot", "local", "online"],
   },
 ];
