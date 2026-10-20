@@ -6,6 +6,9 @@ const FRAMES: Record<GameId, string> = {
   dama: "46 0 68 60",
   "pusoy-dos": "38 0 84 60",
   "hulaan-mo": "28 2 116 56",
+  "four-in-a-row": "40 0 80 60",
+  reversi: "50 0 60 60",
+  "dots-and-boxes": "50 0 60 60",
 };
 
 /** A small drawing for each game, used on the game tiles and the games page. */
@@ -16,6 +19,9 @@ export function GameArt({ id, className }: { id: GameId; className?: string }) {
       {id === "dama" && <Checkers />}
       {id === "pusoy-dos" && <Cards />}
       {id === "hulaan-mo" && <Question />}
+      {id === "four-in-a-row" && <FourGrid />}
+      {id === "reversi" && <ReversiCorner />}
+      {id === "dots-and-boxes" && <DotsGrid />}
     </svg>
   );
 }
@@ -108,5 +114,107 @@ function Question() {
         Oo!
       </text>
     </>
+  );
+}
+
+/** A corner of the upright grid with a few discs dropped in. */
+function FourGrid() {
+  const discs: Record<string, string> = {
+    "3-1": "#ce1126",
+    "3-2": "#fcd116",
+    "3-3": "#ce1126",
+    "2-2": "#ce1126",
+    "2-3": "#fcd116",
+    "1-3": "#fcd116",
+  };
+  return (
+    <>
+      <rect x="44" y="4" width="72" height="52" rx="6" fill="#0038a8" stroke="#1b1b1b" strokeWidth="2" />
+      {[0, 1, 2, 3].flatMap((row) =>
+        [0, 1, 2, 3, 4].map((col) => (
+          <circle
+            key={`${row}-${col}`}
+            cx={53 + col * 13.5}
+            cy={13 + row * 11.3}
+            r="4.6"
+            fill={discs[`${row}-${col}`] ?? "#fffaf0"}
+            stroke="#1b1b1b"
+            strokeWidth={discs[`${row}-${col}`] ? 1 : 0}
+          />
+        )),
+      )}
+    </>
+  );
+}
+
+/** The middle of a Reversi board, just after the first move. */
+function ReversiCorner() {
+  const discs: [number, number, string][] = [
+    [1, 1, "#fffaf0"],
+    [1, 2, "#1b1b1b"],
+    [2, 1, "#1b1b1b"],
+    [2, 2, "#1b1b1b"],
+    [0, 2, "#1b1b1b"],
+  ];
+  return (
+    <g transform="translate(54 4)">
+      <rect width="52" height="52" rx="5" fill="#1e7a46" stroke="#1b1b1b" strokeWidth="2" />
+      {[13, 26, 39].map((at) => (
+        <g key={at} stroke="#0f4a2a" strokeWidth="1.2">
+          <line x1={at} y1="1" x2={at} y2="51" />
+          <line x1="1" y1={at} x2="51" y2={at} />
+        </g>
+      ))}
+      {discs.map(([row, col, fill]) => (
+        <circle
+          key={`${row}-${col}`}
+          cx={col * 13 + 6.5}
+          cy={row * 13 + 6.5}
+          r="4.8"
+          fill={fill}
+          stroke="#1b1b1b"
+          strokeWidth="1"
+        />
+      ))}
+    </g>
+  );
+}
+
+/** A small Dots and Boxes game with one box each. */
+function DotsGrid() {
+  const at = (i: number) => 9 + i * 14;
+  const lines: [number, number, number, number][] = [
+    [0, 0, 1, 0],
+    [0, 0, 0, 1],
+    [1, 0, 1, 1],
+    [0, 1, 1, 1],
+    [1, 0, 2, 0],
+    [2, 0, 2, 1],
+    [1, 1, 2, 1],
+    [2, 1, 3, 1],
+    [1, 2, 1, 3],
+    [2, 2, 2, 3],
+  ];
+  return (
+    <g transform="translate(54 4)">
+      <rect width="52" height="52" rx="5" fill="#fffaf0" stroke="#1b1b1b" strokeWidth="2" />
+      <rect x={at(0)} y={at(0)} width="14" height="14" fill="#ce1126" opacity="0.75" />
+      <rect x={at(1)} y={at(0)} width="14" height="14" fill="#0038a8" opacity="0.75" />
+      {lines.map(([x1, y1, x2, y2]) => (
+        <line
+          key={`${x1}${y1}${x2}${y2}`}
+          x1={at(x1)}
+          y1={at(y1)}
+          x2={at(x2)}
+          y2={at(y2)}
+          stroke="#1b1b1b"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      ))}
+      {[0, 1, 2, 3].flatMap((row) =>
+        [0, 1, 2, 3].map((col) => <circle key={`${row}-${col}`} cx={at(col)} cy={at(row)} r="2" fill="#1b1b1b" />),
+      )}
+    </g>
   );
 }

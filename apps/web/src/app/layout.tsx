@@ -6,7 +6,7 @@ import "./globals.css";
 const bungee = Bungee({ weight: "400", subsets: ["latin"], variable: "--font-bungee" });
 const rubik = Rubik({ subsets: ["latin"], variable: "--font-rubik" });
 
-const description = "Filipino games you can play on your phone, against a bot or with a friend.";
+const description = "Filipino games and classics you can play on your phone, against a bot or with a friend.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://laro-tayo.vercel.app"),
