@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Laro Tayo!",
     short_name: "Laro Tayo",
-    description: "Filipino games you can play on your phone, against a bot or with a friend.",
+    description: "Filipino games and classics you can play on your phone, against a bot or with a friend.",
     start_url: "/",
     display: "standalone",
     background_color: "#fdf3d9",

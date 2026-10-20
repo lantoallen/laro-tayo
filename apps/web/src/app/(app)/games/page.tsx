@@ -7,7 +7,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Games",
-  description: "Pick a Filipino game to play on your phone.",
+  description: "Pick a game to play on your phone: Filipino favorites and classics.",
 };
 
 /** The home page inside the app: every game first, then how playing works. */

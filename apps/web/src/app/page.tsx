@@ -3,16 +3,18 @@ import { GameArt } from "@/components/games/GameArt";
 import { Logo } from "@/components/Logo";
 import { COLOR_CLASSES, GAMES } from "@/lib/games";
 
+const TILE = "overflow-hidden rounded-xl border-[3px] border-outline bg-surface shadow-[3px_3px_0_var(--outline)]";
+
 /** The start screen people see first. "Get started" takes them into the app. */
 export default function StartPage() {
   return (
     <main className="mx-auto flex min-h-svh max-w-md flex-col items-center justify-center px-6 py-10 text-center">
       <Logo large className="text-5xl" />
-      <p className="mt-8 text-lg font-medium text-muted">Filipino games you can play on your phone.</p>
+      <p className="mt-8 text-lg font-medium text-muted">Filipino games and classics you can play on your phone.</p>
 
-      <ul aria-label="Games" className="mt-8 grid w-full grid-cols-4 gap-2">
+      <ul aria-label="Games" className="mt-8 flex w-full flex-wrap justify-center gap-2">
         {GAMES.map((game) => (
-          <li key={game.id} className="overflow-hidden rounded-xl border-[3px] border-outline bg-surface shadow-[3px_3px_0_var(--outline)]">
+          <li key={game.id} className={`w-[calc(25%-0.375rem)] ${TILE}`}>
             <div className="grid aspect-[4/3] place-items-center px-2">
               <GameArt id={game.id} className="max-h-[75%] w-full" />
             </div>

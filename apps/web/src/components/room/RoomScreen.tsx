@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { isRoomCode } from "@laro/rooms";
+import { OnlineBoardGame } from "@/components/board-game/OnlineBoardGame";
 import { OnlineDama } from "@/components/dama/OnlineDama";
+import { DOTS_AND_BOXES } from "@/components/dots-and-boxes/config";
+import { FOUR_IN_A_ROW } from "@/components/four-in-a-row/config";
+import { REVERSI } from "@/components/reversi/config";
 import { OnlineSungka } from "@/components/sungka/OnlineSungka";
 import { savePlayerName, useIsClient, usePlayer, type LocalPlayer } from "@/lib/player";
 import { ONLINE_ENABLED } from "@/lib/rooms";
@@ -76,6 +80,16 @@ function Room({ code, player }: { code: string; player: LocalPlayer }) {
     return <RoomMessage title={status === "reconnecting" ? "Can't reach the room. Trying again..." : "Joining the room..."} />;
   }
   const props = { update, status, error, send };
-  if (update.room.gameId === "dama") return <OnlineDama {...props} />;
-  return <OnlineSungka {...props} />;
+  switch (update.room.gameId) {
+    case "dama":
+      return <OnlineDama {...props} />;
+    case "four-in-a-row":
+      return <OnlineBoardGame config={FOUR_IN_A_ROW} {...props} />;
+    case "reversi":
+      return <OnlineBoardGame config={REVERSI} {...props} />;
+    case "dots-and-boxes":
+      return <OnlineBoardGame config={DOTS_AND_BOXES} {...props} />;
+    default:
+      return <OnlineSungka {...props} />;
+  }
 }

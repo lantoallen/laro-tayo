@@ -1,0 +1,120 @@
+.db-board {
+  --thick: clamp(4px, 1.3vw, 7px);
+  position: relative;
+  width: min(100%, 30rem);
+  aspect-ratio: 1;
+  margin-inline: auto;
+  border: 3px solid var(--outline);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 5px 5px 0 var(--outline);
+}
+
+.db-box {
+  position: absolute;
+}
+
+.db-red {
+  background: color-mix(in srgb, #ce1126 70%, transparent);
+}
+
+.db-blue {
+  background: color-mix(in srgb, #0038a8 70%, transparent);
+}
+
+.db-new {
+  animation: db-fill 260ms ease-out;
+}
+
+@keyframes db-fill {
+  from {
+    opacity: 0;
+  }
+}
+
+.db-hit {
+  position: absolute;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+button.db-hit {
+  cursor: pointer;
+}
+
+/* The line runs from dot to dot, a little past the ends of its tap area. */
+.db-bar {
+  position: absolute;
+  border-radius: 999px;
+}
+
+.db-h .db-bar {
+  left: -15.8%;
+  right: -15.8%;
+  top: 50%;
+  height: var(--thick);
+  transform: translateY(-50%);
+}
+
+.db-v .db-bar {
+  top: -15.8%;
+  bottom: -15.8%;
+  left: 50%;
+  width: var(--thick);
+  transform: translateX(-50%);
+}
+
+.db-open {
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+button.db-hit:hover .db-open,
+button.db-hit:focus-visible .db-open {
+  background: #fcd116;
+  box-shadow: 0 0 0 2px #1b1b1b;
+}
+
+button.db-hit:focus-visible {
+  outline: none;
+}
+
+.db-drawn {
+  background: var(--ink);
+}
+
+/* The newest line is drawn in the color of whoever drew it. */
+.db-last.db-by-red {
+  background: #ce1126;
+}
+
+.db-last.db-by-blue {
+  background: #0038a8;
+}
+
+.db-last {
+  animation: db-draw 200ms ease-out;
+}
+
+@keyframes db-draw {
+  from {
+    opacity: 0.2;
+  }
+}
+
+.db-dot {
+  position: absolute;
+  width: calc(var(--thick) * 2.2);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: var(--ink);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .db-new,
+  .db-last {
+    animation: none;
+  }
+}

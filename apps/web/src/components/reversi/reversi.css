@@ -1,0 +1,95 @@
+.rv-board {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
+  gap: 2px;
+  width: min(100%, 32rem);
+  aspect-ratio: 1;
+  margin-inline: auto;
+  padding: 2px;
+  overflow: hidden;
+  border: 3px solid var(--outline);
+  border-radius: 14px;
+  background: #0f4a2a;
+  box-shadow: 5px 5px 0 var(--outline);
+}
+
+.rv-square {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border: 0;
+  padding: 0;
+  background: #1e7a46;
+}
+
+.rv-last {
+  background: #2a9158;
+}
+
+.rv-disc {
+  width: 80%;
+  aspect-ratio: 1;
+  border: 2px solid #1b1b1b;
+  border-radius: 999px;
+  box-shadow: 0 3px 0 rgb(0 0 0 / 0.35);
+}
+
+.rv-black {
+  background: #1b1b1b;
+  border-color: #000;
+}
+
+.rv-white {
+  background: #fffaf0;
+}
+
+/* Where the player whose turn it is can play. */
+.rv-hint {
+  width: 30%;
+  aspect-ratio: 1;
+  border: 2px solid #1b1b1b;
+  border-radius: 999px;
+  background: #fcd116;
+}
+
+button.rv-square {
+  cursor: pointer;
+}
+
+button.rv-square:hover .rv-hint,
+button.rv-square:focus-visible .rv-hint {
+  width: 44%;
+}
+
+button.rv-square:focus-visible {
+  outline: 3px solid #fcd116;
+  outline-offset: -3px;
+}
+
+.rv-new {
+  animation: rv-place 180ms ease-out;
+}
+
+.rv-flip {
+  animation: rv-flip 320ms ease-out;
+}
+
+@keyframes rv-place {
+  from {
+    transform: scale(0.4);
+  }
+}
+
+@keyframes rv-flip {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-new,
+  .rv-flip {
+    animation: none;
+  }
+}

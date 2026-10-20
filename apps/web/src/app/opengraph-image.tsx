@@ -3,7 +3,8 @@ import { join } from "node:path";
 import type { ReactNode } from "react";
 import { ImageResponse } from "next/og";
 
-export const alt = "Laro Tayo! Filipino games you can play on your phone: Sungka, Dama, Pusoy Dos, and Hulaan Mo.";
+export const alt =
+  "Laro Tayo! Filipino games and classics you can play on your phone: Sungka, Dama, Pusoy Dos, Hulaan Mo, and more.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -103,7 +104,7 @@ export default async function OpenGraphImage() {
           LARO <span style={{ color: "#ce1126" }}>TAYO!</span>
         </div>
         <div style={{ display: "flex", fontSize: 56, marginTop: 32 }}>
-          Filipino games you can play on your phone.
+          Filipino games and classics.
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 40 }}>
           <Tile name="Sungka">

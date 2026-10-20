@@ -14,3 +14,17 @@ export function firstSeatFor(first: FirstPlayer): Seat {
   if (first === "them") return 1;
   return Math.random() < 0.5 ? 0 : 1;
 }
+
+export type PlayMode = "bot" | "local" | "online";
+
+/** The setup choices for a two-player game. */
+export interface TwoPlayerSettings {
+  mode: PlayMode;
+  level: BotLevel;
+  first: FirstPlayer;
+}
+
+export const DEFAULT_TWO_PLAYER: TwoPlayerSettings = { mode: "bot", level: "medium", first: "me" };
+
+/** The bot always sits at the top, in seat 1. */
+export const BOT_SEAT: Seat = 1;

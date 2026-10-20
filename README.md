@@ -1,8 +1,10 @@
 # Laro Tayo!
 
-Filipino games you can play on your phone, at https://laro-tayo.vercel.app.
+Filipino games and classics you can play on your phone, at https://laro-tayo.vercel.app.
 
-There are four games so far. Sungka and Dama (Filipino checkers) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Pusoy Dos, the card game, is played against three bots. Hulaan Mo is a guessing game for a group sharing one phone.
+There are seven games so far. Four are Filipino: Sungka and Dama (Filipino checkers) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Pusoy Dos, the card game, is played against three bots. Hulaan Mo is a guessing game for a group sharing one phone.
+
+The other three are classics played everywhere: Four in a Row, Reversi, and Dots and Boxes. They can be played the same three ways as Sungka and Dama.
 
 ## Running it
 
@@ -41,11 +43,13 @@ npm run build
 
 ```text
 packages/games   Game rules in plain TypeScript, no React
-  src/engine     The interface every game follows, plus a seeded random number generator
+  src/engine     The interface every game follows, a seeded random number generator, and the bots' search
   src/sungka     Sungka rules, bot, and tests
   src/dama       Dama rules, bot, and tests
   src/pusoy-dos  Pusoy Dos cards, rules, bots, and tests
   src/hulaan-mo  Hulaan Mo word packs, game logic, and tests
+  src/four-in-a-row, src/reversi, src/dots-and-boxes
+                 Rules, bots, and tests for the three classics
 packages/rooms   Online room logic: seats, turns, rematches, and the messages sent over the socket
 apps/server      The room server, a Cloudflare Worker
 apps/web         The Next.js app
@@ -54,6 +58,8 @@ apps/web         The Next.js app
 Every game implements the same small interface (`setup`, `legalMoves`, `play`, `view`, `result`, `bot`) in `packages/games/src/engine/types.ts`. The screens and the online rooms only use that interface, so adding a game shouldn't mean touching shared code. `view` is there for games with hidden information: it decides what each player is allowed to see, so in Pusoy Dos nobody's phone will ever receive another player's cards.
 
 Hulaan Mo is the exception. It has no moves to choose between and no bot, just a timer and two buttons, so it's a plain reducer (`createGame` and `reduce`) with its own tests instead.
+
+The three classics share their screens. `apps/web/src/components/board-game` has one setup screen, one game screen for playing on one phone, and one for playing online. Each game only adds a board to draw and a short config: its colors, what to show next to each player's name, and its messages.
 
 Some details about Sungka:
 
@@ -131,6 +137,32 @@ Each player only ever receives their own hand. The bots decide from that same li
 - Words come from three packs of 40: Filipino food, places in the Philippines, and everyday things. Mixed uses all 120.
 
 It's based on Pinoy Henyo from Eat Bulaga, where the answers are "oo", "hindi", and "pwede". The screen stays on during a turn where the browser allows it, and the phone buzzes when time runs out.
+
+## Four in a Row rules used here
+
+- The grid has 7 columns and 6 rows. Players take turns dropping a disc into a column, and it falls to the lowest empty space.
+- Four of your discs in a line across, up and down, or diagonally wins. If the grid fills up first, it's a draw.
+
+The bot uses the same minimax search as Reversi (`packages/games/src/engine/search.ts`). It scores a position by counting the lines of four each player could still finish, with lines of three worth much more than lines of two. Easy only looks one move ahead, so it takes a win but doesn't block yours. Medium looks 4 moves ahead. Hard keeps searching one move deeper until 0.4 seconds are up, which is usually 7 or 8 moves.
+
+## Reversi rules used here
+
+- Black and white start with two discs each in the middle. Black goes first unless you pick otherwise.
+- A move has to trap at least one line of the other player's discs between the new disc and another of yours. Every trapped disc flips.
+- A player with no move passes. The game ends when neither player can move, and whoever has more discs wins.
+
+The bot scores the squares it holds (corners are worth the most, and the squares next to an empty corner count against it) plus how many moves each player has. Hard searches for 0.4 seconds, which is 4 to 7 moves in the middle of the game, and plays the last 10 or so moves perfectly.
+
+## Dots and Boxes rules used here
+
+- The board has 6 by 6 dots, so 25 boxes. Players take turns drawing a line between two dots next to each other.
+- Drawing the fourth side of a box claims it and gives you another turn. With 25 boxes there's no tie.
+
+The bots don't search ahead. They follow the rules good players use:
+
+- Easy takes boxes when it sees them, but otherwise often draws any line.
+- Medium never draws a box's third side while it has a choice, and when it has to, it gives away as few boxes as it can.
+- Hard also works out the last few safe lines so the other player has to open the first chain. Once only chains are left it picks which one to give away, and it can take all but the last two boxes of a chain and hand those back, so the other player has to open the next chain too. In testing it beat medium in 74 of 100 games.
 
 ---
 
