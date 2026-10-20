@@ -51,23 +51,36 @@ export function StatusLine({ notice, status }: { notice: Notice | null; status: 
   );
 }
 
-/** Shown over the board when a game ends. */
-export function ResultCard({ title, detail, children }: { title: string; detail: string; children: ReactNode }) {
-  return (
-    <div className="absolute inset-0 z-10 grid place-items-center p-4">
-      <div
-        role="dialog"
-        aria-labelledby="result-title"
-        className="card w-full max-w-xs p-5 text-center"
-      >
-        <h2 id="result-title" className="text-2xl font-bold">
-          {title}
-        </h2>
-        <p className="mt-1 text-muted tabular-nums">{detail}</p>
-        <div className="mt-5 grid gap-2">{children}</div>
-      </div>
+/**
+ * Shown over the board when a game ends. With `inline` it goes under the board
+ * instead, for games where the final board is worth seeing, like a line of four.
+ */
+export function ResultCard({
+  title,
+  detail,
+  inline = false,
+  children,
+}: {
+  title: string;
+  detail: string;
+  inline?: boolean;
+  children: ReactNode;
+}) {
+  const card = (
+    <div
+      role={inline ? "region" : "dialog"}
+      aria-labelledby="result-title"
+      className={`card w-full p-5 text-center ${inline ? "mx-auto max-w-[32rem]" : "max-w-xs"}`}
+    >
+      <h2 id="result-title" className="text-2xl font-bold">
+        {title}
+      </h2>
+      <p className="mt-1 text-muted tabular-nums">{detail}</p>
+      <div className="mt-5 grid gap-2">{children}</div>
     </div>
   );
+  if (inline) return card;
+  return <div className="absolute inset-0 z-10 grid place-items-center p-4">{card}</div>;
 }
 
 export const PRIMARY_BUTTON = "btn btn-primary";
