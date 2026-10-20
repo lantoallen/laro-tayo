@@ -11,7 +11,10 @@
     "./hulaan-mo": "./src/hulaan-mo/index.ts",
     "./four-in-a-row": "./src/four-in-a-row/index.ts",
     "./reversi": "./src/reversi/index.ts",
-    "./dots-and-boxes": "./src/dots-and-boxes/index.ts"
+    "./dots-and-boxes": "./src/dots-and-boxes/index.ts",
+    "./memory": "./src/memory/index.ts",
+    "./morris": "./src/morris/index.ts",
+    "./sea-battle": "./src/sea-battle/index.ts"
   },
   "scripts": {
     "test": "vitest run",

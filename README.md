@@ -2,9 +2,9 @@
 
 Filipino games and classics you can play on your phone, at https://laro-tayo.vercel.app.
 
-There are seven games so far. Four are Filipino: Sungka and Dama (Filipino checkers) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Pusoy Dos, the card game, is played against three bots. Hulaan Mo is a guessing game for a group sharing one phone.
+There are ten games so far. Four are Filipino: Sungka and Dama (Filipino checkers) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Pusoy Dos, the card game, is played against three bots. Hulaan Mo is a guessing game for a group sharing one phone.
 
-The other three are classics played everywhere: Four in a Row, Reversi, and Dots and Boxes. They can be played the same three ways as Sungka and Dama.
+The other six are classics played everywhere: Four in a Row, Reversi, Dots and Boxes, Memory, Nine Men's Morris, and Sea Battle. They can be played the same three ways as Sungka and Dama, except Sea Battle, which hides each player's ships and so is played against the bot or online.
 
 ## Running it
 
@@ -48,18 +48,18 @@ packages/games   Game rules in plain TypeScript, no React
   src/dama       Dama rules, bot, and tests
   src/pusoy-dos  Pusoy Dos cards, rules, bots, and tests
   src/hulaan-mo  Hulaan Mo word packs, game logic, and tests
-  src/four-in-a-row, src/reversi, src/dots-and-boxes
-                 Rules, bots, and tests for the three classics
+  src/four-in-a-row, src/reversi, src/dots-and-boxes, src/memory, src/morris, src/sea-battle
+                 Rules, bots, and tests for the six classics
 packages/rooms   Online room logic: seats, turns, rematches, and the messages sent over the socket
 apps/server      The room server, a Cloudflare Worker
 apps/web         The Next.js app
 ```
 
-Every game implements the same small interface (`setup`, `legalMoves`, `play`, `view`, `result`, `bot`) in `packages/games/src/engine/types.ts`. The screens and the online rooms only use that interface, so adding a game shouldn't mean touching shared code. `view` is there for games with hidden information: it decides what each player is allowed to see, so in Pusoy Dos nobody's phone will ever receive another player's cards.
+Every game implements the same small interface (`setup`, `legalMoves`, `play`, `view`, `result`, `bot`) in `packages/games/src/engine/types.ts`. The screens and the online rooms only use that interface, so adding a game shouldn't mean touching shared code. `view` is there for games with hidden information: it decides what each player is allowed to see, so in Pusoy Dos nobody's phone will ever receive another player's cards, in Memory nobody receives a card's face before it's turned up, and in Sea Battle nobody receives the other fleet's position.
 
 Hulaan Mo is the exception. It has no moves to choose between and no bot, just a timer and two buttons, so it's a plain reducer (`createGame` and `reduce`) with its own tests instead.
 
-The three classics share their screens. `apps/web/src/components/board-game` has one setup screen, one game screen for playing on one phone, and one for playing online. Each game only adds a board to draw and a short config: its colors, what to show next to each player's name, and its messages.
+The six classics share their screens. `apps/web/src/components/board-game` has one setup screen, one game screen for playing on one phone, and one for playing online. Each game only adds a board to draw and a short config: its colors, what to show next to each player's name, and its messages.
 
 Some details about Sungka:
 
@@ -163,6 +163,28 @@ The bots don't search ahead. They follow the rules good players use:
 - Easy takes boxes when it sees them, but otherwise often draws any line.
 - Medium never draws a box's third side while it has a choice, and when it has to, it gives away as few boxes as it can.
 - Hard also works out the last few safe lines so the other player has to open the first chain. Once only chains are left it picks which one to give away, and it can take all but the last two boxes of a chain and hand those back, so the other player has to open the next chain too. In testing it beat medium in 74 of 100 games.
+
+## Memory rules used here
+
+- 30 cards are laid face down: 15 pairs, so there's never a tie. The faces are five shapes in three colors.
+- Turn over two cards. A match is yours, and you go again. A miss stays face up until the next card is turned, then the turn passes.
+
+The bot only uses cards that have been turned up before, and a test checks that shuffling the cards nobody has seen never changes its move. Easy remembers each card it has seen with a 30% chance, medium 70%, and hard never forgets.
+
+## Nine Men's Morris rules used here
+
+- Each player has nine pieces to place on the 24 points, one per turn. Then players take turns moving a piece along a line to the next empty point.
+- Three in a line is a mill, and takes one of the other player's pieces. Pieces in a mill are safe unless every piece that player has is in one.
+- With three pieces left, a player can jump to any empty point. You win when the other player is down to two pieces or can't move. If 50 moves go by without a piece being taken, it's a draw.
+
+The bot uses the same search as Four in a Row and Reversi. It counts pieces first, then mills, lines of two with the third point open, and how free each side's pieces are to move. Hard looks 4 to 6 moves ahead.
+
+## Sea Battle rules used here
+
+- Each side has five ships on a 10 by 10 grid: 5, 4, 3, 3, and 2 squares long. They're placed at random, and no two ships touch, even at the corners.
+- Players take turns firing one shot at a time. A ship sinks when every square of it is hit, and sinking the whole fleet wins.
+
+The bots work only from their own shots and the ships they've sunk, and a test checks that moving the other fleet's unsunk ships never changes their shot. Easy fires at random and only sometimes follows up a hit. Medium follows up every hit and otherwise fires on every other square, since no ship is shorter than two. Hard counts every way the ships still afloat could fit around what it knows and fires where a ship is most likely to be. On average easy needs 63 shots to sink a fleet, medium 45, and hard 39.
 
 ---
 

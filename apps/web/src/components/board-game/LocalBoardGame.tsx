@@ -6,7 +6,7 @@ import { LeaveButton } from "@/components/game/LeaveButton";
 import { RulesButton } from "@/components/game/RulesButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { BOT_SEAT, LEVEL_LABELS, type TwoPlayerSettings } from "@/components/game/settings";
-import { resultTitle, type BoardGameConfig } from "./types";
+import { promptFor, resultTitle, type BoardGameConfig } from "./types";
 
 /** How long the bot waits before playing, so its move doesn't appear the instant yours lands. */
 const BOT_DELAY_MS = 600;
@@ -41,9 +41,9 @@ export function LocalBoardGame<State, Move>({
       const move = game.bot!(state, BOT_SEAT, { level: settings.level, rng: Math.random });
       setState(game.play(state, BOT_SEAT, move).state);
       setMoves((count) => count + 1);
-    }, BOT_DELAY_MS);
+    }, config.botDelayMs ?? BOT_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [botToMove, game, state, settings.level]);
+  }, [botToMove, config.botDelayMs, game, state, settings.level]);
 
   function move(next: Move) {
     if (humanSeat === null) return;
@@ -54,7 +54,7 @@ export function LocalBoardGame<State, Move>({
   let status: string;
   if (outcome) status = "Game over";
   else if (botToMove) status = "Bot's turn...";
-  else status = `${vsBot ? "Your" : `${names[turn!]}'s`} turn. ${config.prompt}`;
+  else status = `${vsBot ? "Your" : `${names[turn!]}'s`} turn. ${promptFor(config, state)}`;
   // In a bot game the messages talk to the player at the bottom. In pass and play they use names.
   const notice = outcome
     ? null
@@ -88,7 +88,7 @@ export function LocalBoardGame<State, Move>({
         active={turn === 1}
       />
       <div className="mx-auto w-full max-w-[32rem]">
-        <Board state={state} onMove={humanSeat === null ? undefined : move} />
+        <Board state={state} you={vsBot ? 0 : null} onMove={humanSeat === null ? undefined : move} />
       </div>
       <PlayerRow
         name={rowName(0)}

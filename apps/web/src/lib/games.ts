@@ -1,4 +1,14 @@
-export type GameId = "sungka" | "dama" | "pusoy-dos" | "hulaan-mo" | "four-in-a-row" | "reversi" | "dots-and-boxes";
+export type GameId =
+  | "sungka"
+  | "dama"
+  | "pusoy-dos"
+  | "hulaan-mo"
+  | "four-in-a-row"
+  | "reversi"
+  | "dots-and-boxes"
+  | "memory"
+  | "sea-battle"
+  | "morris";
 
 /** Games are shown in two groups: ones from the Philippines, and classics played everywhere. */
 export type GameGroup = "filipino" | "classic";
@@ -6,19 +16,20 @@ export type GameGroup = "filipino" | "classic";
 /** The flag color each game is shown in. */
 export type GameColor = "blue" | "red" | "yellow" | "ink";
 
+/** How a game can be played. Online only shows when a room server is set up. */
+export type PlayMode = "bot" | "local" | "online" | "teams";
+
 export interface GameInfo {
   id: GameId;
   name: string;
   players: string;
-  description: string;
+  /** One short line for the game's tile. */
+  tagline: string;
   group: GameGroup;
   color: GameColor;
   /** Where to play it. Games still being built have none. */
   href?: string;
-  /** Whether it can be played online once the room server is set up. */
-  online?: boolean;
-  /** How it can be played, when that isn't the usual bot or pass and play. */
-  ways?: string;
+  modes: PlayMode[];
 }
 
 /** Every game in Laro Tayo!, in the order they're shown. */
@@ -27,73 +38,110 @@ export const GAMES: GameInfo[] = [
     id: "sungka",
     name: "Sungka",
     players: "2 players",
-    description: "The shell game played on a long wooden board with 16 holes and 98 shells.",
+    tagline: "Sow shells around the board and fill your store.",
     group: "filipino",
     color: "blue",
     href: "/sungka",
-    online: true,
+    modes: ["bot", "local", "online"],
   },
   {
     id: "dama",
     name: "Dama",
     players: "2 players",
-    description: "Filipino checkers. Kings fly across the board, and you always have to take the biggest capture.",
+    tagline: "Filipino checkers, with kings that fly.",
     group: "filipino",
     color: "red",
     href: "/dama",
-    online: true,
+    modes: ["bot", "local", "online"],
   },
   {
     id: "pusoy-dos",
     name: "Pusoy Dos",
     players: "4 players",
-    description: "The card game where you race to be the first to get rid of all 13 cards.",
+    tagline: "Be the first to play all 13 of your cards.",
     group: "filipino",
     color: "yellow",
     href: "/pusoy-dos",
-    ways: "Play against three bots.",
+    modes: ["bot"],
   },
   {
     id: "hulaan-mo",
     name: "Hulaan Mo",
-    players: "4 or more players",
-    description: "The guesser holds the phone to their forehead and asks yes-or-no questions until they get the word.",
+    players: "4 or more",
+    tagline: "Guess the word on your forehead with yes-or-no questions.",
     group: "filipino",
     color: "ink",
     href: "/hulaan-mo",
-    ways: "Party game for 2 to 4 teams on one phone.",
+    modes: ["teams"],
   },
   {
     id: "four-in-a-row",
     name: "Four in a Row",
     players: "2 players",
-    description: "Drop discs into the grid and get four in a line before the other player does.",
+    tagline: "Drop discs and line up four before they do.",
     group: "classic",
     color: "yellow",
     href: "/four-in-a-row",
-    online: true,
+    modes: ["bot", "local", "online"],
   },
   {
     id: "reversi",
     name: "Reversi",
     players: "2 players",
-    description: "Trap the other player's discs between yours to flip them. Most discs at the end wins.",
+    tagline: "Trap discs to flip them to your color.",
     group: "classic",
     color: "ink",
     href: "/reversi",
-    online: true,
+    modes: ["bot", "local", "online"],
   },
   {
     id: "dots-and-boxes",
     name: "Dots and Boxes",
     players: "2 players",
-    description: "Take turns drawing lines between dots. Close a box to claim it and go again.",
+    tagline: "Close a box to claim it and go again.",
     group: "classic",
     color: "blue",
     href: "/dots-and-boxes",
-    online: true,
+    modes: ["bot", "local", "online"],
+  },
+  {
+    id: "memory",
+    name: "Memory",
+    players: "2 players",
+    tagline: "Turn over two cards at a time and find the pairs.",
+    group: "classic",
+    color: "red",
+    href: "/memory",
+    modes: ["bot", "local", "online"],
+  },
+  {
+    id: "sea-battle",
+    name: "Sea Battle",
+    players: "2 players",
+    tagline: "Find the other side's hidden ships and sink them first.",
+    group: "classic",
+    color: "ink",
+    href: "/sea-battle",
+    modes: ["bot", "online"],
+  },
+  {
+    id: "morris",
+    name: "Nine Men's Morris",
+    players: "2 players",
+    tagline: "Make lines of three to take the other player's pieces.",
+    group: "classic",
+    color: "blue",
+    href: "/nine-mens-morris",
+    modes: ["bot", "local", "online"],
   },
 ];
+
+export const MODE_LABELS: Record<PlayMode, string> = {
+  bot: "Bot",
+  local: "Same phone",
+  online: "Online",
+  teams: "Teams",
+};
 
 export const GROUP_TITLES: Record<GameGroup, string> = {
   filipino: "Filipino games",

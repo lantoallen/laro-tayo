@@ -1,0 +1,101 @@
+.mm-board {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(5px, 1.8vw, 10px);
+  width: min(100%, 26rem);
+  margin-inline: auto;
+}
+
+.mm-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border: 0;
+  padding: 0;
+  background: none;
+}
+
+.mm-side {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 2.5px solid var(--outline);
+  border-radius: 10px;
+  box-shadow: 2px 2px 0 var(--outline);
+  animation: mm-flip 220ms ease-out;
+}
+
+/* The back of a card: blue stripes inside a cream border. */
+.mm-down .mm-side {
+  background:
+    repeating-linear-gradient(45deg, #0038a8 0 6px, #1450c4 6px 12px) padding-box,
+    #fffaf0;
+  outline: 3px solid #fffaf0;
+  outline-offset: -6px;
+}
+
+.mm-up .mm-side {
+  background: #fffaf0;
+}
+
+.mm-shape {
+  width: 70%;
+}
+
+/* Pairs already taken fade back, with a corner in the color of whoever took them. */
+.mm-taken .mm-side {
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+.mm-taken .mm-side::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22%;
+  aspect-ratio: 1;
+  border: 1.5px solid #1b1b1b;
+  border-radius: 999px;
+}
+
+.mm-red .mm-side::after {
+  background: #ce1126;
+}
+
+.mm-blue .mm-side::after {
+  background: #0038a8;
+}
+
+/* The two cards that didn't match, until the next card is turned. */
+.mm-missed .mm-side {
+  border-color: #ce1126;
+}
+
+button.mm-card {
+  cursor: pointer;
+}
+
+button.mm-card:hover .mm-side,
+button.mm-card:focus-visible .mm-side {
+  transform: translateY(-2px);
+}
+
+button.mm-card:focus-visible {
+  outline: 3px solid #fcd116;
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+@keyframes mm-flip {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mm-side {
+    animation: none;
+  }
+}

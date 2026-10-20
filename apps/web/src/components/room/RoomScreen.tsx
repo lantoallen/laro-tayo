@@ -8,7 +8,10 @@ import { OnlineBoardGame } from "@/components/board-game/OnlineBoardGame";
 import { OnlineDama } from "@/components/dama/OnlineDama";
 import { DOTS_AND_BOXES } from "@/components/dots-and-boxes/config";
 import { FOUR_IN_A_ROW } from "@/components/four-in-a-row/config";
+import { MEMORY } from "@/components/memory/config";
+import { MORRIS } from "@/components/morris/config";
 import { REVERSI } from "@/components/reversi/config";
+import { SEA_BATTLE } from "@/components/sea-battle/config";
 import { OnlineSungka } from "@/components/sungka/OnlineSungka";
 import { savePlayerName, useIsClient, usePlayer, type LocalPlayer } from "@/lib/player";
 import { ONLINE_ENABLED } from "@/lib/rooms";
@@ -89,6 +92,12 @@ function Room({ code, player }: { code: string; player: LocalPlayer }) {
       return <OnlineBoardGame config={REVERSI} {...props} />;
     case "dots-and-boxes":
       return <OnlineBoardGame config={DOTS_AND_BOXES} {...props} />;
+    case "memory":
+      return <OnlineBoardGame config={MEMORY} {...props} />;
+    case "morris":
+      return <OnlineBoardGame config={MORRIS} {...props} />;
+    case "sea-battle":
+      return <OnlineBoardGame config={SEA_BATTLE} {...props} />;
     default:
       return <OnlineSungka {...props} />;
   }
