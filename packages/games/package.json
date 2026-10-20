@@ -10,7 +10,8 @@
     "./pusoy-dos": "./src/pusoy-dos/index.ts",
     "./hulaan-mo": "./src/hulaan-mo/index.ts",
     "./four-in-a-row": "./src/four-in-a-row/index.ts",
-    "./reversi": "./src/reversi/index.ts"
+    "./reversi": "./src/reversi/index.ts",
+    "./dots-and-boxes": "./src/dots-and-boxes/index.ts"
   },
   "scripts": {
     "test": "vitest run",
