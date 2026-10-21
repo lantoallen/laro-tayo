@@ -11,7 +11,9 @@ import {
   WaitingRoom,
   type OnlineProps,
 } from "@/components/room/online";
+import { useResultSound } from "@/lib/sound";
 import { promptFor, type BoardGameConfig } from "./types";
+import { useMoveSound } from "./useMoveSound";
 
 type Props<State, Move> = OnlineProps & { config: BoardGameConfig<State, Move> };
 
@@ -47,18 +49,21 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
   const yourMove = you !== null && turn === you;
   const yourTurn = yourMove && status === "open" && !pending.waiting;
   useTurnTitle(yourMove);
+  useMoveSound(config, state, room.moveCount);
+  useResultSound(outcome?.winners ?? null, you);
 
   function move(next: Move) {
     if (send({ type: "move", move: next })) pending.markSent();
   }
 
+  const turnLabel = turn === null ? null : turn === you ? "Your turn" : `${names[turn]}'s turn`;
   let statusText: string;
   if (status === "reconnecting") statusText = "Connection lost. Reconnecting...";
   else if (turn === null) statusText = "Game over";
   else if (turn === you && pending.waiting) statusText = "Sending your move...";
-  else if (turn === you) statusText = `Your turn. ${promptFor(config, state)}`;
+  else if (turn === you) statusText = promptFor(config, state);
   else if (!connected[turn]) statusText = `Waiting for ${names[turn]} to come back...`;
-  else statusText = `${names[turn]}'s turn`;
+  else statusText = "Waiting for their move...";
 
   const errorNotice: Notice | null = error ? { tone: "bad", text: error } : null;
   const notice = errorNotice ?? config.notice?.(state, names, you) ?? null;
@@ -68,6 +73,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
     return (
       <PlayerRow
         name={seat === you ? `${names[seat]} (you, ${color})` : `${names[seat]} (${color})`}
+        color={config.swatches[seat]}
         stat={{ label: config.stat.label, value: config.stat.value(state, seat) }}
         active={turn === seat}
         note={connected[seat] ? undefined : "offline"}
@@ -94,7 +100,11 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
           send={send}
         />
       ) : (
-        <StatusLine notice={notice} status={statusText} />
+        <StatusLine
+          notice={notice}
+          status={statusText}
+          turn={turnLabel === null ? null : { label: turnLabel, color: config.swatches[turn!] }}
+        />
       )}
     </main>
   );

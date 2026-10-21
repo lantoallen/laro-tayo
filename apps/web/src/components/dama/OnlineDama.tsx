@@ -3,6 +3,7 @@
 import type { Seat } from "@laro/games";
 import { countPieces, fullMoves, legalMoves, result, type DamaEvent, type DamaState } from "@laro/games/dama";
 import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
+import { SEAT_COLORS } from "@/components/game/settings";
 import {
   RoomBar,
   RoomResult,
@@ -13,11 +14,14 @@ import {
   WaitingRoom,
   type OnlineProps,
 } from "@/components/room/online";
+import { useResultSound } from "@/lib/sound";
 import { DamaBoard } from "./DamaBoard";
 import { Rules } from "./Rules";
 import { latestNotice } from "./notices";
 import { useDamaPlayback } from "./useDamaPlayback";
 import { useMoveSelection } from "./useMoveSelection";
+
+const seatColor = (seat: Seat) => (seat === 0 ? SEAT_COLORS.red : SEAT_COLORS.blue);
 
 /** Dama against someone on another phone. The server holds the real game, and this shows it. */
 export function OnlineDama(props: OnlineProps) {
@@ -52,6 +56,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   const over = !playing && game.turn === null;
   const outcome = over ? result(game) : null;
   useTurnTitle(yourMove);
+  useResultSound(outcome?.winners ?? null, you);
 
   function tapSquare(square: number) {
     const complete = tap(square);
@@ -59,16 +64,17 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   }
 
   const turn = playing ? mover : game.turn;
+  const turnLabel = turn === null ? null : turn === you ? "Your turn" : `${names[turn]}'s turn`;
   let statusText: string;
   if (status === "reconnecting") statusText = "Connection lost. Reconnecting...";
   else if (turn === null) statusText = "Game over";
-  else if (turn === you && playing) statusText = "Your move...";
+  else if (playing) statusText = "Moving...";
   else if (turn === you && pending.waiting) statusText = "Sending your move...";
   else if (turn === you && selection.length > 1) statusText = "Keep jumping. Tap the next square.";
   else if (turn === you && selection.length === 1) statusText = mustCapture ? "Tap where to jump." : "Tap where to move it.";
-  else if (turn === you) statusText = mustCapture ? "Your turn. You have to capture." : "Your turn. Pick a piece.";
+  else if (turn === you) statusText = mustCapture ? "You have to capture." : "Pick a piece.";
   else if (!connected[turn]) statusText = `Waiting for ${names[turn]} to come back...`;
-  else statusText = playing ? `${names[turn]}'s move...` : `${names[turn]}'s turn`;
+  else statusText = "Waiting for their move...";
 
   const errorNotice: Notice | null = error ? { tone: "bad", text: error } : null;
   const notice = over || selection.length > 0 ? null : (errorNotice ?? latestNotice(events, mover, names, you));
@@ -84,7 +90,8 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
       <PlayerRow
         name={label(top)}
         stat={{ label: "Pieces", value: countPieces(board, top) }}
-        active={!playing && game.turn === top}
+        active={turn === top}
+        color={seatColor(top)}
         note={connected[top] ? undefined : "offline"}
       />
 
@@ -114,11 +121,16 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
       <PlayerRow
         name={label(bottom)}
         stat={{ label: "Pieces", value: countPieces(board, bottom) }}
-        active={!playing && game.turn === bottom}
+        active={turn === bottom}
+        color={seatColor(bottom)}
         note={connected[bottom] ? undefined : "offline"}
       />
 
-      <StatusLine notice={notice} status={statusText} />
+      <StatusLine
+        notice={notice}
+        status={statusText}
+        turn={turnLabel === null ? null : { label: turnLabel, color: seatColor(turn!) }}
+      />
     </main>
   );
 }

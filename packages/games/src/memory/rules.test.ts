@@ -22,7 +22,7 @@ describe("setup", () => {
 });
 
 describe("turning cards over", () => {
-  it("keeps a matching pair and gives another turn", () => {
+  it("keeps a matching pair, then passes the turn", () => {
     const start = setup({ rng: createRng(3) });
     const { first, match } = cardsIn(start);
     const up = play(start, 0, first).state;
@@ -31,8 +31,8 @@ describe("turning cards over", () => {
     const { state, events } = play(up, 0, match);
     expect(state.owner[first]).toBe(0);
     expect(state.owner[match]).toBe(0);
-    expect(state.turn).toBe(0);
-    expect(state.last).toEqual({ seat: 0, matched: true });
+    expect(state.turn).toBe(1);
+    expect(state.last).toEqual({ seat: 0, cards: [first, match], matched: true });
     expect(events.at(-1)).toEqual({ type: "match", cards: [first, match] });
   });
 
@@ -60,8 +60,8 @@ describe("turning cards over", () => {
     const up = play(start, 0, first).state;
     expect(() => play(up, 0, first)).toThrow(IllegalMoveError);
     const taken = play(up, 0, match).state;
-    expect(() => play(taken, 0, match)).toThrow(IllegalMoveError);
-    expect(() => play(taken, 1, 2)).toThrow(IllegalMoveError);
+    expect(() => play(taken, 1, match)).toThrow(IllegalMoveError);
+    expect(() => play(taken, 0, 2)).toThrow(IllegalMoveError);
   });
 });
 
@@ -76,11 +76,16 @@ describe("view", () => {
 });
 
 describe("random games", () => {
-  it("always end with every pair taken", () => {
+  it("always end with every pair taken, with players taking turns", () => {
     const rng = createRng(7);
     for (let game = 0; game < 100; game++) {
       let state = setup({ firstSeat: game % 2, rng });
-      while (state.turn !== null) state = play(state, state.turn, pick(rng, legalMoves(state, state.turn))).state;
+      while (state.turn !== null) {
+        const seat = state.turn;
+        state = play(state, seat, pick(rng, legalMoves(state, seat))).state;
+        // One card in, it's still the same player. Two cards in, it's always the other one.
+        if (state.turn !== null) expect(state.turn === seat).toBe(state.flipped.length === 1);
+      }
       const { winners, scores } = result(state)!;
       expect(scores[0] + scores[1]).toBe(PAIRS);
       expect(scores).toEqual([countPairs(state.owner, 0), countPairs(state.owner, 1)]);

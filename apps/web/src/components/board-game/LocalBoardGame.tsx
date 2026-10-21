@@ -4,9 +4,12 @@ import { useEffect, useState } from "react";
 import type { Seat } from "@laro/games";
 import { LeaveButton } from "@/components/game/LeaveButton";
 import { RulesButton } from "@/components/game/RulesButton";
+import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { BOT_SEAT, LEVEL_LABELS, type TwoPlayerSettings } from "@/components/game/settings";
+import { useResultSound } from "@/lib/sound";
 import { promptFor, resultTitle, type BoardGameConfig } from "./types";
+import { useMoveSound } from "./useMoveSound";
 
 /** How long the bot waits before playing, so its move doesn't appear the instant yours lands. */
 const BOT_DELAY_MS = 600;
@@ -30,10 +33,14 @@ export function LocalBoardGame<State, Move>({
   const [moves, setMoves] = useState(0);
   const vsBot = settings.mode === "bot";
   const names: readonly [string, string] = vsBot ? ["You", "Bot"] : config.colors;
+  // In a bot game the player at the bottom is "you". In pass and play nobody is.
+  const you: Seat | null = vsBot ? 0 : null;
   const turn = game.turn(state);
   const botToMove = vsBot && turn === BOT_SEAT;
   const humanSeat = turn !== null && !botToMove ? turn : null;
   const outcome = game.result(state);
+  useMoveSound(config, state, moves);
+  useResultSound(outcome?.winners ?? null, you);
 
   useEffect(() => {
     if (!botToMove) return;
@@ -51,19 +58,30 @@ export function LocalBoardGame<State, Move>({
     setMoves(moves + 1);
   }
 
+  const turnLabel =
+    turn === null ? null : vsBot ? (turn === BOT_SEAT ? "Bot's turn" : "Your turn") : `${config.colors[turn]}'s turn`;
   let status: string;
   if (outcome) status = "Game over";
-  else if (botToMove) status = "Bot's turn...";
-  else status = `${vsBot ? "Your" : `${names[turn!]}'s`} turn. ${promptFor(config, state)}`;
+  else if (botToMove) status = "Thinking...";
+  else status = promptFor(config, state);
   // In a bot game the messages talk to the player at the bottom. In pass and play they use names.
-  const notice = outcome
-    ? null
-    : (config.notice?.(state, vsBot ? ["You", "The bot"] : names, vsBot ? 0 : null) ?? null);
+  const notice = outcome ? null : (config.notice?.(state, vsBot ? ["You", "The bot"] : names, you) ?? null);
 
-  const rowName = (seat: Seat) => {
+  const row = (seat: Seat) => {
     const color = config.colors[seat].toLowerCase();
-    if (!vsBot) return config.colors[seat];
-    return seat === BOT_SEAT ? `Bot (${LEVEL_LABELS[settings.level]}), ${color}` : `You, ${color}`;
+    const name = !vsBot
+      ? config.colors[seat]
+      : seat === BOT_SEAT
+        ? `Bot (${LEVEL_LABELS[settings.level]}), ${color}`
+        : `You, ${color}`;
+    return (
+      <PlayerRow
+        name={name}
+        color={config.swatches[seat]}
+        stat={{ label: config.stat.label, value: config.stat.value(state, seat) }}
+        active={turn === seat}
+      />
+    );
   };
 
   return (
@@ -77,29 +95,25 @@ export function LocalBoardGame<State, Move>({
           leaveLabel="Leave game"
           onLeave={onExit}
         />
-        <RulesButton>
-          <Rules />
-        </RulesButton>
+        <div className="flex items-center gap-2">
+          <SoundButton />
+          <RulesButton firstVisit={game.id}>
+            <Rules />
+          </RulesButton>
+        </div>
       </div>
 
-      <PlayerRow
-        name={rowName(1)}
-        stat={{ label: config.stat.label, value: config.stat.value(state, 1) }}
-        active={turn === 1}
-      />
+      {row(1)}
       <div className="mx-auto w-full max-w-[32rem]">
-        <Board state={state} you={vsBot ? 0 : null} onMove={humanSeat === null ? undefined : move} />
+        <Board state={state} you={you} onMove={humanSeat === null ? undefined : move} />
       </div>
-      <PlayerRow
-        name={rowName(0)}
-        stat={{ label: config.stat.label, value: config.stat.value(state, 0) }}
-        active={turn === 0}
-      />
+      {row(0)}
 
       {outcome ? (
         <ResultCard
           inline
-          title={resultTitle(outcome.winners, names, vsBot ? 0 : null)}
+          celebrate={outcome.winners.length > 0 && (you === null || outcome.winners.includes(you))}
+          title={resultTitle(outcome.winners, names, you)}
           detail={config.resultDetail(state, names)}
         >
           <button type="button" onClick={onRematch} className={PRIMARY_BUTTON} autoFocus>
@@ -110,7 +124,11 @@ export function LocalBoardGame<State, Move>({
           </button>
         </ResultCard>
       ) : (
-        <StatusLine notice={notice} status={status} />
+        <StatusLine
+          notice={notice}
+          status={status}
+          turn={turnLabel === null ? null : { label: turnLabel, color: config.swatches[turn!] }}
+        />
       )}
     </main>
   );

@@ -1,6 +1,7 @@
 import type { Seat } from "@laro/games";
 import { SHIP_NAMES, otherSeat, seaBattle, shipsLeft, type SeaMove, type SeaState } from "@laro/games/sea-battle";
 import type { BoardGameConfig } from "@/components/board-game/types";
+import { SEAT_COLORS } from "@/components/game/settings";
 import type { Notice } from "@/components/game/parts";
 import { SeaBoard } from "./SeaBoard";
 import { Rules } from "./Rules";
@@ -31,6 +32,7 @@ export const SEA_BATTLE: BoardGameConfig<SeaState, SeaMove> = {
   roomId: "sea-battle",
   tagline: "Find the other side's hidden ships and sink them all first.",
   colors: ["Red", "Blue"],
+  swatches: [SEAT_COLORS.red, SEAT_COLORS.blue],
   passAndPlay: false,
   Board: SeaBoard,
   Rules,
@@ -38,4 +40,5 @@ export const SEA_BATTLE: BoardGameConfig<SeaState, SeaMove> = {
   prompt: "Pick a square in their waters.",
   notice,
   resultDetail: (state, names) => `Ships left: ${names[0]} ${shipsLeft(state, 0)}, ${names[1]} ${shipsLeft(state, 1)}`,
+  sound: (state) => (state.last?.sunk != null ? "sunk" : state.last?.hit ? "hit" : "splash"),
 };

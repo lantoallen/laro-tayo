@@ -1,6 +1,7 @@
 import type { Seat } from "@laro/games";
 import { canFly, morris, otherSeat, piecesLeft, type MorrisMove, type MorrisState } from "@laro/games/morris";
 import type { BoardGameConfig } from "@/components/board-game/types";
+import { SEAT_COLORS } from "@/components/game/settings";
 import type { Notice } from "@/components/game/parts";
 import { MorrisBoard } from "./MorrisBoard";
 import { Rules } from "./Rules";
@@ -36,6 +37,7 @@ export const MORRIS: BoardGameConfig<MorrisState, MorrisMove> = {
   roomId: "morris",
   tagline: "Make lines of three to take the other player's pieces.",
   colors: ["Red", "Blue"],
+  swatches: [SEAT_COLORS.red, SEAT_COLORS.blue],
   Board: MorrisBoard,
   Rules,
   stat: { label: "Pieces", value: piecesLeft },
@@ -45,4 +47,6 @@ export const MORRIS: BoardGameConfig<MorrisState, MorrisMove> = {
     state.winner === null
       ? "50 moves went by without a piece being taken."
       : `Pieces left: ${names[0]} ${piecesLeft(state, 0)}, ${names[1]} ${piecesLeft(state, 1)}`,
+  // A mill rings out, and taking a piece knocks it off the board.
+  sound: (state) => (state.taking ? "match" : state.last?.taken != null ? "capture" : "place"),
 };

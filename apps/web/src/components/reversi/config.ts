@@ -1,6 +1,7 @@
 import type { Seat } from "@laro/games";
 import { countDiscs, otherSeat, reversi, type ReversiMove, type ReversiState } from "@laro/games/reversi";
 import type { BoardGameConfig } from "@/components/board-game/types";
+import { SEAT_COLORS } from "@/components/game/settings";
 import type { Notice } from "@/components/game/parts";
 import { ReversiBoard } from "./ReversiBoard";
 import { Rules } from "./Rules";
@@ -20,6 +21,7 @@ export const REVERSI: BoardGameConfig<ReversiState, ReversiMove> = {
   roomId: "reversi",
   tagline: "Trap the other player's discs to flip them to your color.",
   colors: ["Black", "White"],
+  swatches: [SEAT_COLORS.black, SEAT_COLORS.white],
   Board: ReversiBoard,
   Rules,
   stat: { label: "Discs", value: (state, seat) => countDiscs(state.board, seat) },
@@ -27,4 +29,6 @@ export const REVERSI: BoardGameConfig<ReversiState, ReversiMove> = {
   notice,
   resultDetail: (state, names) =>
     `Discs: ${names[0]} ${countDiscs(state.board, 0)}, ${names[1]} ${countDiscs(state.board, 1)}`,
+  // A big flip gets a bigger sound.
+  sound: (state) => ((state.last?.flipped.length ?? 0) >= 4 ? "capture" : "place"),
 };

@@ -1,5 +1,6 @@
 .sb-board {
-  width: min(100%, 26rem);
+  /* Small enough that both grids and the status line fit on a phone screen. */
+  width: min(100%, 20rem);
   margin-inline: auto;
 }
 
@@ -88,8 +89,21 @@ button.sb-cell:focus-visible {
   }
 }
 
+/* A ship flashes as it goes down. */
+.sb-sinking {
+  animation: sb-sink 900ms ease-out;
+}
+
+@keyframes sb-sink {
+  0%,
+  40% {
+    background: #fcd116;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .sb-last::after {
+  .sb-last::after,
+  .sb-sinking {
     animation: none;
   }
 }

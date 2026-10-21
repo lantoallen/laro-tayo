@@ -3,6 +3,7 @@
 import type { Seat } from "@laro/games";
 import { legalMoves, result, storeOf, type SungkaEvent, type SungkaState } from "@laro/games/sungka";
 import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
+import { SEAT_COLORS } from "@/components/game/settings";
 import {
   RoomBar,
   RoomResult,
@@ -13,10 +14,14 @@ import {
   WaitingRoom,
   type OnlineProps,
 } from "@/components/room/online";
+import { useResultSound } from "@/lib/sound";
 import { Board } from "./Board";
 import { Rules } from "./Rules";
 import { latestNotice } from "./notices";
 import { useSowing } from "./useSowing";
+
+/** Sungka has no piece colors, so each side gets one for its row and turn badge. */
+const SEAT_COLOR = [SEAT_COLORS.blue, SEAT_COLORS.red];
 
 /** Sungka against someone on another phone. The server holds the real game, and this shows it. */
 export function OnlineSungka(props: OnlineProps) {
@@ -45,18 +50,21 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   const over = !sowing && game.turn === null;
   const outcome = over ? result(game) : null;
   useTurnTitle(yourMove);
+  useResultSound(outcome?.winners ?? null, you);
 
   function playHouse(house: number) {
     if (yourTurn && send({ type: "move", move: house })) pending.markSent();
   }
 
   const playing = sowing?.seat ?? game.turn;
+  const turnLabel = playing === null ? null : playing === you ? "Your turn" : `${names[playing]}'s turn`;
   let statusText: string;
   if (status === "reconnecting") statusText = "Connection lost. Reconnecting...";
   else if (playing === null) statusText = "Game over";
-  else if (playing === you) statusText = sowing ? "Your move..." : "Your turn. Pick a house.";
+  else if (sowing) statusText = "Sowing...";
+  else if (playing === you) statusText = "Pick a house on your side.";
   else if (!connected[playing]) statusText = `Waiting for ${names[playing]} to come back...`;
-  else statusText = sowing ? `${names[playing]}'s move...` : `${names[playing]}'s turn`;
+  else statusText = "Waiting for their move...";
 
   const errorNotice: Notice | null = error ? { tone: "bad", text: error } : null;
   const notice = over ? null : (errorNotice ?? latestNotice(events, names, you));
@@ -69,7 +77,8 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
       <PlayerRow
         name={label(top)}
         stat={{ label: "Store", value: board[storeOf(top)] }}
-        active={!sowing && game.turn === top}
+        active={playing === top}
+        color={SEAT_COLOR[top]}
         note={connected[top] ? undefined : "offline"}
       />
 
@@ -99,11 +108,16 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
       <PlayerRow
         name={label(bottom)}
         stat={{ label: "Store", value: board[storeOf(bottom)] }}
-        active={!sowing && game.turn === bottom}
+        active={playing === bottom}
+        color={SEAT_COLOR[bottom]}
         note={connected[bottom] ? undefined : "offline"}
       />
 
-      <StatusLine notice={notice} status={statusText} />
+      <StatusLine
+        notice={notice}
+        status={statusText}
+        turn={turnLabel === null ? null : { label: turnLabel, color: SEAT_COLOR[playing!] }}
+      />
     </main>
   );
 }

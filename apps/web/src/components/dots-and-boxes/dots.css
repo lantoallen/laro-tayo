@@ -23,12 +23,13 @@
 }
 
 .db-new {
-  animation: db-fill 260ms ease-out;
+  animation: db-fill 320ms cubic-bezier(0.3, 1.5, 0.6, 1);
 }
 
 @keyframes db-fill {
   from {
     opacity: 0;
+    transform: scale(0.3);
   }
 }
 
