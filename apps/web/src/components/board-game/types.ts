@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import type { Game, Seat } from "@laro/games";
 import type { GameId } from "@laro/rooms";
 import type { Notice } from "@/components/game/parts";
+import type { SoundName } from "@/lib/sound";
 
 export interface BoardProps<State, Move> {
   state: State;
@@ -24,11 +25,13 @@ export interface BoardGameConfig<State, Move> {
   tagline: string;
   /** What each seat is called in pass and play, seat 0 first. */
   colors: readonly [string, string];
+  /** The color each seat plays as, from SEAT_COLORS, for its row and its turn badge. */
+  swatches: readonly [string, string];
   Board: ComponentType<BoardProps<State, Move>>;
   Rules: ComponentType;
   /** The number shown next to each player's name. */
   stat: { label: string; value: (state: State, seat: Seat) => number };
-  /** Said after "Your turn.", like "Pick a column." */
+  /** What to do on your turn, like "Pick a column." */
   prompt: string | ((state: State) => string);
   /** False for games with hidden pieces, which can't be shared on one screen. */
   passAndPlay?: boolean;
@@ -41,6 +44,8 @@ export interface BoardGameConfig<State, Move> {
   notice?: (state: State, names: readonly [string, string], you: Seat | null) => Notice | null;
   /** The line under "You win" once the game is over. */
   resultDetail: (state: State, names: readonly [string, string]) => string;
+  /** The sound for the move that led to this position. */
+  sound: (state: State) => SoundName | null;
 }
 
 /** "You win", "Red wins", or a draw. `you` is null in pass and play. */

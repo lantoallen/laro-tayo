@@ -28,3 +28,12 @@ export const DEFAULT_TWO_PLAYER: TwoPlayerSettings = { mode: "bot", level: "medi
 
 /** The bot always sits at the top, in seat 1. */
 export const BOT_SEAT: Seat = 1;
+
+/** The colors players play as, matching the pieces on the boards. */
+export const SEAT_COLORS = {
+  red: "#ce1126",
+  blue: "#0038a8",
+  yellow: "#fcd116",
+  black: "#1b1b1b",
+  white: "#fffaf0",
+} as const;

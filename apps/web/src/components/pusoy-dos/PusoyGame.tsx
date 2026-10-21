@@ -19,8 +19,10 @@ import {
 } from "@laro/games/pusoy-dos";
 import { LeaveButton } from "@/components/game/LeaveButton";
 import { RulesButton } from "@/components/game/RulesButton";
+import { SoundButton } from "@/components/game/SoundButton";
 import { PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
-import { LEVEL_LABELS } from "@/components/game/settings";
+import { LEVEL_LABELS, SEAT_COLORS } from "@/components/game/settings";
+import { playSound, useResultSound } from "@/lib/sound";
 import { CardBack, PlayingCard } from "./PlayingCard";
 import { Rules } from "./Rules";
 import { label, noticeFor, playName } from "./words";
@@ -44,6 +46,7 @@ export function PusoyGame({ level, onRematch, onExit }: { level: BotLevel; onRem
 
   function apply(seat: Seat, move: PusoyMove) {
     const outcome = play(game, seat, move);
+    playSound(move.length === 0 ? "tap" : "flip");
     setGame(outcome.state);
     setEvents(outcome.events);
     const roundOver = outcome.events.some((event) => event.type === "roundWon");
@@ -71,6 +74,7 @@ export function PusoyGame({ level, onRematch, onExit }: { level: BotLevel; onRem
   const canPlay = picked.length > 0 && moves.some((move) => move.join() === picked.join());
   const canPass = yourTurn && game.table !== null;
   const outcome = result(game);
+  useResultSound(outcome?.winners ?? null, YOU);
 
   // Explain why the picked cards can't be played yet.
   let problem: string | null = null;
@@ -100,7 +104,7 @@ export function PusoyGame({ level, onRematch, onExit }: { level: BotLevel; onRem
 
   let status: string;
   if (game.turn === null) status = "Game over";
-  else if (!yourTurn) status = `${NAMES[game.turn]} is thinking...`;
+  else if (!yourTurn) status = "Thinking...";
   else if (game.opening) status = "You have the 3♣, so you go first. Your play has to include it.";
   else if (!game.table) status = "Your lead. Play anything.";
   else status = `Beat ${playName(game.table.cards)} or pass.`;
@@ -130,7 +134,8 @@ export function PusoyGame({ level, onRematch, onExit }: { level: BotLevel; onRem
           >
             2x
           </button>
-          <RulesButton>
+          <SoundButton />
+          <RulesButton firstVisit="pusoy-dos">
             <Rules />
           </RulesButton>
         </div>
@@ -142,8 +147,8 @@ export function PusoyGame({ level, onRematch, onExit }: { level: BotLevel; onRem
           return (
             <li
               key={seat}
-              className={`rounded-xl border-[3px] bg-surface p-2 text-center ${
-                game.turn === seat ? "border-yellow shadow-[3px_3px_0_var(--outline)]" : "border-outline"
+              className={`rounded-xl border-[3px] border-outline p-2 text-center transition-colors ${
+                game.turn === seat ? "bg-yellow text-yellow-ink shadow-[3px_3px_0_var(--outline)]" : "bg-surface"
               }`}
             >
               <p className="font-display text-sm">{NAMES[seat]}</p>
@@ -152,7 +157,15 @@ export function PusoyGame({ level, onRematch, onExit }: { level: BotLevel; onRem
                 <span className={`text-lg font-bold tabular-nums ${count === 1 ? "text-red" : ""}`}>{count}</span>
               </div>
               <p className="mt-1 h-5 text-xs text-muted">
-                {count === 1 ? <span className="font-semibold text-red">1 card left</span> : passed.includes(seat) ? "Passed" : ""}
+                {game.turn === seat ? (
+                  <span className="font-semibold text-yellow-ink">Their turn</span>
+                ) : count === 1 ? (
+                  <span className="font-semibold text-red">1 card left</span>
+                ) : passed.includes(seat) ? (
+                  "Passed"
+                ) : (
+                  ""
+                )}
               </p>
             </li>
           );
@@ -184,6 +197,7 @@ export function PusoyGame({ level, onRematch, onExit }: { level: BotLevel; onRem
         {outcome && (
           <ResultCard
             title={outcome.winners[0] === YOU ? "You win" : `${NAMES[outcome.winners[0]]} wins`}
+            celebrate={outcome.winners[0] === YOU}
             detail={`Cards left: ${[1, 2, 3, 0]
               .filter((seat) => seat !== outcome.winners[0])
               .map((seat) => `${NAMES[seat]} ${outcome.scores[seat]}`)
@@ -199,7 +213,17 @@ export function PusoyGame({ level, onRematch, onExit }: { level: BotLevel; onRem
         )}
       </div>
 
-      <StatusLine notice={notice} status={status} />
+      <StatusLine
+        notice={notice}
+        status={status}
+        turn={
+          game.turn === null
+            ? null
+            : yourTurn
+              ? { label: "Your turn", color: SEAT_COLORS.yellow }
+              : { label: `${NAMES[game.turn]}'s turn`, color: SEAT_COLORS.black }
+        }
+      />
 
       <section aria-label="Your hand">
         <div className="pd-hand" style={{ "--count": Math.max(hand.length, 2) } as CSSProperties}>

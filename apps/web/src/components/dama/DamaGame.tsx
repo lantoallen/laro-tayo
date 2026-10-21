@@ -5,8 +5,10 @@ import type { Seat } from "@laro/games";
 import { chooseMove, countPieces, fullMoves, legalMoves, result, setup } from "@laro/games/dama";
 import { LeaveButton } from "@/components/game/LeaveButton";
 import { RulesButton } from "@/components/game/RulesButton";
+import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
-import { LEVEL_LABELS } from "@/components/game/settings";
+import { LEVEL_LABELS, SEAT_COLORS } from "@/components/game/settings";
+import { useResultSound } from "@/lib/sound";
 import { DamaBoard } from "./DamaBoard";
 import { Rules } from "./Rules";
 import { latestNotice } from "./notices";
@@ -15,6 +17,7 @@ import { DELAYS, useDamaPlayback, type Speed } from "./useDamaPlayback";
 import { useMoveSelection } from "./useMoveSelection";
 
 const BOT_SEAT: Seat = 1;
+const seatColor = (seat: Seat) => (seat === 0 ? SEAT_COLORS.red : SEAT_COLORS.blue);
 
 export function DamaGame({
   settings,
@@ -37,6 +40,7 @@ export function DamaGame({
   const mustCapture = humanSeat !== null && fullMoves(game.board, humanSeat).some((m) => m.captured.length > 0);
   const { selection, movable, targets, tap } = useMoveSelection(moves);
   const outcome = playing ? null : result(game);
+  useResultSound(outcome?.winners ?? null, vsBot ? 0 : null);
 
   // Let the bot take its turn after a short pause.
   useEffect(() => {
@@ -54,14 +58,19 @@ export function DamaGame({
     if (complete && humanSeat !== null) move(humanSeat, complete);
   }
 
-  const turnName = humanSeat === null ? "" : vsBot ? "Your turn" : `${names[humanSeat]}'s turn`;
+  // Whoever is moving now, or moves next.
+  const shownTurn = playing ? mover : game.turn;
+  let turnLabel: string | null = null;
+  if (shownTurn !== null) {
+    turnLabel = vsBot ? (shownTurn === BOT_SEAT ? "Bot's turn" : "Your turn") : `${names[shownTurn]}'s turn`;
+  }
   let status: string;
   if (game.turn === null && !playing) status = "Game over";
-  else if (playing) status = mover === BOT_SEAT && vsBot ? "Bot's turn..." : vsBot ? "Your move..." : `${names[mover!]}'s move...`;
-  else if (humanSeat === null) status = "Bot's turn...";
+  else if (playing) status = "Moving...";
+  else if (humanSeat === null) status = "Thinking...";
   else if (selection.length > 1) status = "Keep jumping. Tap the next square.";
   else if (selection.length === 1) status = mustCapture ? "Tap where to jump." : "Tap where to move it.";
-  else status = mustCapture ? `${turnName}. You have to capture.` : `${turnName}. Pick a piece.`;
+  else status = mustCapture ? "You have to capture." : "Pick a piece.";
 
   // In a bot game the messages talk to the player at the bottom. In pass and play they use names.
   const notice =
@@ -90,7 +99,8 @@ export function DamaGame({
           >
             2x
           </button>
-          <RulesButton>
+          <SoundButton />
+          <RulesButton firstVisit="dama">
             <Rules />
           </RulesButton>
         </div>
@@ -99,7 +109,8 @@ export function DamaGame({
       <PlayerRow
         name={vsBot ? `Bot (${LEVEL_LABELS[settings.level]})` : `${names[1]}, top`}
         stat={{ label: "Pieces", value: countPieces(board, 1) }}
-        active={!playing && game.turn === 1}
+        active={shownTurn === 1}
+        color={SEAT_COLORS.blue}
       />
 
       <div className="relative mx-auto w-full max-w-[32rem]">
@@ -115,6 +126,7 @@ export function DamaGame({
         {outcome && (
           <ResultCard
             title={resultTitle(outcome.winners, settings)}
+            celebrate={outcome.winners.length > 0 && (!vsBot || outcome.winners[0] === 0)}
             detail={`Pieces left: ${names[0]} ${outcome.scores[0]}, ${names[1]} ${outcome.scores[1]}`}
           >
             <button type="button" onClick={onRematch} className={PRIMARY_BUTTON} autoFocus>
@@ -130,10 +142,15 @@ export function DamaGame({
       <PlayerRow
         name={vsBot ? names[0] : `${names[0]}, bottom`}
         stat={{ label: "Pieces", value: countPieces(board, 0) }}
-        active={!playing && game.turn === 0}
+        active={shownTurn === 0}
+        color={SEAT_COLORS.red}
       />
 
-      <StatusLine notice={notice} status={status} />
+      <StatusLine
+        notice={notice}
+        status={status}
+        turn={turnLabel === null ? null : { label: turnLabel, color: seatColor(shownTurn!) }}
+      />
     </main>
   );
 }

@@ -3,6 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Seat } from "@laro/games";
 import { applyEvent, play, type SungkaEvent, type SungkaState } from "@laro/games/sungka";
+import { playSound, type SoundName } from "@/lib/sound";
+
+/** A soft click for each shell, and bigger sounds for captures and extra turns. */
+const SOUNDS: Partial<Record<SungkaEvent["type"], SoundName>> = {
+  pickup: "tap",
+  drop: "drop",
+  capture: "capture",
+  extraTurn: "match",
+  pass: "miss",
+};
 
 export type Speed = "normal" | "fast";
 
@@ -48,11 +58,12 @@ function frameOf(sowing: Sowing): Frame {
 }
 
 /**
- * Holds a Sungka game and plays each move out one step at a time.
+ * Holds a Sungka game and plays each move out one step at a time, with a
+ * sound for each step unless `quiet` is set, as it is for the demo.
  * `events` is what has happened so far in the move being shown, or the whole
  * last move once it's done, so screens can show messages like "Huli!".
  */
-export function useSowing(initial: () => SungkaState, speed: Speed) {
+export function useSowing(initial: () => SungkaState, speed: Speed, { quiet = false } = {}) {
   const [game, setGame] = useState(initial);
   const [sowing, setSowing] = useState<Sowing | null>(null);
   const [lastMove, setLastMove] = useState<Sowing | null>(null);
@@ -67,11 +78,13 @@ export function useSowing(initial: () => SungkaState, speed: Speed) {
         setLastMove(sowing);
         setSowing(null);
       } else {
+        const sound = SOUNDS[sowing.events[sowing.shown].type];
+        if (sound && !quiet) playSound(sound);
         setSowing({ ...sowing, shown: sowing.shown + 1 });
       }
     }, delay);
     return () => clearTimeout(timer);
-  }, [sowing, speed]);
+  }, [quiet, sowing, speed]);
 
   const frame = useMemo(() => (sowing ? frameOf(sowing) : null), [sowing]);
   const events = sowing ? sowing.events.slice(0, sowing.shown) : (lastMove?.events ?? []);

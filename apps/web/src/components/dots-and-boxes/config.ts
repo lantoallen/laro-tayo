@@ -1,6 +1,7 @@
 import type { Seat } from "@laro/games";
 import { countBoxes, dotsAndBoxes, type DotsMove, type DotsState } from "@laro/games/dots-and-boxes";
 import type { BoardGameConfig } from "@/components/board-game/types";
+import { SEAT_COLORS } from "@/components/game/settings";
 import type { Notice } from "@/components/game/parts";
 import { DotsBoard } from "./DotsBoard";
 import { Rules } from "./Rules";
@@ -20,6 +21,7 @@ export const DOTS_AND_BOXES: BoardGameConfig<DotsState, DotsMove> = {
   roomId: "dots-and-boxes",
   tagline: "Draw lines between dots. Close a box to claim it and go again.",
   colors: ["Red", "Blue"],
+  swatches: [SEAT_COLORS.red, SEAT_COLORS.blue],
   Board: DotsBoard,
   Rules,
   stat: { label: "Boxes", value: (state, seat) => countBoxes(state.boxes, seat) },
@@ -27,4 +29,5 @@ export const DOTS_AND_BOXES: BoardGameConfig<DotsState, DotsMove> = {
   notice,
   resultDetail: (state, names) =>
     `Boxes: ${names[0]} ${countBoxes(state.boxes, 0)}, ${names[1]} ${countBoxes(state.boxes, 1)}`,
+  sound: (state) => ((state.last?.boxes.length ?? 0) > 0 ? "match" : "tap"),
 };

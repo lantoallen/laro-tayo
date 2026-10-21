@@ -7,6 +7,7 @@ import type { GameResult, Seat } from "@laro/games";
 import type { ClientMessage, RoomSnapshot } from "@laro/rooms";
 import { LeaveButton } from "@/components/game/LeaveButton";
 import { RulesButton } from "@/components/game/RulesButton";
+import { SoundButton } from "@/components/game/SoundButton";
 import { PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON } from "@/components/game/parts";
 import type { ConnectionStatus, RoomUpdate } from "@/lib/useRoom";
 import { ShareLink } from "./ShareLink";
@@ -69,7 +70,10 @@ export function RoomBar({ room, rules }: { room: RoomSnapshot; rules: ReactNode 
       <span className="text-sm text-muted">
         {room.you === null ? "Watching" : "Room"} <b className="font-mono tracking-widest text-ink">{room.code}</b>
       </span>
-      <RulesButton>{rules}</RulesButton>
+      <div className="flex items-center gap-2">
+        <SoundButton />
+        <RulesButton firstVisit={room.gameId}>{rules}</RulesButton>
+      </div>
     </div>
   );
 }
@@ -146,7 +150,7 @@ export function RoomResult({
   const theyAsked = other !== null && room.rematch.includes(other);
 
   return (
-    <ResultCard title={title} detail={detail} inline={inline}>
+    <ResultCard title={title} detail={detail} inline={inline} celebrate={you !== null && winner === you}>
       {other !== null && (
         <>
           {theyAsked && !youAsked && <p className="-mt-2 mb-1 text-sm text-muted">{names[other]} wants to play again.</p>}

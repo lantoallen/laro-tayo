@@ -5,7 +5,10 @@ import type { Seat } from "@laro/games";
 import { chooseMove, legalMoves, result, setup, storeOf } from "@laro/games/sungka";
 import { LeaveButton } from "@/components/game/LeaveButton";
 import { RulesButton } from "@/components/game/RulesButton";
+import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
+import { SEAT_COLORS } from "@/components/game/settings";
+import { useResultSound } from "@/lib/sound";
 import { Board } from "./Board";
 import { Rules } from "./Rules";
 import { latestNotice } from "./notices";
@@ -13,6 +16,8 @@ import { LEVEL_LABELS, seatNames, type SungkaSettings } from "./settings";
 import { DELAYS, useSowing, type Speed } from "./useSowing";
 
 const BOT_SEAT: Seat = 1;
+/** Sungka has no piece colors, so each side gets one for its row and turn badge. */
+const SEAT_COLOR = [SEAT_COLORS.blue, SEAT_COLORS.red];
 
 export function SungkaGame({
   settings,
@@ -34,6 +39,7 @@ export function SungkaGame({
   const humanToMove = !sowing && game.turn !== null && !(vsBot && game.turn === BOT_SEAT);
   const playable = humanToMove ? legalMoves(game, game.turn!) : [];
   const outcome = sowing ? null : result(game);
+  useResultSound(outcome?.winners ?? null, vsBot ? 0 : null);
 
   // Let the bot take its turn after a short pause.
   useEffect(() => {
@@ -52,14 +58,16 @@ export function SungkaGame({
 
   // In a bot game the messages talk to the player at the bottom. In pass and play they use names.
   const shownNotice = outcome ? null : latestNotice(events, vsBot ? ["You", "The bot"] : names, vsBot ? 0 : null);
-  const mover = sowing ? null : game.turn;
+  // Whoever is sowing now, or moves next.
   const playing = sowing?.seat ?? game.turn;
+  const turnLabel =
+    playing === null ? null : vsBot ? (playing === BOT_SEAT ? "Bot's turn" : "Your turn") : `${names[playing]}'s turn`;
   let status: string;
   if (playing === null) status = "Game over";
-  else if (vsBot && playing === BOT_SEAT) status = "Bot's turn...";
-  else if (vsBot) status = sowing ? "Your move..." : "Your turn. Pick a house.";
-  else if (sowing) status = `${names[playing]}'s move...`;
-  else status = `${names[playing]}, your turn (${playing === 0 ? "bottom" : "top"})`;
+  else if (sowing) status = "Sowing...";
+  else if (vsBot && playing === BOT_SEAT) status = "Thinking...";
+  else if (vsBot) status = "Pick a house on your side.";
+  else status = `Pick a house on the ${playing === 0 ? "bottom" : "top"} row.`;
 
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-3 px-4 pb-8">
@@ -82,7 +90,8 @@ export function SungkaGame({
           >
             2x
           </button>
-          <RulesButton>
+          <SoundButton />
+          <RulesButton firstVisit="sungka">
             <Rules />
           </RulesButton>
         </div>
@@ -91,7 +100,8 @@ export function SungkaGame({
       <PlayerRow
         name={vsBot ? `Bot (${LEVEL_LABELS[settings.level]})` : names[1]}
         stat={{ label: "Store", value: board[storeOf(1)] }}
-        active={mover === 1}
+        active={playing === 1}
+        color={SEAT_COLOR[1]}
       />
 
       <div className="relative">
@@ -107,6 +117,7 @@ export function SungkaGame({
         {outcome && (
           <ResultCard
             title={resultTitle(outcome.winners, settings)}
+            celebrate={outcome.winners.length === 1 && (!vsBot || outcome.winners[0] === 0)}
             detail={`${names[0]} ${outcome.scores[0]}, ${names[1]} ${outcome.scores[1]}`}
           >
             <button type="button" onClick={onRematch} className={PRIMARY_BUTTON} autoFocus>
@@ -119,9 +130,18 @@ export function SungkaGame({
         )}
       </div>
 
-      <PlayerRow name={names[0]} stat={{ label: "Store", value: board[storeOf(0)] }} active={mover === 0} />
+      <PlayerRow
+        name={names[0]}
+        stat={{ label: "Store", value: board[storeOf(0)] }}
+        active={playing === 0}
+        color={SEAT_COLOR[0]}
+      />
 
-      <StatusLine notice={shownNotice} status={status} />
+      <StatusLine
+        notice={shownNotice}
+        status={status}
+        turn={turnLabel === null ? null : { label: turnLabel, color: SEAT_COLOR[playing!] }}
+      />
     </main>
   );
 }

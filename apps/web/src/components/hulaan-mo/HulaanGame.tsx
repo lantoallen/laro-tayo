@@ -12,6 +12,8 @@ import {
 } from "@laro/games/hulaan-mo";
 import { LeaveButton } from "@/components/game/LeaveButton";
 import { RulesButton } from "@/components/game/RulesButton";
+import { SoundButton } from "@/components/game/SoundButton";
+import { playSound, useResultSound } from "@/lib/sound";
 import { Rules } from "./Rules";
 import { TEAM_CLASSES, teamName } from "./settings";
 
@@ -56,9 +58,11 @@ export function HulaanGame({
     if (countdown === null) return;
     const timer = setTimeout(() => {
       if (countdown > 1) {
+        playSound("tick");
         setCountdown(countdown - 1);
         return;
       }
+      playSound("go");
       const start = Date.now();
       setCountdown(null);
       setNow(start);
@@ -77,6 +81,7 @@ export function HulaanGame({
       if (time >= endsAt) {
         clearInterval(tick);
         navigator.vibrate?.(300);
+        playSound("buzz");
         dispatch({ type: "timeUp" });
       }
     }, 200);
@@ -102,6 +107,12 @@ export function HulaanGame({
   }, [holdingUp]);
 
   const secondsLeft = Math.max(0, Math.ceil((endsAt - now) / 1000));
+  useResultSound(game.phase === "over" ? leaders(game) : null, null);
+
+  // Tick through the last five seconds so the team knows time is nearly up.
+  useEffect(() => {
+    if (playing && secondsLeft > 0 && secondsLeft <= 5) playSound("tick");
+  }, [playing, secondsLeft]);
   const started = game.round > 0 || game.team > 0 || game.phase !== "ready";
   const lastTurn = game.team === settings.teams - 1 && game.round === settings.rounds - 1;
   const guessed = game.turnWords.filter((result) => result.got).length;
@@ -117,9 +128,12 @@ export function HulaanGame({
           leaveLabel="Leave game"
           onLeave={onExit}
         />
-        <RulesButton>
-          <Rules />
-        </RulesButton>
+        <div className="flex items-center gap-2">
+          <SoundButton />
+          <RulesButton firstVisit="hulaan-mo">
+            <Rules />
+          </RulesButton>
+        </div>
       </div>
 
       {!holdingUp && <Scores scores={game.scores} highlight={game.phase === "over" ? leaders(game) : [game.team]} />}
@@ -137,7 +151,10 @@ export function HulaanGame({
             Pick one guesser. They hold the phone up to their forehead with the screen facing the team.
           </p>
           <p className="mt-2 text-sm text-muted">The rest of the team answers with only yes, no, or maybe.</p>
-          <button type="button" onClick={() => setCountdown(COUNTDOWN_FROM)} className="btn btn-primary mt-6 w-full py-3.5">
+          <button type="button" onClick={() => {
+              playSound("tick");
+              setCountdown(COUNTDOWN_FROM);
+            }} className="btn btn-primary mt-6 w-full py-3.5">
             Start the timer
           </button>
         </section>
@@ -178,10 +195,24 @@ export function HulaanGame({
             {teamName(game.team)}: {guessed} so far. Answer only yes, no, or maybe.
           </p>
           <div className="grid grid-cols-2 gap-3">
-            <button type="button" onClick={() => dispatch({ type: "skip" })} className="btn btn-secondary py-6 text-lg">
+            <button
+              type="button"
+              onClick={() => {
+                playSound("flip");
+                dispatch({ type: "skip" });
+              }}
+              className="btn btn-secondary py-6 text-lg"
+            >
               Skip
             </button>
-            <button type="button" onClick={() => dispatch({ type: "got" })} className="btn btn-primary py-6 text-lg">
+            <button
+              type="button"
+              onClick={() => {
+                playSound("match");
+                dispatch({ type: "got" });
+              }}
+              className="btn btn-primary py-6 text-lg"
+            >
               Got it
             </button>
           </div>

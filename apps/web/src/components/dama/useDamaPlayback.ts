@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Seat } from "@laro/games";
 import { applyEvent, play, type DamaEvent, type DamaMove, type DamaState, type Piece } from "@laro/games/dama";
+import { playSound, type SoundName } from "@/lib/sound";
+
+const SOUNDS: Partial<Record<DamaEvent["type"], SoundName>> = { step: "place", capture: "capture", promote: "match" };
 
 export type Speed = "normal" | "fast";
 
@@ -60,6 +63,8 @@ export function useDamaPlayback(initial: () => DamaState, speed: Speed) {
         setLastMove(playback);
         setPlayback(null);
       } else {
+        const sound = SOUNDS[playback.events[playback.shown].type];
+        if (sound) playSound(sound);
         setPlayback({ ...playback, shown: playback.shown + 1 });
       }
     }, delay);

@@ -12,7 +12,7 @@ const PAUSE_AFTER_GAME_MS = 3000;
 /** Two bots playing each other on a loop, for the home page. It holds still for reduced motion. */
 export function SungkaDemo() {
   const reduceMotion = usePrefersReducedMotion();
-  const { game, sowing, frame, board, move, restart } = useSowing(() => setup(), "normal");
+  const { game, sowing, frame, board, move, restart } = useSowing(() => setup(), "normal", { quiet: true });
 
   useEffect(() => {
     if (reduceMotion || sowing) return;
