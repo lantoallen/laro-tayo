@@ -167,7 +167,7 @@ The bots don't search ahead. They follow the rules good players use:
 ## Memory rules used here
 
 - 30 cards are laid face down: 15 pairs, so there's never a tie. The faces are five shapes in three colors.
-- Turn over two cards. A match is yours, and you go again. A miss stays face up until the next card is turned, then the turn passes.
+- Turn over two cards. A match is yours. A miss stays face up until the next card is turned. Either way the turn passes, so players always alternate. (The classic rule gives another turn after a match; this version doesn't, so it's always clear who's next.)
 
 The bot only uses cards that have been turned up before, and a test checks that shuffling the cards nobody has seen never changes its move. Easy remembers each card it has seen with a 30% chance, medium 70%, and hard never forgets.
 

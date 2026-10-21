@@ -11,6 +11,8 @@ export const HIDDEN = -1;
 
 export interface LastTurn {
   seat: Seat;
+  /** The two cards turned over. */
+  cards: number[];
   matched: boolean;
 }
 
@@ -88,8 +90,8 @@ function leader(owner: readonly (Seat | null)[]): Seat | null {
 }
 
 /**
- * Turns a card over. The second card of a turn either matches the first, and
- * the player keeps both and goes again, or it doesn't and the turn passes.
+ * Turns a card over. After the second card of a turn the player keeps both if
+ * they match, and either way the turn passes, so players always alternate.
  */
 export function play(state: MemoryState, seat: Seat, move: MemoryMove): MoveOutcome<MemoryState, MemoryEvent> {
   if (state.turn !== seat) throw new IllegalMoveError(`It's not seat ${seat}'s turn`);
@@ -123,8 +125,8 @@ export function play(state: MemoryState, seat: Seat, move: MemoryMove): MoveOutc
       flipped: [],
       missed: matched ? [] : pair,
       seen,
-      turn: over ? null : matched ? seat : otherSeat(seat),
-      last: { seat, matched },
+      turn: over ? null : otherSeat(seat),
+      last: { seat, cards: pair, matched },
       turns: state.turns + 1,
     },
     events,
