@@ -32,6 +32,7 @@ function Face({ face }: { face: number }) {
 }
 
 export function MemoryBoard({ state, onMove }: BoardProps<MemoryState, MemoryMove>) {
+  const justMatched = state.last?.matched ? state.last.cards : [];
   return (
     <div className="mm-board">
       {state.faces.map((face, card) => {
@@ -43,14 +44,16 @@ export function MemoryBoard({ state, onMove }: BoardProps<MemoryState, MemoryMov
           up ? "mm-up" : "mm-down",
           owner !== null && `mm-taken ${OWNER_CLASSES[owner]}`,
           state.missed.includes(card) && "mm-missed",
+          justMatched.includes(card) && "mm-matched",
         ]
           .filter(Boolean)
           .join(" ");
         const label = `Card ${card + 1}: ${up ? faceName(face) : "face down"}${owner !== null ? ", taken" : ""}`;
-        // A new key when the card turns over, so the flip plays.
+        // Two faces back to back. Turning the card over spins them around.
         const contents = (
-          <span key={up ? "up" : "down"} className="mm-side">
-            {up && <Face face={face} />}
+          <span className="mm-flipper">
+            <span className="mm-face mm-back" />
+            <span className="mm-face mm-front">{up && <Face face={face} />}</span>
           </span>
         );
 

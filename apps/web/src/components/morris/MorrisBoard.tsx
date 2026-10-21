@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { legalMoves, type MorrisMove, type MorrisState } from "@laro/games/morris";
+import { legalMoves, millsAt, type MorrisMove, type MorrisState } from "@laro/games/morris";
 import type { BoardProps } from "@/components/board-game/types";
 import "./morris.css";
 
@@ -61,6 +61,8 @@ export function MorrisBoard({ state, onMove }: BoardProps<MorrisState, MorrisMov
   }
 
   const last = state.last;
+  // The mill just made, while its owner picks a piece to take.
+  const mill = new Set(state.taking && last?.to != null ? millsAt(state.board, last.to).flat() : []);
   return (
     <div className="mr-board">
       <svg viewBox="0 0 6 6" className="mr-lines" aria-hidden="true" style={{ inset: `${PAD}%` }}>
@@ -81,6 +83,7 @@ export function MorrisBoard({ state, onMove }: BoardProps<MorrisState, MorrisMov
           (placeable.has(point) || targets.has(point)) && "mr-target",
           last && (last.to === point || last.from === point) && "mr-last",
           last?.taken === point && "mr-taken",
+          mill.has(point) && "mr-mill",
         ]
           .filter(Boolean)
           .join(" ");

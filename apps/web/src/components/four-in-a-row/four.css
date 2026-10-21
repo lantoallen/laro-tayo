@@ -51,7 +51,7 @@
   }
 }
 
-/* Discs in the winning line get a white center. */
+/* Discs in the winning line get a white center that pulses. */
 .c4-win .c4-disc::after {
   content: "";
   position: absolute;
@@ -59,6 +59,13 @@
   border: 2px solid #1b1b1b;
   border-radius: 999px;
   background: #fffaf0;
+  animation: c4-win 800ms ease-in-out infinite alternate;
+}
+
+@keyframes c4-win {
+  to {
+    transform: scale(1.35);
+  }
 }
 
 .c4-columns {
@@ -92,7 +99,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .c4-new {
+  .c4-new,
+  .c4-win .c4-disc::after {
     animation: none;
   }
 }

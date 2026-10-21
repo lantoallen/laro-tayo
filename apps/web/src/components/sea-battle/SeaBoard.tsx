@@ -23,6 +23,7 @@ function Waters({
   fleet,
   shots,
   lastShot,
+  sinking = [],
   onFire,
   small = false,
 }: {
@@ -30,6 +31,8 @@ function Waters({
   /** The other player's shots at this fleet. */
   shots: readonly Shot[];
   lastShot: number | null;
+  /** The cells of a ship the last shot sank. */
+  sinking?: readonly number[];
   onFire?: (cell: number) => void;
   small?: boolean;
 }) {
@@ -44,6 +47,7 @@ function Waters({
           ship && isSunk(ship, shots) && "sb-sunk",
           shot && `sb-${shot}`,
           cell === lastShot && "sb-last",
+          sinking.includes(cell) && "sb-sinking",
         ]
           .filter(Boolean)
           .join(" ");
@@ -94,6 +98,9 @@ export function SeaBoard({ state: full, you, onMove }: BoardProps<SeaState, SeaM
   const me: Seat = you ?? 0;
   const them = otherSeat(me);
   const last = state.last;
+  // The ship the last shot sank, in whichever fleet it was.
+  const sinking = (owner: Seat) =>
+    last && last.sunk !== null && last.seat !== owner ? (state.fleets[owner][last.sunk] ?? []) : [];
   const theirTitle = you === null ? "Player 2's waters" : "Their waters";
   const yourTitle = you === null ? "Player 1's waters" : "Your fleet";
   return (
@@ -104,6 +111,7 @@ export function SeaBoard({ state: full, you, onMove }: BoardProps<SeaState, SeaM
           fleet={state.fleets[them]}
           shots={state.shots[me]}
           lastShot={last?.seat === me ? last.cell : null}
+          sinking={sinking(them)}
           onFire={onMove}
         />
       </section>
@@ -114,6 +122,7 @@ export function SeaBoard({ state: full, you, onMove }: BoardProps<SeaState, SeaM
             fleet={state.fleets[me]}
             shots={state.shots[them]}
             lastShot={last?.seat === them ? last.cell : null}
+            sinking={sinking(me)}
             small
           />
         </section>
