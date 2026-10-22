@@ -7,6 +7,7 @@ import { TicTacToeBoard } from "./TicTacToeBoard";
 export const TIC_TAC_TOE: BoardGameConfig<TicTacToeState, TicTacToeMove> = {
   game: ticTacToe,
   href: "/tic-tac-toe",
+  roomId: "tic-tac-toe",
   tagline: "Get three in a row before the other player does.",
   colors: ["X", "O"],
   swatches: [SEAT_COLORS.red, SEAT_COLORS.blue],

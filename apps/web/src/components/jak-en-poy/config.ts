@@ -7,6 +7,7 @@ import { Rules } from "./Rules";
 export const JAK_EN_POY: BoardGameConfig<JakState, JakMove> = {
   game: jakEnPoy,
   href: "/jak-en-poy",
+  roomId: "jak-en-poy",
   tagline: "Rock, paper, scissors, the Filipino way. First to win three rounds.",
   colors: ["Red", "Blue"],
   swatches: [SEAT_COLORS.red, SEAT_COLORS.blue],

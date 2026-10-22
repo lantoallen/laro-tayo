@@ -6,7 +6,18 @@ import { createRoom, joinRoom, playMove, RoomError, snapshotFor, type Room } fro
 const ana = { id: "player-ana", name: "Ana" };
 const ben = { id: "player-ben", name: "Ben" };
 
-const BOARD_GAMES = ["four-in-a-row", "reversi", "dots-and-boxes", "memory", "morris", "sea-battle"] as const;
+const BOARD_GAMES = [
+  "four-in-a-row",
+  "reversi",
+  "dots-and-boxes",
+  "memory",
+  "morris",
+  "sea-battle",
+  "tic-tac-toe",
+  "snakes-and-ladders",
+  "pig",
+  "jak-en-poy",
+] as const;
 
 describe.each(BOARD_GAMES)("%s rooms", (id) => {
   const game = gameFor(id);
@@ -65,5 +76,24 @@ describe("hidden cards and ships in rooms", () => {
     const view = snapshotFor(room, ben.id, new Set()).view as { fleets: (number[] | null)[][] };
     expect(view.fleets[0].every((ship) => ship === null)).toBe(true);
     expect(view.fleets[1]).toEqual((room.state as { fleets: unknown[][] }).fleets[1]);
+  });
+});
+
+describe("dice and hidden picks in rooms", () => {
+  function fullRoom(id: "pig" | "jak-en-poy"): Room {
+    let room = createRoom("ABCDE", id, 0);
+    room = joinRoom(room, ana, 1, () => 0).room;
+    return joinRoom(room, ben, 2, () => 0).room;
+  }
+
+  it("never send the seed for Pig's next roll", () => {
+    const view = snapshotFor(fullRoom("pig"), ana.id, new Set()).view as { seed: number };
+    expect(view.seed).toBe(0);
+  });
+
+  it("never send a Jak-en-poy pick before both players have picked", () => {
+    const room = playMove(fullRoom("jak-en-poy"), ana.id, "paper", 5).room;
+    const forBen = snapshotFor(room, ben.id, new Set()).view as { picks: unknown[] };
+    expect(forBen.picks).toEqual(["hidden", null]);
   });
 });

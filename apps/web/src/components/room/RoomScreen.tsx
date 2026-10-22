@@ -8,11 +8,15 @@ import { OnlineBoardGame } from "@/components/board-game/OnlineBoardGame";
 import { OnlineDama } from "@/components/dama/OnlineDama";
 import { DOTS_AND_BOXES } from "@/components/dots-and-boxes/config";
 import { FOUR_IN_A_ROW } from "@/components/four-in-a-row/config";
+import { JAK_EN_POY } from "@/components/jak-en-poy/config";
 import { MEMORY } from "@/components/memory/config";
 import { MORRIS } from "@/components/morris/config";
+import { PIG } from "@/components/pig/config";
 import { REVERSI } from "@/components/reversi/config";
 import { SEA_BATTLE } from "@/components/sea-battle/config";
+import { SNAKES_AND_LADDERS } from "@/components/snakes-and-ladders/config";
 import { OnlineSungka } from "@/components/sungka/OnlineSungka";
+import { TIC_TAC_TOE } from "@/components/tic-tac-toe/config";
 import { savePlayerName, useIsClient, usePlayer, type LocalPlayer } from "@/lib/player";
 import { ONLINE_ENABLED } from "@/lib/rooms";
 import { useRoom } from "@/lib/useRoom";
@@ -98,6 +102,14 @@ function Room({ code, player }: { code: string; player: LocalPlayer }) {
       return <OnlineBoardGame config={MORRIS} {...props} />;
     case "sea-battle":
       return <OnlineBoardGame config={SEA_BATTLE} {...props} />;
+    case "tic-tac-toe":
+      return <OnlineBoardGame config={TIC_TAC_TOE} {...props} />;
+    case "snakes-and-ladders":
+      return <OnlineBoardGame config={SNAKES_AND_LADDERS} {...props} />;
+    case "pig":
+      return <OnlineBoardGame config={PIG} {...props} />;
+    case "jak-en-poy":
+      return <OnlineBoardGame config={JAK_EN_POY} {...props} />;
     default:
       return <OnlineSungka {...props} />;
   }

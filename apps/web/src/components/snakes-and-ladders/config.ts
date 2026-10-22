@@ -33,6 +33,7 @@ function notice(state: SnakesState, names: readonly [string, string], you: Seat 
 export const SNAKES_AND_LADDERS: BoardGameConfig<SnakesState, SnakesMove> = {
   game: snakesAndLadders,
   href: "/snakes-and-ladders",
+  roomId: "snakes-and-ladders",
   tagline: "Roll the die, climb the ladders, and watch out for snakes.",
   colors: ["Red", "Blue"],
   swatches: [SEAT_COLORS.red, SEAT_COLORS.blue],

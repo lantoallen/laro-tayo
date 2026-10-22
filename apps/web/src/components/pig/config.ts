@@ -23,6 +23,7 @@ function notice(state: PigState, names: readonly [string, string], you: Seat | n
 export const PIG: BoardGameConfig<PigState, PigMove> = {
   game: pig,
   href: "/pig",
+  roomId: "pig",
   tagline: "Roll for points, but a 1 wipes out your turn. Know when to stop.",
   colors: ["Red", "Blue"],
   swatches: [SEAT_COLORS.red, SEAT_COLORS.blue],
