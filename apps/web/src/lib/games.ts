@@ -61,7 +61,7 @@ export const GAMES: GameInfo[] = [
   {
     id: "pusoy-dos",
     name: "Pusoy Dos",
-    players: "4 players",
+    players: "2 to 4 players",
     tagline: "Be the first to play all 13 of your cards.",
     group: "filipino",
     color: "yellow",
@@ -111,7 +111,7 @@ export const GAMES: GameInfo[] = [
   {
     id: "dots-and-boxes",
     name: "Dots and Boxes",
-    players: "2 players",
+    players: "2 to 4 players",
     tagline: "Close a box to claim it and go again.",
     group: "classic",
     color: "blue",
@@ -121,7 +121,7 @@ export const GAMES: GameInfo[] = [
   {
     id: "memory",
     name: "Memory",
-    players: "2 players",
+    players: "2 to 4 players",
     tagline: "Turn over two cards at a time and find the pairs.",
     group: "classic",
     color: "red",
@@ -161,7 +161,7 @@ export const GAMES: GameInfo[] = [
   {
     id: "snakes-and-ladders",
     name: "Snakes and Ladders",
-    players: "2 players",
+    players: "2 to 4 players",
     tagline: "Roll the die, climb the ladders, and watch out for snakes.",
     group: "classic",
     color: "yellow",
@@ -171,7 +171,7 @@ export const GAMES: GameInfo[] = [
   {
     id: "pig",
     name: "Pig",
-    players: "2 players",
+    players: "2 to 4 players",
     tagline: "Roll for points, but a 1 wipes out your turn.",
     group: "classic",
     color: "blue",

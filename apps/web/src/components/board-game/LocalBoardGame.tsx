@@ -6,15 +6,16 @@ import { LeaveButton } from "@/components/game/LeaveButton";
 import { RulesButton } from "@/components/game/RulesButton";
 import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
-import { BOT_SEAT, LEVEL_LABELS, type TwoPlayerSettings } from "@/components/game/settings";
+import { resultTitle } from "@/components/game/results";
+import { LEVEL_LABELS, YOU, botName, type BoardGameSettings } from "@/components/game/settings";
 import { useResultSound } from "@/lib/sound";
-import { promptFor, resultTitle, type BoardGameConfig } from "./types";
+import { promptFor, type BoardGameConfig } from "./types";
 import { useMoveSound } from "./useMoveSound";
 
 /** How long the bot waits before playing, so its move doesn't appear the instant yours lands. */
 const BOT_DELAY_MS = 600;
 
-/** A two-player game on this phone, against the bot or passed back and forth. */
+/** A game on this phone: you against bots, or players passing the phone around. */
 export function LocalBoardGame<State, Move>({
   config,
   settings,
@@ -23,34 +24,36 @@ export function LocalBoardGame<State, Move>({
   onExit,
 }: {
   config: BoardGameConfig<State, Move>;
-  settings: TwoPlayerSettings;
+  settings: BoardGameSettings;
   firstSeat: Seat;
   onRematch: () => void;
   onExit: () => void;
 }) {
   const { game, Board, Rules } = config;
-  const [state, setState] = useState(() => game.setup({ seats: 2, firstSeat }));
+  const players = Math.min(game.maxSeats, Math.max(game.minSeats, settings.players));
+  const [state, setState] = useState(() => game.setup({ seats: players, firstSeat }));
   const [moves, setMoves] = useState(0);
   const vsBot = settings.mode === "bot";
-  const names: readonly [string, string] = vsBot ? ["You", "Bot"] : config.colors;
+  const seats = Array.from({ length: players }, (_, seat) => seat);
+  const names = seats.map((seat) => (!vsBot ? config.colors[seat] : seat === YOU ? "You" : botName(seat, players)));
   // In a bot game the player at the bottom is "you". In pass and play nobody is.
-  const you: Seat | null = vsBot ? 0 : null;
+  const you: Seat | null = vsBot ? YOU : null;
   const turn = game.turn(state);
-  const botToMove = vsBot && turn === BOT_SEAT;
+  const botToMove = vsBot && turn !== null && turn !== YOU;
   const humanSeat = turn !== null && !botToMove ? turn : null;
   const outcome = game.result(state);
   useMoveSound(config, state, moves, you);
   useResultSound(outcome?.winners ?? null, you);
 
   useEffect(() => {
-    if (!botToMove) return;
+    if (!botToMove || turn === null) return;
     const timer = setTimeout(() => {
-      const move = game.bot!(state, BOT_SEAT, { level: settings.level, rng: Math.random });
-      setState(game.play(state, BOT_SEAT, move).state);
+      const move = game.bot!(state, turn, { level: settings.level, rng: Math.random });
+      setState(game.play(state, turn, move).state);
       setMoves((count) => count + 1);
     }, config.botDelayMs ?? BOT_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [botToMove, config.botDelayMs, game, state, settings.level]);
+  }, [botToMove, config.botDelayMs, game, state, settings.level, turn]);
 
   function move(next: Move) {
     if (humanSeat === null) return;
@@ -58,26 +61,26 @@ export function LocalBoardGame<State, Move>({
     setMoves(moves + 1);
   }
 
-  const turnLabel =
-    turn === null ? null : vsBot ? (turn === BOT_SEAT ? "Bot's turn" : "Your turn") : `${config.colors[turn]}'s turn`;
+  const turnLabel = turn === null ? null : turn === you ? "Your turn" : `${names[turn]}'s turn`;
   let status: string;
   if (outcome) status = "Game over";
   else if (botToMove) status = "Thinking...";
   else status = promptFor(config, state);
-  // In a bot game the messages talk to the player at the bottom. In pass and play they use names.
-  const notice = outcome ? null : (config.notice?.(state, vsBot ? ["You", "The bot"] : names, you) ?? null);
+  // In a game against one bot, the messages say "the bot".
+  const noticeNames = vsBot && players === 2 ? ["You", "The bot"] : names;
+  const notice = outcome ? null : (config.notice?.(state, noticeNames, you) ?? null);
 
   const row = (seat: Seat) => {
     const color = config.colors[seat].toLowerCase();
-    const name = !vsBot
-      ? config.colors[seat]
-      : seat === BOT_SEAT
-        ? config.botLevels === false
-          ? `Bot, ${color}`
-          : `Bot (${LEVEL_LABELS[settings.level]}), ${color}`
-        : `You, ${color}`;
+    let name = names[seat];
+    if (vsBot && seat !== YOU) {
+      name = config.botLevels === false ? `${name}, ${color}` : `${name} (${LEVEL_LABELS[settings.level]}), ${color}`;
+    } else if (vsBot) {
+      name = `You, ${color}`;
+    }
     return (
       <PlayerRow
+        key={seat}
         name={name}
         color={config.swatches[seat]}
         stat={{ label: config.stat.label, value: config.stat.value(state, seat) }}
@@ -105,11 +108,12 @@ export function LocalBoardGame<State, Move>({
         </div>
       </div>
 
-      {row(1)}
+      {/* Everyone else above the board, in the order they play. You below it. */}
+      <div className="flex flex-col gap-1.5">{seats.filter((seat) => seat !== YOU).map(row)}</div>
       <div className="mx-auto w-full max-w-[32rem]">
         <Board state={state} you={you} onMove={humanSeat === null ? undefined : move} />
       </div>
-      {row(0)}
+      {row(YOU)}
 
       {outcome ? (
         <ResultCard

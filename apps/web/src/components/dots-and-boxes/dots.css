@@ -22,6 +22,14 @@
   background: color-mix(in srgb, #0038a8 70%, transparent);
 }
 
+.db-yellow {
+  background: color-mix(in srgb, #fcd116 80%, transparent);
+}
+
+.db-green {
+  background: color-mix(in srgb, #2f9e44 70%, transparent);
+}
+
 .db-new {
   animation: db-fill 320ms cubic-bezier(0.3, 1.5, 0.6, 1);
 }
@@ -91,6 +99,14 @@ button.db-hit:focus-visible {
 
 .db-last.db-by-blue {
   background: #0038a8;
+}
+
+.db-last.db-by-yellow {
+  background: #d4a900;
+}
+
+.db-last.db-by-green {
+  background: #2f9e44;
 }
 
 .db-last {

@@ -7,7 +7,7 @@ import { ReversiBoard } from "./ReversiBoard";
 import { Rules } from "./Rules";
 
 /** Says when someone had to pass, since the same player then goes twice in a row. */
-function notice(state: ReversiState, names: readonly [string, string], you: Seat | null): Notice | null {
+function notice(state: ReversiState, names: readonly string[], you: Seat | null): Notice | null {
   if (state.passed === null) return null;
   const goesAgain = otherSeat(state.passed);
   const who = state.passed === you ? "You have" : `${names[state.passed]} has`;

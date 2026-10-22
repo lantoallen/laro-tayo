@@ -8,7 +8,7 @@ const FACE_COLORS = [
   ["blue", "#0038a8"],
   ["yellow", "#fcd116"],
 ] as const;
-const OWNER_CLASSES = ["mm-red", "mm-blue"];
+const OWNER_CLASSES = ["mm-red", "mm-blue", "mm-yellow", "mm-green"];
 const HEART = "M12 20.5c-1-.9-8.5-6.6-8.5-11.4A4.6 4.6 0 0 1 12 6.7a4.6 4.6 0 0 1 8.5 2.4c0 4.8-7.5 10.5-8.5 11.4z";
 
 const faceName = (face: number) =>

@@ -1,13 +1,14 @@
 import type { Seat } from "@laro/games";
-import { countPairs, memory, type MemoryMove, type MemoryState } from "@laro/games/memory";
+import { countPairs, memory, pairCounts, type MemoryMove, type MemoryState } from "@laro/games/memory";
 import type { BoardGameConfig } from "@/components/board-game/types";
-import { SEAT_COLORS } from "@/components/game/settings";
 import type { Notice } from "@/components/game/parts";
+import { scoreLine } from "@/components/game/results";
+import { FOUR_COLORS, FOUR_SWATCHES } from "@/components/game/settings";
 import { MemoryBoard } from "./MemoryBoard";
 import { Rules } from "./Rules";
 
 /** Says how the last turn went: a pair found, or a miss. The turn badge says who's next. */
-function notice(state: MemoryState, names: readonly [string, string], you: Seat | null): Notice | null {
+function notice(state: MemoryState, names: readonly string[], you: Seat | null): Notice | null {
   if (!state.last) return null;
   const { seat, matched } = state.last;
   if (matched) {
@@ -22,8 +23,8 @@ export const MEMORY: BoardGameConfig<MemoryState, MemoryMove> = {
   href: "/memory",
   roomId: "memory",
   tagline: "Turn over two cards at a time and find the pairs.",
-  colors: ["Red", "Blue"],
-  swatches: [SEAT_COLORS.red, SEAT_COLORS.blue],
+  colors: FOUR_COLORS,
+  swatches: FOUR_SWATCHES,
   Board: MemoryBoard,
   Rules,
   stat: { label: "Pairs", value: (state, seat) => countPairs(state.owner, seat) },
@@ -31,7 +32,6 @@ export const MEMORY: BoardGameConfig<MemoryState, MemoryMove> = {
   // Slower than other games, so there's time to see the bot's cards and your own misses.
   botDelayMs: 1100,
   notice,
-  resultDetail: (state, names) =>
-    `Pairs: ${names[0]} ${countPairs(state.owner, 0)}, ${names[1]} ${countPairs(state.owner, 1)}`,
+  resultDetail: (state, names) => scoreLine("Pairs", names, pairCounts(state)),
   sound: (state) => (state.flipped.length === 1 ? "flip" : state.last?.matched ? "match" : "miss"),
 };

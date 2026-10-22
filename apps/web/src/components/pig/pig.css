@@ -37,6 +37,14 @@
   background-color: #0038a8;
 }
 
+.pig-yellow {
+  background-color: #fcd116;
+}
+
+.pig-green {
+  background-color: #2f9e44;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pig-fill,
   .pig-ghost {
