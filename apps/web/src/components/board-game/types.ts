@@ -35,8 +35,8 @@ export interface BoardGameConfig<State, Move> {
   prompt: string | ((state: State) => string);
   /** False for games with hidden pieces, which can't be shared on one screen. */
   passAndPlay?: boolean;
-  /** How long the bot waits before each move. */
-  botDelayMs?: number;
+  /** How long the bot waits before each move, or before a move from this position. */
+  botDelayMs?: number | ((state: State) => number);
   /** False for games of pure luck, where a bot level would mean nothing. */
   botLevels?: boolean;
   /**
@@ -44,6 +44,8 @@ export interface BoardGameConfig<State, Move> {
    * the screen, or null in pass and play, where every message uses names.
    */
   notice?: (state: State, names: readonly string[], you: Seat | null) => Notice | null;
+  /** What to say while someone else, or a bot, is partway through their turn. Null for the usual message. */
+  othersTurn?: (state: State, name: string) => string | null;
   /** The line under "You win" once the game is over. */
   resultDetail: (state: State, names: readonly string[]) => string;
   /** The sound for the move that led to this position. `you` is null in pass and play. */

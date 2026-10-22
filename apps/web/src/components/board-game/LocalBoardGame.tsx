@@ -45,15 +45,17 @@ export function LocalBoardGame<State, Move>({
   useMoveSound(config, state, moves, you);
   useResultSound(outcome?.winners ?? null, you);
 
+  const { botDelayMs = BOT_DELAY_MS } = config;
+  const botDelay = typeof botDelayMs === "number" ? botDelayMs : botDelayMs(state);
   useEffect(() => {
     if (!botToMove || turn === null) return;
     const timer = setTimeout(() => {
       const move = game.bot!(state, turn, { level: settings.level, rng: Math.random });
       setState(game.play(state, turn, move).state);
       setMoves((count) => count + 1);
-    }, config.botDelayMs ?? BOT_DELAY_MS);
+    }, botDelay);
     return () => clearTimeout(timer);
-  }, [botToMove, config.botDelayMs, game, state, settings.level, turn]);
+  }, [botDelay, botToMove, game, state, settings.level, turn]);
 
   function move(next: Move) {
     if (humanSeat === null) return;
@@ -64,7 +66,7 @@ export function LocalBoardGame<State, Move>({
   const turnLabel = turn === null ? null : turn === you ? "Your turn" : `${names[turn]}'s turn`;
   let status: string;
   if (outcome) status = "Game over";
-  else if (botToMove) status = "Thinking...";
+  else if (botToMove) status = config.othersTurn?.(state, names[turn]) ?? "Thinking...";
   else status = promptFor(config, state);
   // In a game against one bot, the messages say "the bot".
   const noticeNames = vsBot && players === 2 ? ["You", "The bot"] : names;
