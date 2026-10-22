@@ -25,7 +25,8 @@ export type SoundName =
   | "draw"
   | "roll"
   | "climb"
-  | "slide";
+  | "slide"
+  | "hop";
 
 const KEY = "laro-tayo:sound";
 const listeners = new Set<() => void>();
@@ -172,6 +173,8 @@ const SOUNDS: Record<SoundName, (ctx: AudioContext, out: AudioNode) => void> = {
   },
   climb: (ctx, out) => notes(ctx, out, [523, 587, 659, 784, 880], 0.06, 0.1),
   slide: (ctx, out) => tone(ctx, out, { freq: 900, to: 180, type: "triangle", duration: 0.5, volume: 0.18 }),
+  // A piece hopping one square.
+  hop: (ctx, out) => tone(ctx, out, { freq: 520, to: 780, type: "triangle", duration: 0.07, volume: 0.14 }),
 };
 
 /** Plays a sound, unless sound is off or the browser can't. */

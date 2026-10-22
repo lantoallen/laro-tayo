@@ -205,10 +205,13 @@ The bot uses the same search as Four in a Row and Reversi. Easy only sees its ow
 ## Snakes and Ladders rules used here
 
 - The board has 100 squares, 8 ladders, and 8 snakes, in a layout made for this game. Two to four players start off the board.
-- Roll the die and move that many squares. The bottom of a ladder takes you up it, and a snake's head takes you down to its tail.
+- Roll the die and move that many squares. Players move their own piece: they tap the glowing square (or their piece) once per step, and the squares still to go are marked with dots.
+- Stopping at the bottom of a ladder or on a snake's head, the player taps it to climb up or slide down. The piece follows the ladder or the snake's body on the way.
 - The first to land exactly on 100 wins. A roll that would go past 100 doesn't move you.
 
-The die is rolled from a seed kept in the game's state (`rollDie` in `packages/games/src/engine/rng.ts`), so the room server decides every roll online, and tests can set up any roll they need. There's nothing to decide in this game, so the bot just rolls and has no levels.
+The die is rolled from a seed kept in the game's state (`rollDie` in `packages/games/src/engine/rng.ts`), so the room server decides every roll online, and tests can set up any roll they need. A turn is a roll, one `step` move per square, and a `jump` move for a ladder or snake, so online everyone watches each piece hop along as its player taps. There's nothing to decide in this game, so the bot just does the one thing it can and has no levels.
+
+The snakes are drawn from the same points the pieces follow when they slide (`apps/web/src/components/snakes-and-ladders/geometry.ts`). Each one waves side to side and narrows toward its tail, and the waves are bent so that no two snakes on this board cross.
 
 ## Pig rules used here
 

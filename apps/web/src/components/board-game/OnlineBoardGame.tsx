@@ -66,7 +66,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
   else if (turn === you && pending.waiting) statusText = "Sending your move...";
   else if (turn === you) statusText = promptFor(config, state);
   else if (!connected[turn]) statusText = `Waiting for ${names[turn]} to come back...`;
-  else statusText = "Waiting for their move...";
+  else statusText = config.othersTurn?.(state, names[turn]) ?? "Waiting for their move...";
 
   const errorNotice: Notice | null = error ? { tone: "bad", text: error } : null;
   const notice = errorNotice ?? config.notice?.(state, names, you) ?? null;

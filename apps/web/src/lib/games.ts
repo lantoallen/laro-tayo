@@ -162,7 +162,7 @@ export const GAMES: GameInfo[] = [
     id: "snakes-and-ladders",
     name: "Snakes and Ladders",
     players: "2 to 4 players",
-    tagline: "Roll the die, climb the ladders, and watch out for snakes.",
+    tagline: "Roll the die, move your piece, climb the ladders, and watch out for snakes.",
     group: "classic",
     color: "yellow",
     href: "/snakes-and-ladders",

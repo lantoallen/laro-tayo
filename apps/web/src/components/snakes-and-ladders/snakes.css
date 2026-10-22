@@ -24,14 +24,33 @@
   line-height: 1;
 }
 
-.sl-square span {
+button.sl-square {
+  padding: 0;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.sl-number {
   position: absolute;
   top: 3px;
   left: 3px;
 }
 
-.sl-even {
-  background: #fdecb8;
+.sl-yellow-row {
+  background: #fde8a1;
+}
+
+.sl-green-row {
+  background: #cdeccf;
+}
+
+.sl-blue-row {
+  background: #d6e2fb;
+}
+
+.sl-pink-row {
+  background: #fbd5d5;
 }
 
 .sl-goal {
@@ -39,87 +58,241 @@
   color: #1b1b1b;
 }
 
+.sl-crown {
+  position: absolute;
+  left: 50%;
+  top: 56%;
+  width: 62%;
+  translate: -50% -50%;
+  fill: #fffaf0;
+  stroke: #1b1b1b;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+
+/* The squares a moving piece still has to cross, in the mover's color. */
+.sl-path::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 999px;
+  background: var(--mover);
+  box-shadow: 0 0 0 1.5px #1b1b1b;
+  opacity: 0.5;
+}
+
+.sl-path-end::after {
+  width: 42%;
+  background: transparent;
+  border: 2.5px solid var(--mover);
+  box-shadow:
+    0 0 0 1.5px #1b1b1b,
+    inset 0 0 0 1.5px #1b1b1b;
+  opacity: 0.8;
+}
+
+/* The next square to tap. */
+.sl-target {
+  z-index: 1;
+  box-shadow: inset 0 0 0 3px var(--mover);
+  animation: sl-target 0.9s ease-in-out infinite alternate;
+}
+
+.sl-target.sl-path::after {
+  opacity: 1;
+}
+
+.sl-target:focus-visible {
+  outline: 3px solid #1b1b1b;
+  outline-offset: -3px;
+}
+
 .sl-art {
   position: absolute;
   inset: 0;
+  z-index: 2;
   width: 100%;
   height: 100%;
   pointer-events: none;
 }
 
-.sl-ladder line {
-  stroke: #74441c;
-  stroke-width: 0.09;
+.sl-art line,
+.sl-art polyline,
+.sl-art path {
   stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.sl-snake path {
+.sl-shine {
   fill: none;
-  stroke-linecap: round;
+  stroke: #fff;
+  stroke-opacity: 0.3;
+  stroke-width: 0.04;
 }
 
-.sl-snake-outline {
-  stroke: #1b1b1b;
-  stroke-width: 0.32;
+.sl-tongue {
+  fill: none;
+  stroke: #e03131;
+  stroke-width: 0.03;
 }
 
-.sl-snake-body {
-  stroke: #2f9e44;
-  stroke-width: 0.22;
+/* The ladder or snake a piece is waiting at, ready to be followed. */
+.sl-glow {
+  fill: none;
+  stroke: #fff59d;
+  stroke-width: 0.62;
+  animation: sl-glow 0.8s ease-in-out infinite alternate;
 }
 
-.sl-snake-spots {
-  stroke: #fcd116;
-  stroke-width: 0.07;
-  stroke-dasharray: 0.12 0.28;
+.sl-art .sl-tappable {
+  pointer-events: visiblePainted;
+  cursor: pointer;
 }
 
-.sl-snake-head {
-  fill: #2f9e44;
-  stroke: #1b1b1b;
-  stroke-width: 0.05;
-}
-
-/* A player's piece. It slides from square to square. */
+/* A player's piece. It moves square by square, and hops each time. */
 .sl-token {
-  display: inline-block;
+  position: absolute;
+  z-index: 3;
   width: 7%;
   aspect-ratio: 1;
-  border: 2px solid #1b1b1b;
-  border-radius: 999px;
-  box-shadow: 0 2px 0 rgb(0 0 0 / 0.4);
+  translate: -50% -50%;
+  pointer-events: none;
+  transition:
+    left 240ms cubic-bezier(0.4, 0, 0.2, 1),
+    top 240ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sl-board .sl-token {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  transition:
-    left 600ms cubic-bezier(0.4, 0, 0.2, 1),
-    top 600ms cubic-bezier(0.4, 0, 0.2, 1);
+.sl-token.sl-tappable {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Climbing or sliding is drawn frame by frame instead. */
+.sl-riding {
+  transition: none;
+}
+
+.sl-piece {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #1b1b1b;
+  border-radius: 999px;
+  box-shadow: 0 2px 0 rgb(0 0 0 / 0.45);
+  animation: sl-hop 260ms ease-out;
+}
+
+.sl-turn > .sl-piece,
+.sl-piece.sl-turn {
+  animation:
+    sl-hop 260ms ease-out,
+    sl-ring 1.3s ease-out infinite;
 }
 
 .sl-waiting {
-  width: 1.1rem;
+  display: inline-block;
+  width: 1.15rem;
+  height: auto;
+  aspect-ratio: 1;
 }
 
 .sl-red {
-  background: #ce1126;
+  background:
+    radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.6) 0 14%, transparent 32%),
+    #ce1126;
 }
 
 .sl-blue {
-  background: #0038a8;
+  background:
+    radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.6) 0 14%, transparent 32%),
+    #0038a8;
 }
 
 .sl-yellow {
-  background: #fcd116;
+  background:
+    radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.75) 0 14%, transparent 32%),
+    #fcd116;
 }
 
 .sl-green {
-  background: #2f9e44;
+  background:
+    radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.6) 0 14%, transparent 32%),
+    #2f9e44;
+}
+
+.sl-to-go {
+  font-size: 0.85rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.sl-to-go span {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--ink);
+}
+
+@keyframes sl-hop {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  45% {
+    transform: translateY(-38%) scale(1.08);
+  }
+  80% {
+    transform: translateY(4%) scale(1.05, 0.92);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes sl-ring {
+  0% {
+    box-shadow:
+      0 2px 0 rgb(0 0 0 / 0.45),
+      0 0 0 0 rgb(27 27 27 / 0.55);
+  }
+  100% {
+    box-shadow:
+      0 2px 0 rgb(0 0 0 / 0.45),
+      0 0 0 7px rgb(27 27 27 / 0);
+  }
+}
+
+@keyframes sl-target {
+  from {
+    box-shadow: inset 0 0 0 2px var(--mover);
+  }
+  to {
+    box-shadow: inset 0 0 0 5px var(--mover);
+  }
+}
+
+@keyframes sl-glow {
+  from {
+    stroke-opacity: 0.35;
+  }
+  to {
+    stroke-opacity: 0.95;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sl-board .sl-token {
+  .sl-token {
     transition: none;
+  }
+
+  .sl-piece,
+  .sl-turn > .sl-piece,
+  .sl-piece.sl-turn,
+  .sl-target,
+  .sl-glow {
+    animation: none;
   }
 }
