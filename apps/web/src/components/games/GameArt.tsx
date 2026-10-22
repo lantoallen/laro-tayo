@@ -12,6 +12,10 @@ const FRAMES: Record<GameId, string> = {
   memory: "34 0 92 60",
   "sea-battle": "50 0 60 60",
   morris: "50 0 60 60",
+  "tic-tac-toe": "50 0 60 60",
+  "snakes-and-ladders": "50 0 60 60",
+  pig: "36 0 88 60",
+  "jak-en-poy": "26 0 108 60",
 };
 
 /** A small drawing for each game, used on the game tiles and the games page. */
@@ -28,6 +32,10 @@ export function GameArt({ id, className }: { id: GameId; className?: string }) {
       {id === "memory" && <MemoryCards />}
       {id === "sea-battle" && <SeaGrid />}
       {id === "morris" && <MorrisSquares />}
+      {id === "tic-tac-toe" && <NoughtsAndCrosses />}
+      {id === "snakes-and-ladders" && <SnakeAndLadder />}
+      {id === "pig" && <TwoDice />}
+      {id === "jak-en-poy" && <RockPaperScissors />}
     </svg>
   );
 }
@@ -309,5 +317,117 @@ function MorrisSquares() {
         <circle key={`${x}-${y}`} cx={x} cy={y} r="4.6" fill={fill} stroke="#1b1b1b" strokeWidth="1.2" />
       ))}
     </g>
+  );
+}
+
+/** A game of Tic-Tac-Toe that X has just won. */
+function NoughtsAndCrosses() {
+  const cell = (i: number) => 8 + i * 15;
+  const x = (col: number, row: number) => (
+    <path
+      key={`x${col}${row}`}
+      d={`M${cell(col) + 3} ${cell(row) + 3}l9 9m0-9-9 9`}
+      stroke="#ce1126"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+  );
+  const o = (col: number, row: number) => (
+    <circle
+      key={`o${col}${row}`}
+      cx={cell(col) + 7.5}
+      cy={cell(row) + 7.5}
+      r="4.6"
+      fill="none"
+      stroke="#0038a8"
+      strokeWidth="3"
+    />
+  );
+  return (
+    <g transform="translate(52 0)">
+      <rect x="2" y="2" width="56" height="56" rx="6" fill="#fffaf0" stroke="#1b1b1b" strokeWidth="2" />
+      <path d="M23 8v45M38 8v45M8 23h45M8 38h45" stroke="#1b1b1b" strokeWidth="2" strokeLinecap="round" />
+      {[x(0, 0), x(1, 1), x(2, 2), o(2, 0), o(0, 2)]}
+      <path d="M10 10 51 51" stroke="#1b1b1b" strokeWidth="2.5" strokeLinecap="round" />
+    </g>
+  );
+}
+
+/** A corner of the board with one ladder and one snake. */
+function SnakeAndLadder() {
+  return (
+    <g transform="translate(54 4)">
+      <rect width="52" height="52" rx="5" fill="#fffaf0" stroke="#1b1b1b" strokeWidth="2" />
+      {[0, 1, 2, 3].flatMap((row) =>
+        [0, 1, 2, 3].map((col) =>
+          (row + col) % 2 === 1 ? (
+            <rect
+              key={`${row}-${col}`}
+              x={1 + col * 12.5}
+              y={1 + row * 12.5}
+              width="12.5"
+              height="12.5"
+              fill="#fdecb8"
+            />
+          ) : null,
+        ),
+      )}
+      <g stroke="#74441c" strokeWidth="2" strokeLinecap="round">
+        <path d="M10 46 18 8M17 47 25 9" />
+        <path d="M11.5 38h7M13.2 30h7M15 22h7M16.6 14h7" />
+      </g>
+      <path d="M40 10c10 6-10 14 0 20s-6 12-2 16" fill="none" stroke="#1b1b1b" strokeWidth="6" strokeLinecap="round" />
+      <path d="M40 10c10 6-10 14 0 20s-6 12-2 16" fill="none" stroke="#2f9e44" strokeWidth="4" strokeLinecap="round" />
+      <circle cx="40" cy="10" r="3.6" fill="#2f9e44" stroke="#1b1b1b" strokeWidth="1.2" />
+    </g>
+  );
+}
+
+/** Two dice, one showing a 6 and one a 1. */
+function TwoDice() {
+  const pips6 = [
+    [-6, -7],
+    [6, -7],
+    [-6, 0],
+    [6, 0],
+    [-6, 7],
+    [6, 7],
+  ];
+  return (
+    <>
+      <g transform="translate(60 31) rotate(-10)">
+        <rect x="-15" y="-15" width="30" height="30" rx="6" fill="#fffaf0" stroke="#1b1b1b" strokeWidth="2" />
+        {pips6.map(([x, y]) => (
+          <circle key={`${x}${y}`} cx={x} cy={y} r="2.6" fill="#1b1b1b" />
+        ))}
+      </g>
+      <g transform="translate(100 33) rotate(12)">
+        <rect x="-15" y="-15" width="30" height="30" rx="6" fill="#ce1126" stroke="#1b1b1b" strokeWidth="2" />
+        <circle r="3.6" fill="#fffaf0" />
+      </g>
+    </>
+  );
+}
+
+/** A rock, a sheet of paper, and a pair of scissors. */
+function RockPaperScissors() {
+  return (
+    <>
+      <path
+        d="M30 40c-2-8 4-16 13-16s16 6 15 14-9 11-15 11c-8 0-12-3-13-9z"
+        fill="#9aa0a6"
+        stroke="#1b1b1b"
+        strokeWidth="2"
+      />
+      <g transform="translate(66 12)">
+        <path d="M0 0h18l7 7v29H0z" fill="#fffaf0" stroke="#1b1b1b" strokeWidth="2" strokeLinejoin="round" />
+        <path d="M5 14h15M5 20h15M5 26h10" stroke="#6b5a3e" strokeWidth="2" strokeLinecap="round" />
+      </g>
+      <g transform="translate(104 10)">
+        <path d="M9 26 22 4M17 26 4 4" stroke="#6b7280" strokeWidth="3.5" strokeLinecap="round" />
+        <circle cx="7" cy="32" r="5" fill="none" stroke="#fcd116" strokeWidth="3" />
+        <circle cx="19" cy="32" r="5" fill="none" stroke="#fcd116" strokeWidth="3" />
+      </g>
+    </>
   );
 }

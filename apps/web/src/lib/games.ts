@@ -8,7 +8,11 @@ export type GameId =
   | "dots-and-boxes"
   | "memory"
   | "sea-battle"
-  | "morris";
+  | "morris"
+  | "tic-tac-toe"
+  | "snakes-and-ladders"
+  | "pig"
+  | "jak-en-poy";
 
 /** Games are shown in two groups: ones from the Philippines, and classics played everywhere. */
 export type GameGroup = "filipino" | "classic";
@@ -75,6 +79,16 @@ export const GAMES: GameInfo[] = [
     modes: ["teams"],
   },
   {
+    id: "jak-en-poy",
+    name: "Jak-en-poy",
+    players: "2 players",
+    tagline: "Rock, paper, scissors. First to win three rounds.",
+    group: "filipino",
+    color: "red",
+    href: "/jak-en-poy",
+    modes: ["bot", "local", "online"],
+  },
+  {
     id: "four-in-a-row",
     name: "Four in a Row",
     players: "2 players",
@@ -132,6 +146,36 @@ export const GAMES: GameInfo[] = [
     group: "classic",
     color: "blue",
     href: "/nine-mens-morris",
+    modes: ["bot", "local", "online"],
+  },
+  {
+    id: "tic-tac-toe",
+    name: "Tic-Tac-Toe",
+    players: "2 players",
+    tagline: "Get three in a row before the other player does.",
+    group: "classic",
+    color: "red",
+    href: "/tic-tac-toe",
+    modes: ["bot", "local", "online"],
+  },
+  {
+    id: "snakes-and-ladders",
+    name: "Snakes and Ladders",
+    players: "2 players",
+    tagline: "Roll the die, climb the ladders, and watch out for snakes.",
+    group: "classic",
+    color: "yellow",
+    href: "/snakes-and-ladders",
+    modes: ["bot", "local", "online"],
+  },
+  {
+    id: "pig",
+    name: "Pig",
+    players: "2 players",
+    tagline: "Roll for points, but a 1 wipes out your turn.",
+    group: "classic",
+    color: "blue",
+    href: "/pig",
     modes: ["bot", "local", "online"],
   },
 ];

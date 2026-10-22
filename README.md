@@ -2,9 +2,9 @@
 
 Filipino games and classics you can play on your phone, at https://laro-tayo.vercel.app.
 
-There are ten games so far. Four are Filipino: Sungka and Dama (Filipino checkers) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Pusoy Dos, the card game, is played against three bots. Hulaan Mo is a guessing game for a group sharing one phone.
+There are fourteen games so far. Five are Filipino: Sungka, Dama (Filipino checkers), and Jak-en-poy (rock, paper, scissors) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Pusoy Dos, the card game, is played against three bots. Hulaan Mo is a guessing game for a group sharing one phone.
 
-The other six are classics played everywhere: Four in a Row, Reversi, Dots and Boxes, Memory, Nine Men's Morris, and Sea Battle. They can be played the same three ways as Sungka and Dama, except Sea Battle, which hides each player's ships and so is played against the bot or online.
+The other nine are classics played everywhere: Four in a Row, Reversi, Dots and Boxes, Memory, Nine Men's Morris, Sea Battle, Tic-Tac-Toe, Snakes and Ladders, and Pig. They can be played the same three ways, except Sea Battle, which hides each player's ships and so is played against the bot or online.
 
 ## Running it
 
@@ -43,23 +43,24 @@ npm run build
 
 ```text
 packages/games   Game rules in plain TypeScript, no React
-  src/engine     The interface every game follows, a seeded random number generator, and the bots' search
+  src/engine     The interface every game follows, seeded random numbers and dice, and the bots' search
   src/sungka     Sungka rules, bot, and tests
   src/dama       Dama rules, bot, and tests
   src/pusoy-dos  Pusoy Dos cards, rules, bots, and tests
   src/hulaan-mo  Hulaan Mo word packs, game logic, and tests
-  src/four-in-a-row, src/reversi, src/dots-and-boxes, src/memory, src/morris, src/sea-battle
-                 Rules, bots, and tests for the six classics
+  src/four-in-a-row, src/reversi, src/dots-and-boxes, src/memory, src/morris, src/sea-battle,
+  src/tic-tac-toe, src/snakes-and-ladders, src/pig, src/jak-en-poy
+                 Rules, bots, and tests for the two-player games that share their screens
 packages/rooms   Online room logic: seats, turns, rematches, and the messages sent over the socket
 apps/server      The room server, a Cloudflare Worker
 apps/web         The Next.js app
 ```
 
-Every game implements the same small interface (`setup`, `legalMoves`, `play`, `view`, `result`, `bot`) in `packages/games/src/engine/types.ts`. The screens and the online rooms only use that interface, so adding a game shouldn't mean touching shared code. `view` is there for games with hidden information: it decides what each player is allowed to see, so in Pusoy Dos nobody's phone will ever receive another player's cards, in Memory nobody receives a card's face before it's turned up, and in Sea Battle nobody receives the other fleet's position.
+Every game implements the same small interface (`setup`, `legalMoves`, `play`, `view`, `result`, `bot`) in `packages/games/src/engine/types.ts`. The screens and the online rooms only use that interface, so adding a game shouldn't mean touching shared code. `view` is there for games with hidden information: it decides what each player is allowed to see, so in Pusoy Dos nobody's phone will ever receive another player's cards, in Memory nobody receives a card's face before it's turned up, in Sea Battle nobody receives the other fleet's position, and in Jak-en-poy nobody receives the other player's pick until both have picked.
 
 Hulaan Mo is the exception. It has no moves to choose between and no bot, just a timer and two buttons, so it's a plain reducer (`createGame` and `reduce`) with its own tests instead.
 
-The six classics share their screens. `apps/web/src/components/board-game` has one setup screen, one game screen for playing on one phone, and one for playing online. Each game only adds a board to draw and a short config: its colors, what to show next to each player's name, and its messages.
+These two-player games share their screens. `apps/web/src/components/board-game` has one setup screen, one game screen for playing on one phone, and one for playing online. Each game only adds a board to draw and a short config: its colors, what to show next to each player's name, and its messages.
 
 Some details about Sungka:
 
@@ -185,6 +186,36 @@ The bot uses the same search as Four in a Row and Reversi. It counts pieces firs
 - Players take turns firing one shot at a time. A ship sinks when every square of it is hit, and sinking the whole fleet wins.
 
 The bots work only from their own shots and the ships they've sunk, and a test checks that moving the other fleet's unsunk ships never changes their shot. Easy fires at random and only sometimes follows up a hit. Medium follows up every hit and otherwise fires on every other square, since no ship is shorter than two. Hard counts every way the ships still afloat could fit around what it knows and fires where a ship is most likely to be. On average easy needs 63 shots to sink a fleet, medium 45, and hard 39.
+
+## Jak-en-poy rules used here
+
+- Each round both players pick rock, paper, or scissors. Rock crushes scissors, scissors cut paper, and paper covers rock. A tie doesn't count.
+- The first to win three rounds wins the match.
+- Picks are made one after the other, but the first pick stays hidden from the second player until the round is decided, so it plays like picking at the same time. In pass and play, the screen only says that a player has picked, never what.
+
+Easy and medium pick at random, which can't be beaten in the long run. Hard watches what the other player picks most often and plays what beats it, part of the time.
+
+## Tic-Tac-Toe rules used here
+
+- X and O take turns marking an empty square. Three in a line across, up and down, or diagonally wins. A full board with no line is a draw.
+
+The bot uses the same search as Four in a Row and Reversi. Easy only sees its own wins, medium also blocks yours, and hard looks all the way to the end of the game, so it never loses. A test plays it against random moves 200 times to check.
+
+## Snakes and Ladders rules used here
+
+- The board has 100 squares, 8 ladders, and 8 snakes, in a layout made for this game. Both players start off the board.
+- Roll the die and move that many squares. The bottom of a ladder takes you up it, and a snake's head takes you down to its tail.
+- The first to land exactly on 100 wins. A roll that would go past 100 doesn't move you.
+
+The die is rolled from a seed kept in the game's state (`rollDie` in `packages/games/src/engine/rng.ts`), so the room server decides every roll online, and tests can set up any roll they need. There's nothing to decide in this game, so the bot just rolls and has no levels.
+
+## Pig rules used here
+
+- On your turn, roll the die as many times as you like. Each roll adds to that turn's points.
+- Roll a 1 and you lose that turn's points, and the turn passes. Hold to bank the points and pass the die.
+- The first to 100 points wins, as soon as they reach it.
+
+Each player's view leaves out the dice seed, so nobody can work out the next roll. Easy banks at 10 points, medium at 20, and hard adjusts around 20 depending on the score, taking more risks when behind and rolling on when the other player is close to winning. Over 4,000 games each, medium beat easy 78% of the time, hard beat easy 80%, and hard beat medium 55%. In a game this lucky, that's about as much as skill can do.
 
 ---
 
