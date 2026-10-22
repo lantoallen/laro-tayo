@@ -115,11 +115,13 @@ describe("rooms for more than two", () => {
     room = joinRoom(room, cai, 3, () => 0).room;
     const game = gameFor("snakes-and-ladders");
     const ids = [ana.id, ben.id, cai.id];
+    // Record who rolls. Between rolls each player moves their own piece.
     const order: number[] = [];
-    for (let i = 0; i < 6; i++) {
+    while (order.length < 6) {
       const turn = game.turn(room.state)!;
-      order.push(turn);
-      room = playMove(room, ids[turn], "roll", 5).room;
+      const [move] = game.legalMoves(room.state, turn);
+      if (move === "roll") order.push(turn);
+      room = playMove(room, ids[turn], move, 5).room;
     }
     expect(order).toEqual([0, 1, 2, 0, 1, 2]);
   });

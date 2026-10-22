@@ -3,6 +3,7 @@ import {
   MAX_PLAYERS,
   MIN_PLAYERS,
   legalMoves,
+  nextMove,
   play,
   result,
   setup,
@@ -25,6 +26,6 @@ export const snakesAndLadders: Game<SnakesState, SnakesMove, SnakesEvent> = {
   // Every roll is up to the die, so there's nothing to hide.
   view: (state) => state,
   result,
-  // There's nothing to decide, only the die to roll.
-  bot: () => "roll",
+  // There's nothing to decide. The bot does the one thing there is to do.
+  bot: (state) => nextMove(state)!,
 };

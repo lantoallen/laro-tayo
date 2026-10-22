@@ -29,6 +29,7 @@ export const SNAKES: Readonly<Record<number, number>> = {
   98: 79,
 };
 
+/** How a finished turn went. */
 export interface LastRoll {
   seat: Seat;
   roll: number;
@@ -47,12 +48,24 @@ export interface SnakesState {
   winner: Seat | null;
   /** Where the next roll comes from. */
   seed: number;
+  /** The roll the player whose turn it is is moving by, and how many squares are left. Null until they roll. */
+  moving: { roll: number; left: number } | null;
+  /** The last turn to finish. */
   last: LastRoll | null;
+  /** The move that led here. */
+  lastMove: SnakesMove | null;
+  /** Rolls so far. */
+  rolls: number;
+  /** Finished turns. */
   turns: number;
 }
 
-/** The only move there is: roll the die. */
-export type SnakesMove = "roll";
+/**
+ * A turn is played the way it is on a real board: roll the die, move your
+ * piece one square at a time, then climb the ladder or slide down the snake
+ * you landed on.
+ */
+export type SnakesMove = "roll" | "step" | "jump";
 
 export type SnakesEvent =
   | { type: "roll"; roll: number }
@@ -63,40 +76,89 @@ export type SnakesEvent =
 export function setup(options: { seats?: number; firstSeat?: Seat; rng?: Rng } = {}): SnakesState {
   const { seats = 2, firstSeat = 0, rng = Math.random } = options;
   checkSeats("Snakes and Ladders", seats, MIN_PLAYERS, MAX_PLAYERS, firstSeat);
-  return { positions: Array(seats).fill(0), turn: firstSeat, winner: null, seed: newSeed(rng), last: null, turns: 0 };
+  return {
+    positions: Array(seats).fill(0),
+    turn: firstSeat,
+    winner: null,
+    seed: newSeed(rng),
+    moving: null,
+    last: null,
+    lastMove: null,
+    rolls: 0,
+    turns: 0,
+  };
+}
+
+/** The ladder or snake starting on a square, if any. */
+export function jumpFrom(square: number): { jump: "ladder" | "snake"; to: number } | null {
+  if (square in LADDERS) return { jump: "ladder", to: LADDERS[square] };
+  if (square in SNAKES) return { jump: "snake", to: SNAKES[square] };
+  return null;
+}
+
+/** What the player whose turn it is has to do next. There's only ever one thing. */
+export function nextMove(state: SnakesState): SnakesMove | null {
+  if (state.turn === null) return null;
+  if (state.moving === null) return "roll";
+  return state.moving.left > 0 ? "step" : "jump";
 }
 
 export function legalMoves(state: SnakesState, seat: Seat): SnakesMove[] {
-  return state.turn === seat ? ["roll"] : [];
+  const move = nextMove(state);
+  return state.turn === seat && move ? [move] : [];
 }
 
 /**
- * Rolls and moves. A roll that would go past the last square doesn't move at
- * all, so the game ends on an exact roll. Ladders lead up and snakes lead down.
+ * Rolls, steps one square, or follows a ladder or snake. A roll that would go
+ * past the last square doesn't move at all, so the game ends on an exact roll.
  */
 export function play(state: SnakesState, seat: Seat, move: SnakesMove): MoveOutcome<SnakesState, SnakesEvent> {
   if (state.turn !== seat) throw new IllegalMoveError(`It's not seat ${seat}'s turn`);
-  if (move !== "roll") throw new IllegalMoveError(`There's no move ${JSON.stringify(move)}`);
+  const expected = nextMove(state);
+  if (move !== expected) throw new IllegalMoveError(`Seat ${seat} has to ${expected} now, not ${JSON.stringify(move)}`);
+  const square = state.positions[seat];
 
-  const { roll, seed } = rollDie(state.seed);
-  const from = state.positions[seat];
-  const landed = from + roll > LAST_SQUARE ? from : from + roll;
-  const jump = landed in LADDERS ? "ladder" : landed in SNAKES ? "snake" : null;
-  const to = jump === "ladder" ? LADDERS[landed] : jump === "snake" ? SNAKES[landed] : landed;
+  if (move === "roll") {
+    const { roll, seed } = rollDie(state.seed);
+    const rolled = { ...state, seed, rolls: state.rolls + 1, lastMove: move };
+    const events: SnakesEvent[] = [{ type: "roll", roll }];
+    if (square + roll > LAST_SQUARE) {
+      return endTurn(rolled, { seat, roll, from: square, landed: square, to: square, jump: null }, events);
+    }
+    return { state: { ...rolled, moving: { roll, left: roll } }, events };
+  }
 
-  const events: SnakesEvent[] = [{ type: "roll", roll }];
-  if (landed !== from) events.push({ type: "move", from, to: landed });
-  if (jump) events.push({ type: "jump", from: landed, to, jump });
-  const positions = state.positions.map((square, s) => (s === seat ? to : square));
-  const won = to === LAST_SQUARE;
-  if (won) events.push({ type: "gameOver", winner: seat });
+  const { roll, left } = state.moving!;
+  if (move === "step") {
+    const to = square + 1;
+    const stepped = { ...state, positions: moveTo(state.positions, seat, to), lastMove: move };
+    const events: SnakesEvent[] = [{ type: "move", from: square, to }];
+    // Keep going, or stop on a ladder or snake until it's followed.
+    if (left > 1 || jumpFrom(to)) return { state: { ...stepped, moving: { roll, left: left - 1 } }, events };
+    return endTurn(stepped, { seat, roll, from: to - roll, landed: to, to, jump: null }, events);
+  }
+
+  const { jump, to } = jumpFrom(square)!;
+  const jumped = { ...state, positions: moveTo(state.positions, seat, to), lastMove: move };
+  const events: SnakesEvent[] = [{ type: "jump", from: square, to, jump }];
+  return endTurn(jumped, { seat, roll, from: square - roll, landed: square, to, jump }, events);
+}
+
+function moveTo(positions: number[], seat: Seat, to: number): number[] {
+  return positions.map((square, s) => (s === seat ? to : square));
+}
+
+/** Passes the turn on, or ends the game if the player reached the last square. */
+function endTurn(state: SnakesState, last: LastRoll, events: SnakesEvent[]): MoveOutcome<SnakesState, SnakesEvent> {
+  const won = last.to === LAST_SQUARE;
+  if (won) events.push({ type: "gameOver", winner: last.seat });
   return {
     state: {
-      positions,
-      turn: won ? null : nextSeat(seat, positions.length),
-      winner: won ? seat : null,
-      seed,
-      last: { seat, roll, from, landed, to, jump },
+      ...state,
+      turn: won ? null : nextSeat(last.seat, state.positions.length),
+      winner: won ? last.seat : null,
+      moving: null,
+      last,
       turns: state.turns + 1,
     },
     events,
