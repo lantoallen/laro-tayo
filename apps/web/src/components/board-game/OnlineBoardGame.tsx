@@ -49,7 +49,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
   const yourMove = you !== null && turn === you;
   const yourTurn = yourMove && status === "open" && !pending.waiting;
   useTurnTitle(yourMove);
-  useMoveSound(config, state, room.moveCount);
+  useMoveSound(config, state, room.moveCount, you);
   useResultSound(outcome?.winners ?? null, you);
 
   function move(next: Move) {

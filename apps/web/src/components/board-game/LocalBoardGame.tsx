@@ -39,7 +39,7 @@ export function LocalBoardGame<State, Move>({
   const botToMove = vsBot && turn === BOT_SEAT;
   const humanSeat = turn !== null && !botToMove ? turn : null;
   const outcome = game.result(state);
-  useMoveSound(config, state, moves);
+  useMoveSound(config, state, moves, you);
   useResultSound(outcome?.winners ?? null, you);
 
   useEffect(() => {
@@ -72,7 +72,9 @@ export function LocalBoardGame<State, Move>({
     const name = !vsBot
       ? config.colors[seat]
       : seat === BOT_SEAT
-        ? `Bot (${LEVEL_LABELS[settings.level]}), ${color}`
+        ? config.botLevels === false
+          ? `Bot, ${color}`
+          : `Bot (${LEVEL_LABELS[settings.level]}), ${color}`
         : `You, ${color}`;
     return (
       <PlayerRow

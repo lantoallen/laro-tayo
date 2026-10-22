@@ -1,0 +1,45 @@
+.pig {
+  width: min(100%, 26rem);
+  margin-inline: auto;
+}
+
+.pig-bar {
+  position: relative;
+  display: block;
+  height: 1.1rem;
+  overflow: hidden;
+  border: 2px solid var(--outline);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.pig-fill,
+.pig-ghost {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  transition:
+    width 300ms ease,
+    left 300ms ease;
+}
+
+/* Points rolled this turn but not banked yet: striped, since a 1 would lose them. */
+.pig-ghost {
+  opacity: 0.55;
+  background-image: repeating-linear-gradient(45deg, transparent 0 4px, rgb(255 255 255 / 0.6) 4px 8px);
+}
+
+.pig-red {
+  background-color: #ce1126;
+}
+
+.pig-blue {
+  background-color: #0038a8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pig-fill,
+  .pig-ghost {
+    transition: none;
+  }
+}

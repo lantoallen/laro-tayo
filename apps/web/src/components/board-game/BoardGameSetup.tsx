@@ -75,7 +75,7 @@ export function BoardGameSetup<State, Move>({
           </>
         )}
 
-        {vsBot && (
+        {vsBot && config.botLevels !== false && (
           <Segmented<BotLevel>
             legend="Bot level"
             name="level"

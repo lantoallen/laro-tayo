@@ -1,0 +1,96 @@
+.ttt-board {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  width: min(100%, 22rem);
+  aspect-ratio: 1;
+  margin-inline: auto;
+  padding: 6px;
+  border: 3px solid var(--outline);
+  border-radius: 16px;
+  background: var(--outline);
+  box-shadow: 5px 5px 0 var(--outline);
+}
+
+.ttt-cell {
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  padding: 0;
+  background: var(--surface);
+}
+
+button.ttt-cell {
+  cursor: pointer;
+}
+
+button.ttt-cell:hover,
+button.ttt-cell:focus-visible {
+  background: color-mix(in srgb, var(--yellow) 35%, var(--surface));
+}
+
+.ttt-win {
+  background: color-mix(in srgb, var(--yellow) 55%, var(--surface));
+}
+
+.ttt-mark {
+  width: 78%;
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.ttt-x {
+  stroke: #ce1126;
+}
+
+.ttt-o {
+  stroke: #0038a8;
+}
+
+/* Each stroke draws itself in, like a pen. */
+.ttt-mark path,
+.ttt-mark circle {
+  stroke-dasharray: var(--len);
+  animation: ttt-draw 260ms ease-out both;
+}
+
+.ttt-mark .ttt-second {
+  animation-delay: 150ms;
+}
+
+.ttt-strike {
+  position: absolute;
+  inset: 6px;
+  width: calc(100% - 12px);
+  height: calc(100% - 12px);
+  pointer-events: none;
+}
+
+.ttt-strike line {
+  stroke: #1b1b1b;
+  stroke-width: 0.09;
+  stroke-linecap: round;
+  stroke-dasharray: var(--len);
+  animation: ttt-draw 420ms ease-out 200ms both;
+}
+
+@keyframes ttt-draw {
+  from {
+    stroke-dashoffset: var(--len);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ttt-mark path,
+  .ttt-mark circle,
+  .ttt-strike line {
+    animation: none;
+  }
+}
