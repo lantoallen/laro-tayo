@@ -1,0 +1,159 @@
+.jk {
+  width: min(100%, 26rem);
+  margin-inline: auto;
+}
+
+.jk-arena {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1rem;
+}
+
+.jk-hand {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 5.5rem;
+  aspect-ratio: 1;
+}
+
+.jk-icon {
+  width: 100%;
+}
+
+/* Before a round is decided: a question mark, or a check once that player has picked. */
+.jk-waiting {
+  border: 3px dashed var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 2rem;
+}
+
+.jk-picked {
+  border-style: solid;
+  border-color: var(--outline);
+  background: color-mix(in srgb, var(--yellow) 45%, var(--surface));
+  color: var(--ink);
+  animation: jk-pop 240ms cubic-bezier(0.3, 1.5, 0.6, 1);
+}
+
+/* The reveal: both hands shake three times as a fist, then show what was picked. */
+.jk-reveal .jk-fist,
+.jk-reveal .jk-shown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.jk-reveal .jk-fist {
+  animation:
+    jk-shake 300ms ease-in-out 3,
+    jk-hide 1ms linear 900ms forwards;
+}
+
+.jk-reveal .jk-shown {
+  opacity: 0;
+  animation: jk-show 260ms cubic-bezier(0.3, 1.5, 0.6, 1) 900ms forwards;
+}
+
+.jk-headline {
+  display: grid;
+  min-height: 3rem;
+  place-items: center;
+  text-align: center;
+  font-weight: 600;
+}
+
+.jk-chant,
+.jk-after .jk-result {
+  grid-area: 1 / 1;
+}
+
+.jk-chant span {
+  font-family: var(--font-display);
+  opacity: 0;
+  animation: jk-word 300ms ease-out forwards;
+}
+
+.jk-chant span:nth-child(2) {
+  animation-delay: 300ms;
+}
+
+.jk-chant span:nth-child(3) {
+  animation-delay: 600ms;
+}
+
+.jk-after .jk-chant {
+  animation: jk-hide 1ms linear 900ms forwards;
+}
+
+.jk-after .jk-result {
+  opacity: 0;
+  animation: jk-show 260ms ease-out 900ms forwards;
+}
+
+.jk-choice {
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.6rem 0.25rem;
+}
+
+.jk-choice .jk-icon {
+  width: 3rem;
+}
+
+@keyframes jk-shake {
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes jk-hide {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes jk-show {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes jk-word {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes jk-pop {
+  from {
+    transform: scale(0.6);
+  }
+}
+
+/* Without motion, show the picks and the result straight away. */
+@media (prefers-reduced-motion: reduce) {
+  .jk-reveal .jk-fist,
+  .jk-after .jk-chant {
+    display: none;
+  }
+
+  .jk-reveal .jk-shown,
+  .jk-after .jk-result {
+    opacity: 1;
+    animation: none;
+  }
+
+  .jk-picked {
+    animation: none;
+  }
+}

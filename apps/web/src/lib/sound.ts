@@ -22,7 +22,10 @@ export type SoundName =
   | "buzz"
   | "win"
   | "lose"
-  | "draw";
+  | "draw"
+  | "roll"
+  | "climb"
+  | "slide";
 
 const KEY = "laro-tayo:sound";
 const listeners = new Set<() => void>();
@@ -160,6 +163,15 @@ const SOUNDS: Record<SoundName, (ctx: AudioContext, out: AudioNode) => void> = {
   win: (ctx, out) => notes(ctx, out, [523, 659, 784, 1047], 0.1, 0.2),
   lose: (ctx, out) => notes(ctx, out, [392, 330, 262], 0.15, 0.24),
   draw: (ctx, out) => notes(ctx, out, [440, 440], 0.15, 0.18),
+  // A die rattling and landing.
+  roll: (ctx, out) => {
+    for (let i = 0; i < 5; i++) {
+      noise(ctx, out, { start: i * 0.06, duration: 0.04, frequency: 2500 + i * 300, volume: 0.15 });
+    }
+    tone(ctx, out, { freq: 300, to: 220, type: "triangle", start: 0.32, duration: 0.08, volume: 0.2 });
+  },
+  climb: (ctx, out) => notes(ctx, out, [523, 587, 659, 784, 880], 0.06, 0.1),
+  slide: (ctx, out) => tone(ctx, out, { freq: 900, to: 180, type: "triangle", duration: 0.5, volume: 0.18 }),
 };
 
 /** Plays a sound, unless sound is off or the browser can't. */

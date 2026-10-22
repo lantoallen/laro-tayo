@@ -37,6 +37,8 @@ export interface BoardGameConfig<State, Move> {
   passAndPlay?: boolean;
   /** How long the bot waits before each move. */
   botDelayMs?: number;
+  /** False for games of pure luck, where a bot level would mean nothing. */
+  botLevels?: boolean;
   /**
    * A message about the last move. `you` is the seat of whoever is looking at
    * the screen, or null in pass and play, where every message uses names.
@@ -44,8 +46,8 @@ export interface BoardGameConfig<State, Move> {
   notice?: (state: State, names: readonly [string, string], you: Seat | null) => Notice | null;
   /** The line under "You win" once the game is over. */
   resultDetail: (state: State, names: readonly [string, string]) => string;
-  /** The sound for the move that led to this position. */
-  sound: (state: State) => SoundName | null;
+  /** The sound for the move that led to this position. `you` is null in pass and play. */
+  sound: (state: State, you: Seat | null) => SoundName | null;
 }
 
 /** "You win", "Red wins", or a draw. `you` is null in pass and play. */
