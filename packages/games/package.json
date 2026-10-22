@@ -15,7 +15,9 @@
     "./memory": "./src/memory/index.ts",
     "./morris": "./src/morris/index.ts",
     "./sea-battle": "./src/sea-battle/index.ts",
-    "./tic-tac-toe": "./src/tic-tac-toe/index.ts"
+    "./tic-tac-toe": "./src/tic-tac-toe/index.ts",
+    "./snakes-and-ladders": "./src/snakes-and-ladders/index.ts",
+    "./pig": "./src/pig/index.ts"
   },
   "scripts": {
     "test": "vitest run",
