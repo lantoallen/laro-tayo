@@ -74,3 +74,29 @@ describe("Snakes and Ladders", () => {
     }
   });
 });
+
+describe("Snakes and Ladders with more players", () => {
+  it("takes turns around a table of up to four", () => {
+    let state = setup({ seats: 4, firstSeat: 2, rng: createRng(3) });
+    expect(state.positions).toEqual([0, 0, 0, 0]);
+    const order: number[] = [];
+    for (let i = 0; i < 8; i++) {
+      order.push(state.turn!);
+      state = play(state, state.turn!, "roll").state;
+    }
+    expect(order).toEqual([2, 3, 0, 1, 2, 3, 0, 1]);
+  });
+
+  it.each([1, 5])("turns down %s players", (seats) => {
+    expect(() => setup({ seats })).toThrow();
+  });
+
+  it("always ends with three players", () => {
+    const rng = createRng(4);
+    for (let game = 0; game < 100; game++) {
+      let state = setup({ seats: 3, firstSeat: game % 3, rng });
+      while (state.turn !== null) state = play(state, state.turn, "roll").state;
+      expect(result(state)!.scores).toHaveLength(3);
+    }
+  });
+});

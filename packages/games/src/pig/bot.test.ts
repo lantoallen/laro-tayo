@@ -45,3 +45,10 @@ describe("the Pig bot", () => {
     expect(record("hard", "easy")).toBeGreaterThan(220);
   });
 });
+
+describe("the Pig bot with more players", () => {
+  it("keeps rolling on hard when anyone else is about to win", () => {
+    const state = { ...setup({ seats: 4 }), scores: [40, 10, 95, 20], turnTotal: 30 };
+    expect(chooseMove(state, 0, { level: "hard", rng: Math.random })).toBe("roll");
+  });
+});

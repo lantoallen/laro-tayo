@@ -69,3 +69,20 @@ describe("Pig", () => {
     }
   });
 });
+
+describe("Pig with more players", () => {
+  it("passes the die around a table of up to four", () => {
+    let state = setup({ seats: 3, firstSeat: 1, rng: createRng(5) });
+    expect(state.scores).toEqual([0, 0, 0]);
+    state = play(withRoll(state, 4), 1, "roll").state;
+    state = play(state, 1, "hold").state;
+    expect(state.turn).toBe(2);
+    expect(state.scores).toEqual([0, 4, 0]);
+    state = play(withRoll(state, 1), 2, "roll").state;
+    expect(state.turn).toBe(0);
+  });
+
+  it.each([1, 5])("turns down %s players", (seats) => {
+    expect(() => setup({ seats })).toThrow();
+  });
+});

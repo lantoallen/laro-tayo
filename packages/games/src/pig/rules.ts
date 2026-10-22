@@ -1,8 +1,11 @@
 import { newSeed, rollDie, type Rng } from "../engine/rng";
+import { checkSeats, nextSeat } from "../engine/seats";
 import { IllegalMoveError, type GameResult, type MoveOutcome, type Seat } from "../engine/types";
 
 /** Points needed to win. */
 export const GOAL = 100;
+export const MIN_PLAYERS = 2;
+export const MAX_PLAYERS = 4;
 
 export interface LastAction {
   seat: Seat;
@@ -18,7 +21,7 @@ export interface LastAction {
 }
 
 export interface PigState {
-  scores: [number, number];
+  scores: number[];
   /** Points rolled so far this turn, not banked yet. */
   turnTotal: number;
   /** Whose turn it is, or null once someone reaches the goal. */
@@ -39,15 +42,18 @@ export type PigEvent =
   | { type: "hold"; banked: number }
   | { type: "gameOver"; winner: Seat };
 
-export function otherSeat(seat: Seat): Seat {
-  return seat === 0 ? 1 : 0;
-}
-
 export function setup(options: { seats?: number; firstSeat?: Seat; rng?: Rng } = {}): PigState {
   const { seats = 2, firstSeat = 0, rng = Math.random } = options;
-  if (seats !== 2) throw new Error("Pig is played by exactly 2 players here");
-  if (firstSeat !== 0 && firstSeat !== 1) throw new Error(`No seat ${firstSeat} in Pig`);
-  return { scores: [0, 0], turnTotal: 0, turn: firstSeat, winner: null, seed: newSeed(rng), last: null, turns: 0 };
+  checkSeats("Pig", seats, MIN_PLAYERS, MAX_PLAYERS, firstSeat);
+  return {
+    scores: Array(seats).fill(0),
+    turnTotal: 0,
+    turn: firstSeat,
+    winner: null,
+    seed: newSeed(rng),
+    last: null,
+    turns: 0,
+  };
 }
 
 export function legalMoves(state: PigState, seat: Seat): PigMove[] {
@@ -55,8 +61,8 @@ export function legalMoves(state: PigState, seat: Seat): PigMove[] {
   return state.turnTotal > 0 ? ["roll", "hold"] : ["roll"];
 }
 
-const withScore = (scores: [number, number], seat: Seat, score: number): [number, number] =>
-  seat === 0 ? [score, scores[1]] : [scores[0], score];
+const withScore = (scores: readonly number[], seat: Seat, score: number) =>
+  scores.map((old, s) => (s === seat ? score : old));
 
 /**
  * A roll of 2 to 6 adds to the turn's points. A 1 loses them and ends the
@@ -72,7 +78,7 @@ export function play(state: PigState, seat: Seat, move: PigMove): MoveOutcome<Pi
     const scores = withScore(state.scores, seat, state.scores[seat] + banked);
     const last: LastAction = { seat, action: "hold", roll: null, bust: false, banked, lost: 0 };
     return {
-      state: { ...state, scores, turnTotal: 0, turn: otherSeat(seat), last, turns },
+      state: { ...state, scores, turnTotal: 0, turn: nextSeat(seat, scores.length), last, turns },
       events: [{ type: "hold", banked }],
     };
   }
@@ -81,7 +87,7 @@ export function play(state: PigState, seat: Seat, move: PigMove): MoveOutcome<Pi
   if (roll === 1) {
     const last: LastAction = { seat, action: "roll", roll, bust: true, banked: 0, lost: state.turnTotal };
     return {
-      state: { ...state, turnTotal: 0, turn: otherSeat(seat), seed, last, turns },
+      state: { ...state, turnTotal: 0, turn: nextSeat(seat, state.scores.length), seed, last, turns },
       events: [{ type: "roll", roll }, { type: "bust" }],
     };
   }
