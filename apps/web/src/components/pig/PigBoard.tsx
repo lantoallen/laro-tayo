@@ -37,7 +37,12 @@ export function PigBoard({ state, you, onMove }: BoardProps<PigState, PigMove>) 
       </div>
 
       <div className="card mt-4 flex items-center justify-center gap-6 p-5">
-        <Die value={roll} rollKey={state.turns} bust={last?.bust ?? false} />
+        <Die
+          value={roll}
+          rollKey={state.turns}
+          bust={last?.bust ?? false}
+          onRoll={onMove ? () => onMove("roll") : undefined}
+        />
         <div className="text-center">
           {/* A new key when it changes, so the number pops. */}
           <p key={state.turnTotal} className="stat-pop font-display text-4xl tabular-nums">
