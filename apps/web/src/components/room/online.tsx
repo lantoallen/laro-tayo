@@ -9,6 +9,7 @@ import { LeaveButton } from "@/components/game/LeaveButton";
 import { RulesButton } from "@/components/game/RulesButton";
 import { SoundButton } from "@/components/game/SoundButton";
 import { PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON } from "@/components/game/parts";
+import { listNames, resultTitle } from "@/components/game/results";
 import type { ConnectionStatus, RoomUpdate } from "@/lib/useRoom";
 import { ShareLink } from "./ShareLink";
 
@@ -24,27 +25,44 @@ export function roomNames(room: RoomSnapshot): [string, string] {
   return [room.seats[0]?.name ?? "Player 1", room.seats[1]?.name ?? "Player 2"];
 }
 
-/** Shown until the second player opens the link. */
+/** Every seat's name, for rooms of any size. */
+export function seatNames(room: RoomSnapshot): string[] {
+  return room.seats.map((seat, i) => seat?.name ?? `Player ${i + 1}`);
+}
+
+/** Shown until everyone has opened the link. Pass `room` to show how many have joined. */
 export function WaitingRoom({
   code,
   status,
   gameName,
   gameHref,
+  room,
 }: {
   code: string;
   status: ConnectionStatus;
   gameName: string;
   gameHref: string;
+  room?: RoomSnapshot;
 }) {
+  const needed = room?.seats.length ?? 2;
+  const joined = room?.seats.filter(Boolean).length ?? 1;
   return (
     <main className="mx-auto max-w-md px-4 pb-16">
       <Link href={gameHref} className="text-sm text-muted hover:text-ink">
         ← {gameName}
       </Link>
-      <h1 className="mt-2 text-3xl">Waiting for your friend</h1>
+      <h1 className="mt-2 text-3xl">{needed === 2 ? "Waiting for your friend" : "Waiting for your friends"}</h1>
       <p className="mt-2 text-muted">
-        Send this link to the person you want to play {gameName} with. The game starts as soon as they open it.
+        {needed === 2
+          ? `Send this link to the person you want to play ${gameName} with. The game starts as soon as they open it.`
+          : `Send this link to the people you want to play ${gameName} with. ` +
+            `The game starts once all ${needed} players have joined.`}
       </p>
+      {needed > 2 && (
+        <p className="mt-3 font-semibold" aria-live="polite">
+          {joined} of {needed} players here
+        </p>
+      )}
       <ShareLink code={code} gameName={gameName} />
       <p className="mt-6 text-sm text-muted">
         Room code <b className="font-mono text-base tracking-widest text-ink">{code}</b>
@@ -131,7 +149,7 @@ export function RoomResult({
 }: {
   room: RoomSnapshot;
   outcome: GameResult;
-  names: [string, string];
+  names: readonly string[];
   detail: string;
   tieTitle: string;
   /** Show the result under the board instead of over it. */
@@ -139,21 +157,23 @@ export function RoomResult({
   send: (message: ClientMessage) => boolean;
 }) {
   const you = room.you;
-  const [winner] = outcome.winners;
-  let title: string;
-  if (winner === undefined) title = tieTitle;
-  else if (you === null) title = `${names[winner]} wins`;
-  else title = winner === you ? "You win" : "You lose";
+  const title = outcome.winners.length === 0 ? tieTitle : resultTitle(outcome.winners, names, you);
 
-  const other = you === null ? null : you === 0 ? 1 : 0;
+  // Another game starts once everyone at the table asks for one.
+  const others = room.seats.flatMap((_, seat) => (seat === you ? [] : [seat]));
   const youAsked = you !== null && room.rematch.includes(you);
-  const theyAsked = other !== null && room.rematch.includes(other);
+  const asked = others.filter((seat) => room.rematch.includes(seat)).map((seat) => names[seat]);
+  const waitingFor = others.filter((seat) => !room.rematch.includes(seat)).map((seat) => names[seat]);
 
   return (
-    <ResultCard title={title} detail={detail} inline={inline} celebrate={you !== null && winner === you}>
-      {other !== null && (
+    <ResultCard title={title} detail={detail} inline={inline} celebrate={you !== null && outcome.winners.includes(you)}>
+      {you !== null && (
         <>
-          {theyAsked && !youAsked && <p className="-mt-2 mb-1 text-sm text-muted">{names[other]} wants to play again.</p>}
+          {asked.length > 0 && !youAsked && (
+            <p className="-mt-2 mb-1 text-sm text-muted">
+              {listNames(asked)} {asked.length === 1 ? "wants" : "want"} to play again.
+            </p>
+          )}
           <button
             type="button"
             onClick={() => send({ type: "rematch" })}
@@ -161,7 +181,7 @@ export function RoomResult({
             className={PRIMARY_BUTTON}
             autoFocus
           >
-            {youAsked ? `Waiting for ${names[other]}...` : "Play again"}
+            {youAsked ? `Waiting for ${listNames(waitingFor)}...` : "Play again"}
           </button>
         </>
       )}

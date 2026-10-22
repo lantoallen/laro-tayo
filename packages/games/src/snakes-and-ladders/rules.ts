@@ -1,7 +1,10 @@
 import { newSeed, rollDie, type Rng } from "../engine/rng";
+import { checkSeats, nextSeat } from "../engine/seats";
 import { IllegalMoveError, type GameResult, type MoveOutcome, type Seat } from "../engine/types";
 
 export const LAST_SQUARE = 100;
+export const MIN_PLAYERS = 2;
+export const MAX_PLAYERS = 4;
 
 /** Where each ladder starts and where it leads. */
 export const LADDERS: Readonly<Record<number, number>> = {
@@ -38,7 +41,7 @@ export interface LastRoll {
 
 export interface SnakesState {
   /** Each seat's square. 0 is the start, off the board. */
-  positions: [number, number];
+  positions: number[];
   /** Whose turn it is, or null once someone reaches the last square. */
   turn: Seat | null;
   winner: Seat | null;
@@ -57,15 +60,10 @@ export type SnakesEvent =
   | { type: "jump"; from: number; to: number; jump: "ladder" | "snake" }
   | { type: "gameOver"; winner: Seat };
 
-export function otherSeat(seat: Seat): Seat {
-  return seat === 0 ? 1 : 0;
-}
-
 export function setup(options: { seats?: number; firstSeat?: Seat; rng?: Rng } = {}): SnakesState {
   const { seats = 2, firstSeat = 0, rng = Math.random } = options;
-  if (seats !== 2) throw new Error("Snakes and Ladders is played by exactly 2 players here");
-  if (firstSeat !== 0 && firstSeat !== 1) throw new Error(`No seat ${firstSeat} in Snakes and Ladders`);
-  return { positions: [0, 0], turn: firstSeat, winner: null, seed: newSeed(rng), last: null, turns: 0 };
+  checkSeats("Snakes and Ladders", seats, MIN_PLAYERS, MAX_PLAYERS, firstSeat);
+  return { positions: Array(seats).fill(0), turn: firstSeat, winner: null, seed: newSeed(rng), last: null, turns: 0 };
 }
 
 export function legalMoves(state: SnakesState, seat: Seat): SnakesMove[] {
@@ -89,13 +87,13 @@ export function play(state: SnakesState, seat: Seat, move: SnakesMove): MoveOutc
   const events: SnakesEvent[] = [{ type: "roll", roll }];
   if (landed !== from) events.push({ type: "move", from, to: landed });
   if (jump) events.push({ type: "jump", from: landed, to, jump });
-  const positions: [number, number] = seat === 0 ? [to, state.positions[1]] : [state.positions[0], to];
+  const positions = state.positions.map((square, s) => (s === seat ? to : square));
   const won = to === LAST_SQUARE;
   if (won) events.push({ type: "gameOver", winner: seat });
   return {
     state: {
       positions,
-      turn: won ? null : otherSeat(seat),
+      turn: won ? null : nextSeat(seat, positions.length),
       winner: won ? seat : null,
       seed,
       last: { seat, roll, from, landed, to, jump },

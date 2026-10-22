@@ -57,7 +57,7 @@ describe("chooseMove", () => {
       turn: 0,
       table: null,
       passes: 0,
-      opening: true,
+      opening: 0,
       winner: null,
       turns: 0,
     };

@@ -7,7 +7,7 @@ import { SeaBoard } from "./SeaBoard";
 import { Rules } from "./Rules";
 
 /** Says what the last shot did: a miss, a hit, or a ship sunk. */
-function notice(state: SeaState, names: readonly [string, string], you: Seat | null): Notice | null {
+function notice(state: SeaState, names: readonly string[], you: Seat | null): Notice | null {
   const last = state.last;
   if (!last) return null;
   const victim = otherSeat(last.seat);

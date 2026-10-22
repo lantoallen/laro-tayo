@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Seat } from "@laro/games";
-import { DEFAULT_TWO_PLAYER, firstSeatFor, type TwoPlayerSettings } from "@/components/game/settings";
+import { DEFAULT_BOARD_GAME, firstSeatFor, type BoardGameSettings } from "@/components/game/settings";
 import { savePlayerName } from "@/lib/player";
 import { createRoom, roomPath } from "@/lib/rooms";
 import { BoardGameSetup } from "./BoardGameSetup";
@@ -12,18 +12,20 @@ import type { BoardGameConfig } from "./types";
 
 /** The setup screen, then the game. Online games go to their room instead. */
 export function BoardGameApp<State, Move>({ config }: { config: BoardGameConfig<State, Move> }) {
-  const [settings, setSettings] = useState<TwoPlayerSettings>(DEFAULT_TWO_PLAYER);
+  const [settings, setSettings] = useState<BoardGameSettings>(DEFAULT_BOARD_GAME);
+  const { minSeats, maxSeats } = config.game;
+  const players = Math.min(maxSeats, Math.max(minSeats, settings.players));
   const [match, setMatch] = useState<{ id: number; firstSeat: Seat } | null>(null);
   const router = useRouter();
 
   async function startOnline(name: string) {
     if (!config.roomId) return;
     savePlayerName(name);
-    router.push(roomPath(await createRoom(config.roomId)));
+    router.push(roomPath(await createRoom(config.roomId, players)));
   }
 
   function start() {
-    const firstSeat = firstSeatFor(settings.first);
+    const firstSeat = firstSeatFor(settings.first, players);
     setMatch((current) => ({ id: (current?.id ?? 0) + 1, firstSeat }));
     window.scrollTo({ top: 0 });
   }

@@ -3,7 +3,6 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import type { BotLevel, Seat } from "@laro/games";
 import {
-  THREE_OF_CLUBS,
   beats,
   chooseMove,
   describe,
@@ -29,13 +28,27 @@ import { label, noticeFor, playName } from "./words";
 
 const YOU: Seat = 0;
 const NAMES = ["You", "Bot 1", "Bot 2", "Bot 3"];
+/** Columns for the other players' boxes, so they fill the row. */
+const COLUMNS: Record<number, string> = { 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3" };
 /** How long a bot waits before playing, so people can follow along. */
 const THINK_MS = { normal: 900, fast: 350 };
 
 type Speed = keyof typeof THINK_MS;
 
-export function PusoyGame({ level, onRematch, onExit }: { level: BotLevel; onRematch: () => void; onExit: () => void }) {
-  const [game, setGame] = useState(() => setup());
+export function PusoyGame({
+  level,
+  players,
+  onRematch,
+  onExit,
+}: {
+  level: BotLevel;
+  /** How many at the table, counting you. */
+  players: number;
+  onRematch: () => void;
+  onExit: () => void;
+}) {
+  const [game, setGame] = useState(() => setup({ seats: players }));
+  const others = Array.from({ length: players - 1 }, (_, i) => i + 1);
   const [events, setEvents] = useState<PusoyEvent[]>([]);
   // Who passed since the last play, so their seats can say so.
   const [passed, setPassed] = useState<Seat[]>([]);
@@ -81,7 +94,9 @@ export function PusoyGame({ level, onRematch, onExit }: { level: BotLevel; onRem
   if (yourTurn && picked.length > 0 && !canPlay) {
     const combo = describe(picked);
     if (!combo) problem = "Those cards aren't a hand you can play.";
-    else if (game.opening && !picked.includes(THREE_OF_CLUBS)) problem = "Your first play has to include the 3♣.";
+    else if (game.opening !== null && !picked.includes(game.opening)) {
+      problem = `Your first play has to include the ${label(game.opening)}.`;
+    }
     else if (game.table && !beats(combo, game.table.combo)) problem = `That doesn't beat ${playName(game.table.cards)}.`;
   }
 
@@ -105,7 +120,9 @@ export function PusoyGame({ level, onRematch, onExit }: { level: BotLevel; onRem
   let status: string;
   if (game.turn === null) status = "Game over";
   else if (!yourTurn) status = "Thinking...";
-  else if (game.opening) status = "You have the 3♣, so you go first. Your play has to include it.";
+  else if (game.opening !== null) {
+    status = `You have the ${label(game.opening)}, so you go first. Your play has to include it.`;
+  }
   else if (!game.table) status = "Your lead. Play anything.";
   else status = `Beat ${playName(game.table.cards)} or pass.`;
 
@@ -141,8 +158,8 @@ export function PusoyGame({ level, onRematch, onExit }: { level: BotLevel; onRem
         </div>
       </div>
 
-      <ul aria-label="Other players" className="grid grid-cols-3 gap-2">
-        {[1, 2, 3].map((seat) => {
+      <ul aria-label="Other players" className={`grid ${COLUMNS[others.length]} gap-2`}>
+        {others.map((seat) => {
           const count = game.hands[seat].length;
           return (
             <li
@@ -198,7 +215,7 @@ export function PusoyGame({ level, onRematch, onExit }: { level: BotLevel; onRem
           <ResultCard
             title={outcome.winners[0] === YOU ? "You win" : `${NAMES[outcome.winners[0]]} wins`}
             celebrate={outcome.winners[0] === YOU}
-            detail={`Cards left: ${[1, 2, 3, 0]
+            detail={`Cards left: ${[...others, YOU]
               .filter((seat) => seat !== outcome.winners[0])
               .map((seat) => `${NAMES[seat]} ${outcome.scores[seat]}`)
               .join(", ")}`}

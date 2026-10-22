@@ -1,13 +1,16 @@
+import { checkSeats, leaders, nextSeat } from "../engine/seats";
 import { IllegalMoveError, type GameResult, type MoveOutcome, type Seat } from "../engine/types";
 import type { Rng } from "../engine/rng";
 
 export const COLUMNS = 5;
 export const ROWS = 6;
 export const CARDS = COLUMNS * ROWS;
-/** 15 pairs, an odd number, so a game can't end in a tie. */
+/** 15 pairs, an odd number, so a two-player game can't end in a tie. */
 export const PAIRS = CARDS / 2;
 /** What a hidden card's face looks like in a player's view. */
 export const HIDDEN = -1;
+export const MIN_PLAYERS = 2;
+export const MAX_PLAYERS = 4;
 
 export interface LastTurn {
   seat: Seat;
@@ -18,6 +21,8 @@ export interface LastTurn {
 
 /** Cards are read left to right from the top row. */
 export interface MemoryState {
+  /** How many are playing, from 2 to 4. */
+  players: number;
   /** The face on each card, from 0 to PAIRS - 1. A view shows HIDDEN for cards that are face down. */
   faces: number[];
   /** Who took each card, or null while it's still on the table. */
@@ -41,22 +46,18 @@ export type MemoryEvent =
   | { type: "flip"; card: number; face: number }
   | { type: "match"; cards: number[] }
   | { type: "miss"; cards: number[] }
-  | { type: "gameOver"; winner: Seat | null };
-
-export function otherSeat(seat: Seat): Seat {
-  return seat === 0 ? 1 : 0;
-}
+  | { type: "gameOver"; winners: Seat[] };
 
 export function setup(options: { seats?: number; firstSeat?: Seat; rng?: Rng } = {}): MemoryState {
   const { seats = 2, firstSeat = 0, rng = Math.random } = options;
-  if (seats !== 2) throw new Error("Memory is played by exactly 2 players");
-  if (firstSeat !== 0 && firstSeat !== 1) throw new Error(`No seat ${firstSeat} in Memory`);
+  checkSeats("Memory", seats, MIN_PLAYERS, MAX_PLAYERS, firstSeat);
   const faces = Array.from({ length: CARDS }, (_, i) => i % PAIRS);
   for (let i = faces.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [faces[i], faces[j]] = [faces[j], faces[i]];
   }
   return {
+    players: seats,
     faces,
     owner: Array(CARDS).fill(null),
     flipped: [],
@@ -83,10 +84,9 @@ export function countPairs(owner: readonly (Seat | null)[], seat: Seat): number 
   return owner.filter((o) => o === seat).length / 2;
 }
 
-/** The seat with more pairs, or null for a tie. */
-function leader(owner: readonly (Seat | null)[]): Seat | null {
-  const difference = countPairs(owner, 0) - countPairs(owner, 1);
-  return difference === 0 ? null : difference > 0 ? 0 : 1;
+/** Pairs taken by each seat. */
+export function pairCounts(state: MemoryState): number[] {
+  return Array.from({ length: state.players }, (_, seat) => countPairs(state.owner, seat));
 }
 
 /**
@@ -117,7 +117,7 @@ export function play(state: MemoryState, seat: Seat, move: MemoryMove): MoveOutc
     events.push({ type: "miss", cards: pair });
   }
   const over = owner.every((o) => o !== null);
-  if (over) events.push({ type: "gameOver", winner: leader(owner) });
+  if (over) events.push({ type: "gameOver", winners: leaders(pairCounts({ ...state, owner })) });
   return {
     state: {
       ...state,
@@ -125,7 +125,7 @@ export function play(state: MemoryState, seat: Seat, move: MemoryMove): MoveOutc
       flipped: [],
       missed: matched ? [] : pair,
       seen,
-      turn: over ? null : otherSeat(seat),
+      turn: over ? null : nextSeat(seat, state.players),
       last: { seat, cards: pair, matched },
       turns: state.turns + 1,
     },
@@ -140,6 +140,6 @@ export function view(state: MemoryState): MemoryState {
 
 export function result(state: MemoryState): GameResult | null {
   if (state.turn !== null) return null;
-  const winner = leader(state.owner);
-  return { winners: winner === null ? [] : [winner], scores: [countPairs(state.owner, 0), countPairs(state.owner, 1)] };
+  const scores = pairCounts(state);
+  return { winners: leaders(scores), scores };
 }

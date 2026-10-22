@@ -93,3 +93,28 @@ describe("random games", () => {
     }
   });
 });
+
+describe("Memory with more players", () => {
+  it("takes turns around the table after every pair", () => {
+    let state = setup({ seats: 3, rng: createRng(8) });
+    const order: number[] = [];
+    for (let i = 0; i < 6; i++) {
+      order.push(state.turn!);
+      const [a, b] = legalMoves(state, state.turn!);
+      state = play(play(state, state.turn!, a).state, state.turn!, b).state;
+    }
+    expect(order).toEqual([0, 1, 2, 0, 1, 2]);
+  });
+
+  it("shares the win between players tied for the most pairs", () => {
+    const owner = Array.from({ length: CARDS }, (_, card) => [0, 1, 2][Math.floor(card / 10)]);
+    const state = { ...setup({ seats: 3 }), owner, turn: null };
+    expect(result(state)).toEqual({ winners: [], scores: [5, 5, 5] });
+    const twoWay = { ...state, owner: owner.map((o, card) => (card >= 28 ? 0 : o)) };
+    expect(result(twoWay)!.winners).toEqual([0]);
+  });
+
+  it.each([1, 5])("turns down %s players", (seats) => {
+    expect(() => setup({ seats })).toThrow();
+  });
+});

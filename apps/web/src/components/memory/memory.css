@@ -84,6 +84,14 @@
   background: #0038a8;
 }
 
+.mm-yellow .mm-front::after {
+  background: #fcd116;
+}
+
+.mm-green .mm-front::after {
+  background: #2f9e44;
+}
+
 /* A pair just found jumps, once it has turned over. */
 .mm-matched {
   animation: mm-bounce 520ms ease-out 380ms both;

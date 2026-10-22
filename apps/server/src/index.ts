@@ -1,6 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
 import {
   createRoom,
+  gameFor,
   isGameId,
   isRoomCode,
   joinRoom,
@@ -62,15 +63,22 @@ export default {
     }
 
     if (url.pathname === "/rooms" && request.method === "POST") {
-      const body = await request.json().catch(() => null);
-      const gameId = (body as { game?: unknown } | null)?.game;
+      const body = (await request.json().catch(() => null)) as { game?: unknown; players?: unknown } | null;
+      const gameId = body?.game;
       if (!isGameId(gameId)) return json({ error: "Unknown game" }, 400, origin);
+      const game = gameFor(gameId);
+      // How many seats the room has. Games for two don't need to say.
+      const players = body?.players ?? game.minSeats;
+      const { minSeats, maxSeats } = game;
+      if (typeof players !== "number" || !Number.isInteger(players) || players < minSeats || players > maxSeats) {
+        return json({ error: `${game.name} is played by ${minSeats} to ${maxSeats} players.` }, 400, origin);
+      }
 
       // Codes are random, so a clash is rare. Try a few times before giving up.
       for (let attempt = 0; attempt < 5; attempt++) {
         const code = makeRoomCode(Math.random);
         const room = env.ROOMS.get(env.ROOMS.idFromName(code));
-        if (await room.create(code, gameId)) return json({ code }, 201, origin);
+        if (await room.create(code, gameId, players)) return json({ code }, 201, origin);
       }
       return json({ error: "Couldn't make a room. Try again." }, 503, origin);
     }
@@ -99,9 +107,9 @@ export class RoomObject extends DurableObject<Env> {
   }
 
   /** Sets up a new room. Returns false if this code is already in use. */
-  async create(code: string, gameId: Room["gameId"]): Promise<boolean> {
+  async create(code: string, gameId: Room["gameId"], players: number): Promise<boolean> {
     if (await this.ctx.storage.get<Room>("room")) return false;
-    await this.save(createRoom(code, gameId, Date.now()));
+    await this.save(createRoom(code, gameId, Date.now(), players));
     return true;
   }
 

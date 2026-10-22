@@ -1,5 +1,5 @@
 import { IllegalMoveError, type BotLevel, type BotOptions, type Seat } from "../engine/types";
-import { GOAL, legalMoves, otherSeat, type PigMove, type PigState } from "./rules";
+import { GOAL, legalMoves, type PigMove, type PigState } from "./rules";
 
 /**
  * When to stop rolling and bank the points:
@@ -7,13 +7,14 @@ import { GOAL, legalMoves, otherSeat, type PigMove, type PigState } from "./rule
  * - Easy banks after 10 points, and now and then on a whim.
  * - Medium banks after 20, the classic rule of thumb.
  * - Hard banks after about 20 too, but takes more risks when behind, plays it
- *   safe when ahead, and keeps rolling when the other player is close to winning.
+ *   safe when ahead, and keeps rolling when someone else is close to winning.
  */
 function holdAt(state: PigState, seat: Seat, level: BotLevel): number {
   if (level === "easy") return 10;
   if (level === "medium") return 20;
   const mine = state.scores[seat];
-  const theirs = state.scores[otherSeat(seat)];
+  // The closest anyone else is to winning.
+  const theirs = Math.max(...state.scores.filter((_, s) => s !== seat));
   if (theirs >= GOAL - 15) return GOAL - mine;
   return Math.max(12, Math.min(GOAL - mine, 21 + Math.round((theirs - mine) / 8)));
 }

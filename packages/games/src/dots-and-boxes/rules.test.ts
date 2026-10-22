@@ -107,3 +107,29 @@ describe("random games", () => {
     }
   });
 });
+
+describe("Dots and Boxes with more players", () => {
+  it("passes the turn around the table, and closing a box still keeps it", () => {
+    let state = setup({ seats: 3 });
+    state = draw([horizontalLine(0, 0), horizontalLine(1, 0), verticalLine(0, 0)], state);
+    expect(state.turn).toBe(0);
+    state = play(state, 0, verticalLine(0, 1)).state;
+    expect(state.boxes[0]).toBe(0);
+    expect(state.turn).toBe(0);
+  });
+
+  it("ends with every box claimed and scores for everyone", () => {
+    const rng = createRng(9);
+    for (let game = 0; game < 50; game++) {
+      let state = setup({ seats: 4, firstSeat: game % 4 });
+      while (state.turn !== null) state = play(state, state.turn, pick(rng, legalMoves(state, state.turn))).state;
+      const { scores } = result(state)!;
+      expect(scores).toHaveLength(4);
+      expect(scores.reduce((a, b) => a + b, 0)).toBe(25);
+    }
+  });
+
+  it.each([1, 5])("turns down %s players", (seats) => {
+    expect(() => setup({ seats })).toThrow();
+  });
+});

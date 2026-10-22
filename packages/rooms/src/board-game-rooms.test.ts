@@ -97,3 +97,30 @@ describe("dice and hidden picks in rooms", () => {
     expect(forBen.picks).toEqual(["hidden", null]);
   });
 });
+
+describe("rooms for more than two", () => {
+  it("seat as many players as asked for, within the game's limits", () => {
+    expect(createRoom("ABCDE", "pig", 0, 4).seats).toHaveLength(4);
+    expect(createRoom("ABCDE", "pig", 0).seats).toHaveLength(2);
+    expect(() => createRoom("ABCDE", "pig", 0, 5)).toThrow(RoomError);
+    expect(() => createRoom("ABCDE", "reversi", 0, 3)).toThrow(RoomError);
+  });
+
+  it("start once every seat is taken, and go around the table", () => {
+    const cai = { id: "player-cai", name: "Cai" };
+    let room = createRoom("ABCDE", "snakes-and-ladders", 0, 3);
+    room = joinRoom(room, ana, 1, () => 0).room;
+    room = joinRoom(room, ben, 2, () => 0).room;
+    expect(room.state).toBeNull();
+    room = joinRoom(room, cai, 3, () => 0).room;
+    const game = gameFor("snakes-and-ladders");
+    const ids = [ana.id, ben.id, cai.id];
+    const order: number[] = [];
+    for (let i = 0; i < 6; i++) {
+      const turn = game.turn(room.state)!;
+      order.push(turn);
+      room = playMove(room, ids[turn], "roll", 5).room;
+    }
+    expect(order).toEqual([0, 1, 2, 0, 1, 2]);
+  });
+});

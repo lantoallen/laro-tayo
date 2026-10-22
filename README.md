@@ -2,9 +2,9 @@
 
 Filipino games and classics you can play on your phone, at https://laro-tayo.vercel.app.
 
-There are fourteen games so far. Five are Filipino: Sungka, Dama (Filipino checkers), and Jak-en-poy (rock, paper, scissors) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Pusoy Dos, the card game, is played against three bots. Hulaan Mo is a guessing game for a group sharing one phone.
+There are fourteen games so far. Five are Filipino: Sungka, Dama (Filipino checkers), and Jak-en-poy (rock, paper, scissors) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Pusoy Dos, the card game, is played against one to three bots. Hulaan Mo is a guessing game for a group sharing one phone.
 
-The other nine are classics played everywhere: Four in a Row, Reversi, Dots and Boxes, Memory, Nine Men's Morris, Sea Battle, Tic-Tac-Toe, Snakes and Ladders, and Pig. They can be played the same three ways, except Sea Battle, which hides each player's ships and so is played against the bot or online.
+The other nine are classics played everywhere: Four in a Row, Reversi, Dots and Boxes, Memory, Nine Men's Morris, Sea Battle, Tic-Tac-Toe, Snakes and Ladders, and Pig. They can be played the same three ways, except Sea Battle, which hides each player's ships and so is played against the bot or online. Snakes and Ladders, Pig, Memory, and Dots and Boxes take two to four players, and the rest are for two.
 
 ## Running it
 
@@ -43,14 +43,14 @@ npm run build
 
 ```text
 packages/games   Game rules in plain TypeScript, no React
-  src/engine     The interface every game follows, seeded random numbers and dice, and the bots' search
+  src/engine     The interface every game follows, seeded random numbers and dice, turn order, and the bots' search
   src/sungka     Sungka rules, bot, and tests
   src/dama       Dama rules, bot, and tests
   src/pusoy-dos  Pusoy Dos cards, rules, bots, and tests
   src/hulaan-mo  Hulaan Mo word packs, game logic, and tests
   src/four-in-a-row, src/reversi, src/dots-and-boxes, src/memory, src/morris, src/sea-battle,
   src/tic-tac-toe, src/snakes-and-ladders, src/pig, src/jak-en-poy
-                 Rules, bots, and tests for the two-player games that share their screens
+                 Rules, bots, and tests for the games that share their screens
 packages/rooms   Online room logic: seats, turns, rematches, and the messages sent over the socket
 apps/server      The room server, a Cloudflare Worker
 apps/web         The Next.js app
@@ -60,7 +60,7 @@ Every game implements the same small interface (`setup`, `legalMoves`, `play`, `
 
 Hulaan Mo is the exception. It has no moves to choose between and no bot, just a timer and two buttons, so it's a plain reducer (`createGame` and `reduce`) with its own tests instead.
 
-These two-player games share their screens. `apps/web/src/components/board-game` has one setup screen, one game screen for playing on one phone, and one for playing online. Each game only adds a board to draw and a short config: its colors, what to show next to each player's name, and its messages.
+These games share their screens. `apps/web/src/components/board-game` has one setup screen, one game screen for playing on one phone, and one for playing online. Each game only adds a board to draw and a short config: its colors, what to show next to each player's name, and its messages. The setup screen asks how many are playing when a game's `minSeats` and `maxSeats` differ, and the game screens put everyone else above the board in the order they play, with you below it.
 
 Some details about Sungka:
 
@@ -71,8 +71,9 @@ Some details about Sungka:
 
 Each room is a [Durable Object](https://developers.cloudflare.com/durable-objects/), a small server with its own storage that Cloudflare runs close to the players. The room holds the real game. Browsers only send the move, like "play house 3" in Sungka or "jump from c3 to e5" in Dama, and the room checks it with the same rules package the bot uses, so a player can't move out of turn or edit their copy of the board to cheat.
 
+- A room is made for a set number of players, two to four for the games that allow it, and the game starts once every seat is filled. A rematch starts when everyone in the room asks for one.
 - After each move the room sends every player their own view of the game plus the move's events, and each screen animates the move from those events.
-- A browser keeps a random player id. If the connection drops, it reconnects with the same id and gets its seat back. Anyone who opens the link after both seats are taken watches.
+- A browser keeps a random player id. If the connection drops, it reconnects with the same id and gets its seat back. Anyone who opens the link after every seat is taken watches.
 - The id is sent in the first message over the socket, not in the URL, so it doesn't end up in request logs.
 - Rooms use WebSocket hibernation, so a room costs nothing while players think, and a room with no games for a day deletes itself.
 
@@ -120,8 +121,8 @@ These follow the descriptions on [BoardGameGeek](https://boardgamegeek.com/wiki/
 
 ## Pusoy Dos rules used here
 
-- Four players get 13 cards each. Cards rank from 3 up to 2, and suits break ties: clubs, spades, hearts, then diamonds.
-- Whoever has the 3♣ goes first, and the first play has to include it.
+- Two to four players get 13 cards each, and with fewer than four the rest of the deck sits out. Cards rank from 3 up to 2, and suits break ties: clubs, spades, hearts, then diamonds.
+- Whoever has the 3♣ goes first, and the first play has to include it. With fewer than four players the 3♣ might not be dealt, so the lowest card dealt takes its place.
 - A play is one card, a pair, three of a kind, or a five-card hand: straight, flush, full house, four of a kind with any fifth card, or straight flush, from weakest to strongest.
 - The next players beat it with the same number of cards or pass. Passing doesn't take you out of the round. When everyone else passes, the last player starts a new round with anything.
 - The first player out of cards wins.
@@ -157,18 +158,18 @@ The bot scores the squares it holds (corners are worth the most, and the squares
 ## Dots and Boxes rules used here
 
 - The board has 6 by 6 dots, so 25 boxes. Players take turns drawing a line between two dots next to each other.
-- Drawing the fourth side of a box claims it and gives you another turn. With 25 boxes there's no tie.
+- Drawing the fourth side of a box claims it and gives you another turn. With two players and 25 boxes there's no tie. With three or four, players tied for the most boxes share the win.
 
 The bots don't search ahead. They follow the rules good players use:
 
 - Easy takes boxes when it sees them, but otherwise often draws any line.
 - Medium never draws a box's third side while it has a choice, and when it has to, it gives away as few boxes as it can.
-- Hard also works out the last few safe lines so the other player has to open the first chain. Once only chains are left it picks which one to give away, and it can take all but the last two boxes of a chain and hand those back, so the other player has to open the next chain too. In testing it beat medium in 74 of 100 games.
+- Hard also works out the last few safe lines so the other player has to open the first chain. Once only chains are left it picks which one to give away, and it can take all but the last two boxes of a chain and hand those back, so the other player has to open the next chain too. In testing it beat medium in 74 of 100 games. Its chain plan assumes the turn goes straight back to one opponent, so with three or four players hard plays like medium.
 
 ## Memory rules used here
 
-- 30 cards are laid face down: 15 pairs, so there's never a tie. The faces are five shapes in three colors.
-- Turn over two cards. A match is yours. A miss stays face up until the next card is turned. Either way the turn passes, so players always alternate. (The classic rule gives another turn after a match; this version doesn't, so it's always clear who's next.)
+- 30 cards are laid face down: 15 pairs, so two players can never tie. With three or four, players tied for the most pairs share the win. The faces are five shapes in three colors.
+- Turn over two cards. A match is yours. A miss stays face up until the next card is turned. Either way the turn passes to the next player, so everyone goes in order. (The classic rule gives another turn after a match; this version doesn't, so it's always clear who's next.)
 
 The bot only uses cards that have been turned up before, and a test checks that shuffling the cards nobody has seen never changes its move. Easy remembers each card it has seen with a 30% chance, medium 70%, and hard never forgets.
 
@@ -203,7 +204,7 @@ The bot uses the same search as Four in a Row and Reversi. Easy only sees its ow
 
 ## Snakes and Ladders rules used here
 
-- The board has 100 squares, 8 ladders, and 8 snakes, in a layout made for this game. Both players start off the board.
+- The board has 100 squares, 8 ladders, and 8 snakes, in a layout made for this game. Two to four players start off the board.
 - Roll the die and move that many squares. The bottom of a ladder takes you up it, and a snake's head takes you down to its tail.
 - The first to land exactly on 100 wins. A roll that would go past 100 doesn't move you.
 
@@ -215,7 +216,7 @@ The die is rolled from a seed kept in the game's state (`rollDie` in `packages/g
 - Roll a 1 and you lose that turn's points, and the turn passes. Hold to bank the points and pass the die.
 - The first to 100 points wins, as soon as they reach it.
 
-Each player's view leaves out the dice seed, so nobody can work out the next roll. Easy banks at 10 points, medium at 20, and hard adjusts around 20 depending on the score, taking more risks when behind and rolling on when the other player is close to winning. Over 4,000 games each, medium beat easy 78% of the time, hard beat easy 80%, and hard beat medium 55%. In a game this lucky, that's about as much as skill can do.
+Each player's view leaves out the dice seed, so nobody can work out the next roll. Easy banks at 10 points, medium at 20, and hard adjusts around 20 depending on the score, taking more risks when behind and rolling on when anyone else is close to winning. Over 4,000 games each, medium beat easy 78% of the time, hard beat easy 80%, and hard beat medium 55%. In a game this lucky, that's about as much as skill can do.
 
 ---
 

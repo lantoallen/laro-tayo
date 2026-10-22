@@ -3,7 +3,7 @@ import { Die } from "@/components/board-game/Die";
 import type { BoardProps } from "@/components/board-game/types";
 import "./pig.css";
 
-const COLORS = ["red", "blue"] as const;
+const COLORS = ["red", "blue", "yellow", "green"] as const;
 
 /** One player's progress toward the goal, with this turn's points shown ahead of what's banked. */
 function ScoreBar({ seat, state }: { seat: number; state: PigState }) {
@@ -20,14 +20,19 @@ function ScoreBar({ seat, state }: { seat: number; state: PigState }) {
   );
 }
 
-export function PigBoard({ state, onMove }: BoardProps<PigState, PigMove>) {
+export function PigBoard({ state, you, onMove }: BoardProps<PigState, PigMove>) {
   const last = state.last;
+  // Bars in the same order as the players' rows: everyone else, then you.
+  const me = you ?? 0;
+  const players = state.scores.length;
+  const order = [...Array.from({ length: players - 1 }, (_, i) => (me + 1 + i) % players), me];
   const roll = last?.action === "roll" ? last.roll : null;
   return (
     <div className="pig">
       <div className="space-y-2">
-        <ScoreBar seat={1} state={state} />
-        <ScoreBar seat={0} state={state} />
+        {order.map((seat) => (
+          <ScoreBar key={seat} seat={seat} state={state} />
+        ))}
         <p className="text-right text-xs text-muted">First to {GOAL}</p>
       </div>
 

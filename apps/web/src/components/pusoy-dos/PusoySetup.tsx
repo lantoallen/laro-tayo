@@ -9,10 +9,15 @@ import { Rules } from "./Rules";
 export function PusoySetup({
   level,
   onLevel,
+  players,
+  onPlayers,
   onStart,
 }: {
   level: BotLevel;
   onLevel: (level: BotLevel) => void;
+  /** How many at the table, counting you. */
+  players: number;
+  onPlayers: (players: number) => void;
   onStart: () => void;
 }) {
   const levels = Object.keys(LEVEL_LABELS) as BotLevel[];
@@ -31,7 +36,19 @@ export function PusoySetup({
           onStart();
         }}
       >
-        <p className="text-sm text-muted">You play against three bots.</p>
+        <div>
+          <Segmented<string>
+            legend="Players"
+            name="players"
+            value={String(players)}
+            onChange={(count) => onPlayers(Number(count))}
+            options={["2", "3", "4"].map((count) => ({ value: count, label: count }))}
+          />
+          <p className="mt-1.5 text-sm text-muted">
+            You and {players === 2 ? "1 bot" : `${players - 1} bots`}.
+            {players < 4 && " Everyone still gets 13 cards, and the rest of the deck sits out."}
+          </p>
+        </div>
         <Segmented<BotLevel>
           legend="Bot level"
           name="level"

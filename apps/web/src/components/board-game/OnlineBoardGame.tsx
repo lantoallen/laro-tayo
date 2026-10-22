@@ -5,7 +5,7 @@ import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
 import {
   RoomBar,
   RoomResult,
-  roomNames,
+  seatNames,
   usePendingMove,
   useTurnTitle,
   WaitingRoom,
@@ -17,7 +17,7 @@ import { useMoveSound } from "./useMoveSound";
 
 type Props<State, Move> = OnlineProps & { config: BoardGameConfig<State, Move> };
 
-/** A two-player game against someone on another phone. The server holds the real game, and this shows it. */
+/** A game against friends on other phones. The server holds the real game, and this shows it. */
 export function OnlineBoardGame<State, Move>(props: Props<State, Move>) {
   const { room } = props.update;
   if (room.phase === "waiting" || room.view === null) {
@@ -27,6 +27,7 @@ export function OnlineBoardGame<State, Move>(props: Props<State, Move>) {
         status={props.status}
         gameName={props.config.game.name}
         gameHref={props.config.href}
+        room={room}
       />
     );
   }
@@ -39,10 +40,12 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
   const state = room.view as State;
   const you = room.you;
   const pending = usePendingMove(room.moveCount, error);
-  const names = roomNames(room);
-  // Each player sees themselves at the bottom. Someone watching sees seat 0 at the bottom.
+  const names = seatNames(room);
+  const players = names.length;
+  // Each player sees themselves at the bottom, and everyone else above in the order they play.
+  // Someone watching sees seat 0 at the bottom.
   const bottom: Seat = you ?? 0;
-  const top: Seat = bottom === 0 ? 1 : 0;
+  const above = Array.from({ length: players - 1 }, (_, i) => (bottom + 1 + i) % players);
   const connected = room.seats.map((seat) => seat?.connected ?? false);
   const turn = game.turn(state);
   const outcome = game.result(state);
@@ -72,6 +75,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
     const color = config.colors[seat].toLowerCase();
     return (
       <PlayerRow
+        key={seat}
         name={seat === you ? `${names[seat]} (you, ${color})` : `${names[seat]} (${color})`}
         color={config.swatches[seat]}
         stat={{ label: config.stat.label, value: config.stat.value(state, seat) }}
@@ -84,7 +88,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-3 px-4 pb-8">
       <RoomBar room={room} rules={<Rules />} />
-      {row(top)}
+      <div className="flex flex-col gap-1.5">{above.map(row)}</div>
       <div className="mx-auto w-full max-w-[32rem]">
         <Board state={state} you={you} onMove={yourTurn ? move : undefined} />
       </div>

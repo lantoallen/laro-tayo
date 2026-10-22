@@ -12,7 +12,7 @@ import {
 import type { BoardProps } from "@/components/board-game/types";
 import "./dots.css";
 
-const COLORS = ["red", "blue"] as const;
+const COLORS = ["red", "blue", "yellow", "green"] as const;
 
 /** Space around the dots, and between them, as a percentage of the board's width. */
 const PAD = 5;

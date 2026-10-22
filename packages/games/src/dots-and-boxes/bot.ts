@@ -12,7 +12,8 @@ import { BOXES, BOX_LINES, LINES, LINE_BOXES, type DotsMove, type DotsState } fr
  * - Hard does all that, plays the last few safe lines so the other player
  *   has to open the first chain, and once only chains are left it works out
  *   which one to give away and when to hand back the last two boxes of a
- *   chain to keep control of the game.
+ *   chain to keep control of the game. That counting assumes one opponent, so
+ *   with more players hard plays like medium.
  */
 
 type Drawn = readonly boolean[];
@@ -289,12 +290,14 @@ export function chooseMove(state: DotsState, seat: Seat, { level, rng }: BotOpti
     return safe.length > 0 && rng() < 0.6 ? pick(rng, safe) : pick(rng, legal);
   }
 
+  // Counting chains to keep control only works against one other player.
+  const plotting = level === "hard" && state.players === 2;
   if (closing.length > 0) {
-    if (level === "hard") return handBackLine(drawn, closing) ?? pick(rng, lastToEat(drawn, closing));
+    if (plotting) return handBackLine(drawn, closing) ?? pick(rng, lastToEat(drawn, closing));
     return pick(rng, closing);
   }
-  if (safe.length > 0) return pick(rng, level === "hard" ? bestSafeLines(drawn, safe) : safe);
-  if (level === "hard") {
+  if (safe.length > 0) return pick(rng, plotting ? bestSafeLines(drawn, safe) : safe);
+  if (plotting) {
     const found = components(drawn);
     if (found !== null) return openingLine(drawn, found);
   }

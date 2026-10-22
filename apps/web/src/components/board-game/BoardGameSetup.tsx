@@ -4,7 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 import type { BotLevel } from "@laro/games";
 import { Segmented } from "@/components/game/Segmented";
-import { LEVEL_LABELS, type FirstPlayer, type PlayMode, type TwoPlayerSettings } from "@/components/game/settings";
+import {
+  LEVEL_LABELS,
+  botName,
+  type BoardGameSettings,
+  type FirstPlayer,
+  type PlayMode,
+} from "@/components/game/settings";
 import { NameField } from "@/components/room/NameField";
 import { usePlayer } from "@/lib/player";
 import { ONLINE_ENABLED } from "@/lib/rooms";
@@ -18,8 +24,8 @@ export function BoardGameSetup<State, Move>({
   onStartOnline,
 }: {
   config: BoardGameConfig<State, Move>;
-  settings: TwoPlayerSettings;
-  onChange: (settings: TwoPlayerSettings) => void;
+  settings: BoardGameSettings;
+  onChange: (settings: BoardGameSettings) => void;
   onStart: () => void;
   /** Makes a room and goes to it. Rejects with a message to show if that fails. */
   onStartOnline: (name: string) => Promise<void>;
@@ -34,6 +40,10 @@ export function BoardGameSetup<State, Move>({
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const levels = Object.keys(LEVEL_LABELS) as BotLevel[];
+  const { minSeats, maxSeats } = config.game;
+  const counts = Array.from({ length: maxSeats - minSeats + 1 }, (_, i) => String(minSeats + i));
+  const players = Math.min(maxSeats, Math.max(minSeats, settings.players));
+  const others = players - 1;
 
   return (
     <main className="mx-auto max-w-md px-4 pb-16">
@@ -69,11 +79,31 @@ export function BoardGameSetup<State, Move>({
         />
         {settings.mode === "local" && <p className="-mt-3 text-sm text-muted">Take turns on one phone.</p>}
         {online && (
-          <>
-            <p className="-mt-3 text-sm text-muted">You&apos;ll get a link to send to a friend.</p>
-            <NameField value={name} onChange={setTypedName} />
-          </>
+          <p className="-mt-3 text-sm text-muted">
+            You&apos;ll get a link to send to {others === 1 ? "a friend" : "your friends"}.
+          </p>
         )}
+
+        {counts.length > 1 && (
+          <div>
+            <Segmented<string>
+              legend="Players"
+              name="players"
+              value={String(players)}
+              onChange={(count) => onChange({ ...settings, players: Number(count) })}
+              options={counts.map((count) => ({ value: count, label: count }))}
+            />
+            <p className="mt-1.5 text-sm text-muted">
+              {vsBot
+                ? `You and ${others === 1 ? "1 bot" : `${others} bots`}.`
+                : online
+                  ? `You and ${others === 1 ? "1 friend" : `${others} friends`}, each on their own phone.`
+                  : `${players} people sharing one phone.`}
+            </p>
+          </div>
+        )}
+
+        {online && <NameField value={name} onChange={setTypedName} />}
 
         {vsBot && config.botLevels !== false && (
           <Segmented<BotLevel>
@@ -93,7 +123,7 @@ export function BoardGameSetup<State, Move>({
             onChange={(first) => onChange({ ...settings, first })}
             options={[
               { value: "me", label: vsBot ? "You" : config.colors[0] },
-              { value: "them", label: vsBot ? "Bot" : config.colors[1] },
+              { value: "them", label: vsBot ? botName(1, players) : config.colors[1] },
               { value: "random", label: "Random" },
             ]}
           />

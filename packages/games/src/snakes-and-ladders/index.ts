@@ -1,13 +1,23 @@
 import type { Game } from "../engine/types";
-import { legalMoves, play, result, setup, type SnakesEvent, type SnakesMove, type SnakesState } from "./rules";
+import {
+  MAX_PLAYERS,
+  MIN_PLAYERS,
+  legalMoves,
+  play,
+  result,
+  setup,
+  type SnakesEvent,
+  type SnakesMove,
+  type SnakesState,
+} from "./rules";
 
 export * from "./rules";
 
 export const snakesAndLadders: Game<SnakesState, SnakesMove, SnakesEvent> = {
   id: "snakes-and-ladders",
   name: "Snakes and Ladders",
-  minSeats: 2,
-  maxSeats: 2,
+  minSeats: MIN_PLAYERS,
+  maxSeats: MAX_PLAYERS,
   setup,
   turn: (state) => state.turn,
   legalMoves,

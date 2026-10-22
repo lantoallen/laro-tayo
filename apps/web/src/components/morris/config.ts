@@ -15,7 +15,7 @@ function prompt(state: MorrisState): string {
 }
 
 /** Says when the other player made a mill, or when a piece was just taken. */
-function notice(state: MorrisState, names: readonly [string, string], you: Seat | null): Notice | null {
+function notice(state: MorrisState, names: readonly string[], you: Seat | null): Notice | null {
   if (state.taking && state.turn !== null && state.turn !== you) {
     // In pass and play this is also the only hint that a piece has to be taken.
     if (you === null) {

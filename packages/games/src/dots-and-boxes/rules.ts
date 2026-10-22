@@ -1,3 +1,4 @@
+import { checkSeats, leaders, nextSeat } from "../engine/seats";
 import { IllegalMoveError, type GameResult, type MoveOutcome, type Seat } from "../engine/types";
 
 /** Boxes along each side. The board has one more dot than that along each side. */
@@ -7,6 +8,8 @@ export const BOXES = SIZE * SIZE;
 /** Horizontal lines come first, a row of SIZE for each row of dots, then the vertical lines. */
 export const HORIZONTAL_LINES = DOTS * SIZE;
 export const LINES = HORIZONTAL_LINES + SIZE * DOTS;
+export const MIN_PLAYERS = 2;
+export const MAX_PLAYERS = 4;
 
 export interface LastMove {
   seat: Seat;
@@ -17,6 +20,8 @@ export interface LastMove {
 
 /** Boxes are read left to right from the top row. */
 export interface DotsState {
+  /** How many are playing, from 2 to 4. */
+  players: number;
   /** Who drew each line, or null for one not drawn yet. */
   lines: (Seat | null)[];
   /** Who closed each box, or null for an open one. */
@@ -31,7 +36,9 @@ export interface DotsState {
 export type DotsMove = number;
 
 export type DotsEvent =
-  { type: "line"; line: number } | { type: "box"; boxes: number[] } | { type: "gameOver"; winner: Seat | null };
+  | { type: "line"; line: number }
+  | { type: "box"; boxes: number[] }
+  | { type: "gameOver"; winners: Seat[] };
 
 /** The line along the top of box `col` in row `row`. Row SIZE is the bottom edge. */
 export const horizontalLine = (row: number, col: number) => row * SIZE + col;
@@ -52,15 +59,11 @@ export const LINE_BOXES: readonly (readonly number[])[] = Array.from({ length: L
   BOX_LINES.flatMap((lines, box) => (lines.includes(line) ? [box] : [])),
 );
 
-export function otherSeat(seat: Seat): Seat {
-  return seat === 0 ? 1 : 0;
-}
-
 export function setup(options: { seats?: number; firstSeat?: Seat } = {}): DotsState {
   const { seats = 2, firstSeat = 0 } = options;
-  if (seats !== 2) throw new Error("Dots and Boxes is played by exactly 2 players");
-  if (firstSeat !== 0 && firstSeat !== 1) throw new Error(`No seat ${firstSeat} in Dots and Boxes`);
+  checkSeats("Dots and Boxes", seats, MIN_PLAYERS, MAX_PLAYERS, firstSeat);
   return {
+    players: seats,
     lines: Array(LINES).fill(null),
     boxes: Array(BOXES).fill(null),
     turn: firstSeat,
@@ -83,10 +86,9 @@ export function countBoxes(boxes: readonly (Seat | null)[], seat: Seat): number 
   return boxes.filter((owner) => owner === seat).length;
 }
 
-/** The seat with more boxes, or null for a tie. */
-function leader(boxes: readonly (Seat | null)[]): Seat | null {
-  const difference = countBoxes(boxes, 0) - countBoxes(boxes, 1);
-  return difference === 0 ? null : difference > 0 ? 0 : 1;
+/** Boxes claimed by each seat. */
+export function boxCounts(players: number, boxes: readonly (Seat | null)[]): number[] {
+  return Array.from({ length: players }, (_, seat) => countBoxes(boxes, seat));
 }
 
 /** Draws a line. Closing a box claims it and gives the same player another turn. */
@@ -104,12 +106,13 @@ export function play(state: DotsState, seat: Seat, move: DotsMove): MoveOutcome<
   const events: DotsEvent[] = [{ type: "line", line: move }];
   if (closed.length > 0) events.push({ type: "box", boxes: closed });
   const over = boxes.every((owner) => owner !== null);
-  if (over) events.push({ type: "gameOver", winner: leader(boxes) });
+  if (over) events.push({ type: "gameOver", winners: leaders(boxCounts(state.players, boxes)) });
   return {
     state: {
+      players: state.players,
       lines,
       boxes,
-      turn: over ? null : closed.length > 0 ? seat : otherSeat(seat),
+      turn: over ? null : closed.length > 0 ? seat : nextSeat(seat, state.players),
       last: { seat, line: move, boxes: closed },
       turns: state.turns + 1,
     },
@@ -119,6 +122,6 @@ export function play(state: DotsState, seat: Seat, move: DotsMove): MoveOutcome<
 
 export function result(state: DotsState): GameResult | null {
   if (state.turn !== null) return null;
-  const winner = leader(state.boxes);
-  return { winners: winner === null ? [] : [winner], scores: [countBoxes(state.boxes, 0), countBoxes(state.boxes, 1)] };
+  const scores = boxCounts(state.players, state.boxes);
+  return { winners: leaders(scores), scores };
 }

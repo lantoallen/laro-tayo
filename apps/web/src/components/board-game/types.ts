@@ -23,10 +23,10 @@ export interface BoardGameConfig<State, Move> {
   roomId?: GameId;
   /** One line under the name on the setup screen. */
   tagline: string;
-  /** What each seat is called in pass and play, seat 0 first. */
-  colors: readonly [string, string];
+  /** What each seat is called in pass and play, seat 0 first, with one for every seat the game allows. */
+  colors: readonly string[];
   /** The color each seat plays as, from SEAT_COLORS, for its row and its turn badge. */
-  swatches: readonly [string, string];
+  swatches: readonly string[];
   Board: ComponentType<BoardProps<State, Move>>;
   Rules: ComponentType;
   /** The number shown next to each player's name. */
@@ -43,19 +43,11 @@ export interface BoardGameConfig<State, Move> {
    * A message about the last move. `you` is the seat of whoever is looking at
    * the screen, or null in pass and play, where every message uses names.
    */
-  notice?: (state: State, names: readonly [string, string], you: Seat | null) => Notice | null;
+  notice?: (state: State, names: readonly string[], you: Seat | null) => Notice | null;
   /** The line under "You win" once the game is over. */
-  resultDetail: (state: State, names: readonly [string, string]) => string;
+  resultDetail: (state: State, names: readonly string[]) => string;
   /** The sound for the move that led to this position. `you` is null in pass and play. */
   sound: (state: State, you: Seat | null) => SoundName | null;
-}
-
-/** "You win", "Red wins", or a draw. `you` is null in pass and play. */
-export function resultTitle(winners: Seat[], names: readonly [string, string], you: Seat | null): string {
-  const [winner] = winners;
-  if (winner === undefined) return "It's a draw";
-  if (you !== null) return winner === you ? "You win" : "You lose";
-  return `${names[winner]} wins`;
 }
 
 export function promptFor<State, Move>(config: BoardGameConfig<State, Move>, state: State): string {

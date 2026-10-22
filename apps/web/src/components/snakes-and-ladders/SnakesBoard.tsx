@@ -7,7 +7,20 @@ import type { BoardProps } from "@/components/board-game/types";
 import { playSound } from "@/lib/sound";
 import "./snakes.css";
 
-const COLORS = ["red", "blue"] as const;
+const COLORS = ["red", "blue", "yellow", "green"] as const;
+/** Where pieces sit when they share a square: side by side for two, in a square for more. */
+const SPREAD = {
+  2: [
+    [-0.18, 0],
+    [0.18, 0],
+  ],
+  4: [
+    [-0.18, -0.18],
+    [0.18, -0.18],
+    [-0.18, 0.18],
+    [0.18, 0.18],
+  ],
+} as const;
 /** How long a piece takes to walk to its square before it climbs or slides. */
 const WALK_MS = 650;
 
@@ -86,7 +99,14 @@ export function SnakesBoard({ state, onMove }: BoardProps<SnakesState, SnakesMov
   }, [jumped, last, state.turns]);
 
   const shownAt = (seat: number) => (midJump && last.seat === seat ? last.landed : state.positions[seat]);
-  const shared = shownAt(0) === shownAt(1);
+  const seats = state.positions.map((_, seat) => seat);
+  /** How far to shift a piece so pieces on the same square don't hide each other. */
+  const nudge = (seat: number) => {
+    const together = seats.filter((other) => shownAt(other) === shownAt(seat));
+    if (together.length === 1) return [0, 0];
+    const spots = together.length === 2 ? SPREAD[2] : SPREAD[4];
+    return spots[together.indexOf(seat)];
+  };
 
   return (
     <div className="sl-wrap">
@@ -107,18 +127,18 @@ export function SnakesBoard({ state, onMove }: BoardProps<SnakesState, SnakesMov
             <Snake key={head} head={Number(head)} tail={tail} />
           ))}
         </svg>
-        {[0, 1].map((seat) => {
+        {seats.map((seat) => {
           const square = shownAt(seat);
           if (square === 0) return null;
           const { x, y } = centerOf(square);
-          const nudge = shared ? (seat === 0 ? -0.18 : 0.18) : 0;
+          const [dx, dy] = nudge(seat);
           return (
             <span
               key={seat}
               role="img"
               aria-label={`${COLORS[seat]} on square ${square}`}
               className={`sl-token sl-${COLORS[seat]}`}
-              style={{ left: `${(x + nudge) * 10}%`, top: `${y * 10}%` }}
+              style={{ left: `${(x + dx) * 10}%`, top: `${(y + dy) * 10}%` }}
             />
           );
         })}
@@ -126,10 +146,10 @@ export function SnakesBoard({ state, onMove }: BoardProps<SnakesState, SnakesMov
 
       <div className="mt-3 flex items-center justify-between gap-3">
         <div className="flex min-h-8 items-center gap-2 text-sm text-muted">
-          {[0, 1].some((seat) => state.positions[seat] === 0) && (
+          {seats.some((seat) => shownAt(seat) === 0) && (
             <>
               Start:
-              {[0, 1].map(
+              {seats.map(
                 (seat) =>
                   shownAt(seat) === 0 && (
                     <span

@@ -110,6 +110,14 @@
   background: #0038a8;
 }
 
+.sl-yellow {
+  background: #fcd116;
+}
+
+.sl-green {
+  background: #2f9e44;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sl-board .sl-token {
     transition: none;
