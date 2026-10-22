@@ -1,7 +1,8 @@
 import type { Game } from "../engine/types";
 import { chooseMove } from "./bot";
 import {
-  SEATS,
+  MAX_PLAYERS,
+  MIN_PLAYERS,
   legalMoves,
   play,
   result,
@@ -20,8 +21,8 @@ export { chooseMove, chooseMoveFromView } from "./bot";
 export const pusoyDos: Game<PusoyState, PusoyMove, PusoyEvent, PusoyView> = {
   id: "pusoy-dos",
   name: "Pusoy Dos",
-  minSeats: SEATS,
-  maxSeats: SEATS,
+  minSeats: MIN_PLAYERS,
+  maxSeats: MAX_PLAYERS,
   setup,
   turn: (state) => state.turn,
   legalMoves,

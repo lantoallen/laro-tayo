@@ -6,7 +6,7 @@ import { legalMoves, play, result, setup, viewFor, type PusoyState } from "./rul
 
 /** A state with the given hands, where seat 0 is about to start a fresh round. */
 function stateWith(hands: number[][], extra: Partial<PusoyState> = {}): PusoyState {
-  return { hands, turn: 0, table: null, passes: 0, opening: false, winner: null, turns: 0, ...extra };
+  return { hands, turn: 0, table: null, passes: 0, opening: null, winner: null, turns: 0, ...extra };
 }
 
 describe("setup", () => {
@@ -25,8 +25,31 @@ describe("setup", () => {
     expect(moves.every((cards) => cards.includes(THREE_OF_CLUBS))).toBe(true);
   });
 
-  it("only allows four players", () => {
-    expect(() => setup({ seats: 3 })).toThrow();
+  it("allows 2 to 4 players", () => {
+    expect(() => setup({ seats: 5 })).toThrow();
+    expect(() => setup({ seats: 1 })).toThrow();
+  });
+
+  it("deals 13 each to fewer players, and the lowest card dealt goes first", () => {
+    for (let seed = 0; seed < 30; seed++) {
+      const state = setup({ seats: 3, rng: createRng(seed) });
+      expect(state.hands).toHaveLength(3);
+      expect(state.hands.every((hand) => hand.length === 13)).toBe(true);
+      const lowest = Math.min(...state.hands.flat());
+      expect(state.opening).toBe(lowest);
+      expect(state.hands[state.turn!]).toContain(lowest);
+      expect(legalMoves(state, state.turn!).every((cards) => cards.includes(lowest))).toBe(true);
+    }
+  });
+
+  it("ends a round when everyone else at a smaller table passes", () => {
+    const start = { ...setup({ seats: 2, rng: createRng(1) }) };
+    const leader = start.turn!;
+    const first = play(start, leader, [start.opening!]).state;
+    const { state, events } = play(first, first.turn!, []);
+    expect(events.at(-1)).toEqual({ type: "roundWon", seat: leader });
+    expect(state.turn).toBe(leader);
+    expect(state.table).toBeNull();
   });
 });
 
@@ -76,7 +99,7 @@ describe("play", () => {
     ["it isn't your turn", stateWith(hands), 1, [8]],
     ["you don't have the cards", stateWith(hands), 0, [8]],
     ["the cards don't make a hand", stateWith(hands), 0, [4, 20]],
-    ["the first play skips the 3 of clubs", stateWith([[0, 4], [8], [12], [16]], { opening: true }), 0, [4]],
+    ["the first play skips the 3 of clubs", stateWith([[0, 4], [8], [12], [16]], { opening: THREE_OF_CLUBS }), 0, [4]],
     ["you pass while starting a round", stateWith(hands), 0, []],
   ])("rejects a move when %s", (_, state, seat, move) => {
     expect(() => play(state, seat, move)).toThrow(IllegalMoveError);

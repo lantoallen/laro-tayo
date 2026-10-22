@@ -7,6 +7,7 @@ import { PusoySetup } from "./PusoySetup";
 
 export function PusoyApp() {
   const [level, setLevel] = useState<BotLevel>("medium");
+  const [players, setPlayers] = useState(4);
   const [deal, setDeal] = useState<number | null>(null);
 
   function start() {
@@ -14,6 +15,16 @@ export function PusoyApp() {
     window.scrollTo({ top: 0 });
   }
 
-  if (deal === null) return <PusoySetup level={level} onLevel={setLevel} onStart={start} />;
-  return <PusoyGame key={deal} level={level} onRematch={start} onExit={() => setDeal(null)} />;
+  if (deal === null) {
+    return (
+      <PusoySetup
+        level={level}
+        onLevel={setLevel}
+        players={players}
+        onPlayers={setPlayers}
+        onStart={start}
+      />
+    );
+  }
+  return <PusoyGame key={deal} level={level} players={players} onRematch={start} onExit={() => setDeal(null)} />;
 }
