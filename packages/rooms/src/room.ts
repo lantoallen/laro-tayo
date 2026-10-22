@@ -59,8 +59,17 @@ export class RoomError extends Error {
   }
 }
 
-export function createRoom(code: string, gameId: GameId, now: number): Room {
-  const seats = Array.from({ length: gameFor(gameId).maxSeats }, () => null);
+/**
+ * Makes an empty room. `players` is how many seats it has, which has to be a
+ * number the game allows. Without it, the room has the fewest the game allows.
+ */
+export function createRoom(code: string, gameId: GameId, now: number, players?: number): Room {
+  const game = gameFor(gameId);
+  const size = players ?? game.minSeats;
+  if (!Number.isInteger(size) || size < game.minSeats || size > game.maxSeats) {
+    throw new RoomError(`${game.name} is played by ${game.minSeats} to ${game.maxSeats} players.`);
+  }
+  const seats = Array.from({ length: size }, () => null);
   return {
     code,
     gameId,

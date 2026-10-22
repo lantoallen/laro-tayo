@@ -6,12 +6,12 @@ const DEFAULT_ROOMS_URL = "https://laro-tayo-rooms.lantoallen.workers.dev";
 export const ROOMS_URL = (process.env.NEXT_PUBLIC_ROOMS_URL ?? DEFAULT_ROOMS_URL).replace(/\/$/, "");
 export const ONLINE_ENABLED = ROOMS_URL !== "";
 
-/** Makes a new room on the server and returns its code. */
-export async function createRoom(game: GameId): Promise<string> {
+/** Makes a new room on the server for `players` people, and returns its code. */
+export async function createRoom(game: GameId, players = 2): Promise<string> {
   const response = await fetch(`${ROOMS_URL}/rooms`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ game }),
+    body: JSON.stringify({ game, players }),
   });
   const data = await response.json().catch(() => null);
   if (!response.ok || !isRoomCode(data?.code)) {
