@@ -39,7 +39,8 @@ async function makeRoom(game, players) {
 function player(room, name, { react = false } = {}) {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(`${wsBase}/rooms/${room}/socket`);
-    const seen = { versions: new Set(), turns: [], reactions: [], moves: 0, result: null };
+    // `reactedAs` is the seat this player sent its reaction from. Players join all at once, so any seat can be theirs.
+    const seen = { versions: new Set(), turns: [], reactions: [], reactedAs: null, moves: 0, result: null };
     let lastSent = -1;
     let reacted = false;
     const timer = setTimeout(() => {
@@ -69,6 +70,7 @@ function player(room, name, { react = false } = {}) {
       if (snapshot.phase !== "playing") return;
       if (react && !reacted) {
         reacted = true;
+        seen.reactedAs = snapshot.you;
         ws.send(JSON.stringify({ type: "react", reaction: "gg" }));
       }
       const game = gameFor(snapshot.gameId);
@@ -93,7 +95,8 @@ async function playGame(gameId, players) {
   if (!seen.every((s) => s.versions.size === 1 && s.versions.has(ROOM_VERSION))) {
     problems.push(`expected version ${ROOM_VERSION}, got ${[...seen[0].versions].join(", ")}`);
   }
-  if (!seen.every((s) => s.reactions.some((r) => r.seat === 0 && r.reaction === "gg"))) {
+  const sender = seen[0].reactedAs;
+  if (!seen.every((s) => s.reactions.some((r) => r.seat === sender && r.reaction === "gg"))) {
     problems.push("not everyone got the reaction");
   }
   // Turns go around the table in order. A player who gets another turn just keeps it for longer.
