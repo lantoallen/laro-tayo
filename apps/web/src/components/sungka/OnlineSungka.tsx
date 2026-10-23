@@ -37,7 +37,10 @@ export function OnlineSungka(props: OnlineProps) {
 function OnlineGame({ update, status, error, send }: OnlineProps) {
   const { room } = update;
   const you = room.you;
-  const { game, sowing, frame, events, board, show, restart } = useSowing(() => room.view as SungkaState, "normal");
+  const { game, sowing, frame, events, board, show, restart, finish } = useSowing(
+    () => room.view as SungkaState,
+    "normal",
+  );
   useRoomMoves<SungkaState, SungkaEvent>(update, show, restart);
   const pending = usePendingMove(room.moveCount, error);
 
@@ -63,7 +66,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   let statusText: string;
   if (status === "reconnecting") statusText = "Connection lost. Reconnecting...";
   else if (playing === null) statusText = "Game over";
-  else if (sowing) statusText = "Sowing...";
+  else if (sowing) statusText = "Sowing... Tap the board to skip ahead.";
   else if (playing === you) statusText = "Pick a house on your side.";
   else if (!connected[playing]) statusText = `Waiting for ${names[playing]} to come back...`;
   else statusText = "Waiting for their move...";
@@ -94,6 +97,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
           hand={frame?.hand}
           captured={frame?.captured}
           perspective={bottom}
+          onSkip={sowing ? finish : undefined}
         />
         {outcome && (
           <RoomResult

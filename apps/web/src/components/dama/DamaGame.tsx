@@ -71,8 +71,9 @@ export function DamaGame({
   else if (playing) status = "Moving...";
   else if (humanSeat === null) status = "Thinking...";
   else if (selection.length > 1) status = "Keep jumping. Tap the next square.";
-  else if (selection.length === 1) status = mustCapture ? "Tap where to jump." : "Tap where to move it.";
-  else status = mustCapture ? "You have to capture." : "Pick a piece.";
+  else if (selection.length === 1) {
+    status = mustCapture ? "Tap where to jump, or drag there." : "Tap where to move it, or drag it.";
+  } else status = mustCapture ? "You have to capture." : "Tap a piece or drag it.";
 
   // In a bot game the messages talk to the player at the bottom. In pass and play they use names.
   const notice =

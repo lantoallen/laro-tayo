@@ -5,6 +5,7 @@ import type { Seat } from "@laro/games";
 import { BEATS, CHOICES, otherSeat, view, type Choice, type JakMove, type JakState } from "@laro/games/jak-en-poy";
 import type { BoardProps } from "@/components/board-game/types";
 import { playSound } from "@/lib/sound";
+import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 import "./jak.css";
 
 const COLORS = ["Red", "Blue"] as const;
@@ -12,6 +13,8 @@ const LABELS: Record<Choice, string> = { rock: "Rock", paper: "Paper", scissors:
 const VERBS: Record<Choice, string> = { rock: "crushes", paper: "covers", scissors: "cut" };
 /** How long the hands shake before showing what was picked, in step with the CSS. */
 const REVEAL_MS = 900;
+/** When each word of the chant comes in, also in step with the CSS. */
+const BEATS_MS = [0, 300, 600];
 
 /** A rock, a sheet of paper, or a pair of scissors. */
 export function ChoiceIcon({ choice }: { choice: Choice }) {
@@ -80,14 +83,17 @@ export function JakBoard({ state: full, you, onMove }: BoardProps<JakState, JakM
   const round = state.rounds.at(-1);
   const decided = round !== undefined && state.picks.every((pick) => pick === null);
   const roundNumber = state.rounds.length;
+  const reducedMotion = usePrefersReducedMotion();
 
-  // Play the round's result once the hands have shown what was picked.
+  // A drum beat on each word of "Jak... en... poy!", then the round's result once the hands show what was picked.
+  // Without motion there's no chant, so only the result plays.
   useEffect(() => {
     if (!decided || !round) return;
     const sound = round.winner === null ? "draw" : you === null || round.winner === you ? "match" : "miss";
-    const timer = setTimeout(() => playSound(sound), REVEAL_MS);
-    return () => clearTimeout(timer);
-    // One sound per round.
+    const timers = reducedMotion ? [] : BEATS_MS.map((at) => setTimeout(() => playSound("beat"), at));
+    timers.push(setTimeout(() => playSound(sound), reducedMotion ? 0 : REVEAL_MS));
+    return () => timers.forEach(clearTimeout);
+    // One chant per round.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roundNumber]);
 

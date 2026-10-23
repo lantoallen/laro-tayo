@@ -6,15 +6,24 @@ export function PlayingCard({
   card,
   small = false,
   selected = false,
+  lifted = false,
   onTap,
 }: {
   card: Card;
   small?: boolean;
   selected?: boolean;
+  /** Being dragged, so the card in the hand only shows where it came from. */
+  lifted?: boolean;
   onTap?: () => void;
 }) {
   const suit = SUITS[suitOf(card)];
-  const className = ["pd-card", small && "pd-small", suitOf(card) >= 2 && "pd-red", selected && "pd-selected"]
+  const className = [
+    "pd-card",
+    small && "pd-small",
+    suitOf(card) >= 2 && "pd-red",
+    selected && "pd-selected",
+    lifted && "pd-lifted",
+  ]
     .filter(Boolean)
     .join(" ");
   const face = (
@@ -37,7 +46,14 @@ export function PlayingCard({
     );
   }
   return (
-    <button type="button" className={className} onClick={onTap} aria-pressed={selected} aria-label={cardName(card)}>
+    <button
+      type="button"
+      data-card={card}
+      className={className}
+      onClick={onTap}
+      aria-pressed={selected}
+      aria-label={cardName(card)}
+    >
       {face}
     </button>
   );

@@ -73,8 +73,9 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   else if (playing) statusText = "Moving...";
   else if (turn === you && pending.waiting) statusText = "Sending your move...";
   else if (turn === you && selection.length > 1) statusText = "Keep jumping. Tap the next square.";
-  else if (turn === you && selection.length === 1) statusText = mustCapture ? "Tap where to jump." : "Tap where to move it.";
-  else if (turn === you) statusText = mustCapture ? "You have to capture." : "Pick a piece.";
+  else if (turn === you && selection.length === 1) {
+    statusText = mustCapture ? "Tap where to jump, or drag there." : "Tap where to move it, or drag it.";
+  } else if (turn === you) statusText = mustCapture ? "You have to capture." : "Tap a piece or drag it.";
   else if (!connected[turn]) statusText = `Waiting for ${names[turn]} to come back...`;
   else statusText = "Waiting for their move...";
 

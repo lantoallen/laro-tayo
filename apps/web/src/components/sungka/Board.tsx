@@ -19,6 +19,8 @@ interface BoardProps {
   className?: string;
   /** The seat drawn at the bottom of the board. Online, each player sees their own side there. */
   perspective?: Seat;
+  /** While a move is being shown, tapping anywhere on the board calls this to skip to its end. */
+  onSkip?: () => void;
 }
 
 /** Grid positions for each slot, for the tall (phone) and long (wide screen) layouts. */
@@ -78,6 +80,7 @@ export function Board({
   captured = [],
   className,
   perspective = 0,
+  onSkip,
 }: BoardProps) {
   return (
     <div className={className ? `sk-board ${className}` : "sk-board"}>
@@ -129,6 +132,9 @@ export function Board({
           </button>
         );
       })}
+      {onSkip && (
+        <button type="button" onClick={onSkip} aria-label="Skip to the end of this move" className="sk-skip" />
+      )}
     </div>
   );
 }

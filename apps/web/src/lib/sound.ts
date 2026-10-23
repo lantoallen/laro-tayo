@@ -27,7 +27,8 @@ export type SoundName =
   | "climb"
   | "slide"
   | "hop"
-  | "pop";
+  | "pop"
+  | "beat";
 
 const KEY = "laro-tayo:sound";
 const listeners = new Set<() => void>();
@@ -178,6 +179,11 @@ const SOUNDS: Record<SoundName, (ctx: AudioContext, out: AudioNode) => void> = {
   hop: (ctx, out) => tone(ctx, out, { freq: 520, to: 780, type: "triangle", duration: 0.07, volume: 0.14 }),
   // Someone's reaction popping up.
   pop: (ctx, out) => tone(ctx, out, { freq: 380, to: 900, duration: 0.09, volume: 0.12 }),
+  // A drum beat, one for each word of "Jak-en-poy".
+  beat: (ctx, out) => {
+    tone(ctx, out, { freq: 170, to: 95, type: "triangle", duration: 0.16, volume: 0.32 });
+    noise(ctx, out, { duration: 0.05, frequency: 700, filter: "lowpass", volume: 0.18 });
+  },
 };
 
 /** Plays a sound, unless sound is off or the browser can't. */

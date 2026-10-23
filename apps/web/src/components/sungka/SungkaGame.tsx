@@ -32,7 +32,7 @@ export function SungkaGame({
   onExit: () => void;
 }) {
   const [speed, setSpeed] = useState<Speed>("normal");
-  const { game, sowing, frame, events, board, move } = useSowing(() => setup({ firstSeat }), speed);
+  const { game, sowing, frame, events, board, move, finish } = useSowing(() => setup({ firstSeat }), speed);
 
   const vsBot = settings.mode === "bot";
   const names = seatNames(settings.mode);
@@ -66,7 +66,7 @@ export function SungkaGame({
     playing === null ? null : vsBot ? (playing === BOT_SEAT ? "Bot's turn" : "Your turn") : `${names[playing]}'s turn`;
   let status: string;
   if (playing === null) status = "Game over";
-  else if (sowing) status = "Sowing...";
+  else if (sowing) status = "Sowing... Tap the board to skip ahead.";
   else if (vsBot && playing === BOT_SEAT) status = "Thinking...";
   else if (vsBot) status = "Pick a house on your side.";
   else status = `Pick a house on the ${playing === 0 ? "bottom" : "top"} row.`;
@@ -115,6 +115,7 @@ export function SungkaGame({
           active={frame?.active}
           hand={frame?.hand}
           captured={frame?.captured}
+          onSkip={sowing ? finish : undefined}
         />
         {outcome && (
           <ResultCard

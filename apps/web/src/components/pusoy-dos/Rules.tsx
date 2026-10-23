@@ -24,7 +24,7 @@ export function Rules() {
       </ol>
       <p className="mt-3 text-sm text-muted">
         In this version a 2 can&apos;t be part of a straight, and flushes are compared by suit first. To play, tap
-        cards to pick them, then tap Play.
+        cards to pick them, then tap Play. You can also drag cards onto the table to play them.
       </p>
     </>
   );

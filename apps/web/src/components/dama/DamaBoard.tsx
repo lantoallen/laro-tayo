@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef, useState, type PointerEvent } from "react";
 import type { Seat } from "@laro/games";
 import { SQUARES, colOf, isDark, isKing, ownerOf, rowOf, type Piece } from "@laro/games/dama";
 import "./dama-board.css";
@@ -20,6 +23,14 @@ interface DamaBoardProps {
 }
 
 const FILES = "abcdefgh";
+/** How far a finger has to move before a press on a piece becomes a drag. */
+const DRAG_START_PX = 6;
+
+/** The square a pointer event happened on, from the `data-square` on each dark square. */
+function squareFrom(target: EventTarget | null): number | null {
+  const element = target instanceof Element ? target.closest<HTMLElement>("[data-square]") : null;
+  return element ? Number(element.dataset.square) : null;
+}
 
 /** A square's name as seen from the red side, like chess: a1 is the bottom left corner. */
 export function squareName(square: number): string {
@@ -47,8 +58,72 @@ export function DamaBoard({
   // Turning the board around for the other player reverses the square order.
   const order = Array.from({ length: SQUARES }, (_, i) => (perspective === 0 ? i : SQUARES - 1 - i));
 
+  // Dragging a piece works like tapping it and then tapping where it lands, so both can be mixed freely.
+  const boardRef = useRef<HTMLDivElement>(null);
+  const press = useRef<{ square: number; x: number; y: number; wasPicked: boolean; moved: boolean } | null>(null);
+  // Set when a press already did what the tap that follows it would do, so the tap is ignored.
+  const pressed = useRef(false);
+  const [lifted, setLifted] = useState<{ square: number; x: number; y: number } | null>(null);
+  const [over, setOver] = useState<number | null>(null);
+
+  function onPointerDown(event: PointerEvent<HTMLDivElement>) {
+    const square = squareFrom(event.target);
+    if (!onTap || event.button !== 0 || square === null || !movable.includes(square)) return;
+    const wasPicked = path[0] === square;
+    press.current = { square, x: event.clientX, y: event.clientY, wasPicked, moved: false };
+    pressed.current = true;
+    // Follow this pointer wherever it goes until it lets go, so a drag that leaves the board still ends cleanly.
+    event.currentTarget.setPointerCapture(event.pointerId);
+    // Pick the piece up straight away, so the squares it can move to show while it's dragged.
+    if (!wasPicked) onTap(square);
+  }
+
+  function onPointerMove(event: PointerEvent<HTMLDivElement>) {
+    const current = press.current;
+    const board = boardRef.current;
+    if (!current || !board) return;
+    if (!current.moved && Math.hypot(event.clientX - current.x, event.clientY - current.y) < DRAG_START_PX) return;
+    current.moved = true;
+    const box = board.getBoundingClientRect();
+    setLifted({ square: current.square, x: event.clientX - box.left, y: event.clientY - box.top });
+    setOver(squareFrom(document.elementFromPoint(event.clientX, event.clientY)));
+  }
+
+  function onPointerUp(event: PointerEvent<HTMLDivElement>) {
+    const current = press.current;
+    press.current = null;
+    setLifted(null);
+    setOver(null);
+    // The click that follows this press, if any, comes right after. Forget the press once it has passed.
+    setTimeout(() => (pressed.current = false), 0);
+    if (!current || !onTap) return;
+    if (current.moved) {
+      const drop = squareFrom(document.elementFromPoint(event.clientX, event.clientY));
+      if (drop !== null && targets.includes(drop)) onTap(drop);
+    } else if (current.wasPicked) {
+      // A plain tap on the picked piece puts it back down, as before.
+      onTap(current.square);
+    }
+  }
+
+  function onPointerCancel() {
+    press.current = null;
+    pressed.current = false;
+    setLifted(null);
+    setOver(null);
+  }
+
+  const liftedPiece = lifted === null ? null : board[lifted.square];
+
   return (
-    <div className="dm-board">
+    <div
+      ref={boardRef}
+      className="dm-board"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+    >
       {order.map((square) => {
         const dark = isDark(square);
         if (!dark) return <div key={square} className="dm-square" aria-hidden="true" />;
@@ -59,12 +134,15 @@ export function DamaBoard({
         const tappable = onTap !== undefined && (movable.includes(square) || isTarget);
         const className = [
           "dm-square dm-dark",
+          onTap && movable.includes(square) && "dm-draggable",
           movable.includes(square) && path.length === 0 && "dm-movable",
           path[0] === square && "dm-selected",
           path.indexOf(square) > 0 && "dm-path",
           isTarget && "dm-target",
           captured.includes(square) && "dm-captured",
           last.includes(square) && "dm-last",
+          lifted?.square === square && "dm-lifted",
+          isTarget && over === square && "dm-over",
         ]
           .filter(Boolean)
           .join(" ");
@@ -78,17 +156,36 @@ export function DamaBoard({
 
         if (!tappable) {
           return (
-            <div key={square} className={className} role="img" aria-label={label}>
+            <div key={square} data-square={square} className={className} role="img" aria-label={label}>
               {contents}
             </div>
           );
         }
         return (
-          <button key={square} type="button" className={className} onClick={() => onTap(square)} aria-label={label}>
+          <button
+            key={square}
+            data-square={square}
+            type="button"
+            className={className}
+            onClick={() => {
+              if (pressed.current) pressed.current = false;
+              else onTap(square);
+            }}
+            aria-label={label}
+          >
             {contents}
           </button>
         );
       })}
+      {lifted && liftedPiece !== null && ownerOf(liftedPiece) !== null && (
+        <span
+          className={`dm-piece dm-ghost ${ownerOf(liftedPiece) === 0 ? "dm-red" : "dm-blue"}`}
+          style={{ left: lifted.x, top: lifted.y }}
+          aria-hidden="true"
+        >
+          {isKing(liftedPiece) && <Star />}
+        </span>
+      )}
     </div>
   );
 }

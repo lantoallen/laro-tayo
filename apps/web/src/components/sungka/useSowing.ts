@@ -111,5 +111,13 @@ export function useSowing(initial: () => SungkaState, speed: Speed, { quiet = fa
     setGame(state);
   }
 
-  return { game, sowing, frame, events, board: frame?.board ?? game.board, move, show, restart };
+  /** Jumps to the end of the move being shown, for a player who doesn't want to wait. */
+  function finish() {
+    if (!sowing) return;
+    setGame(sowing.final);
+    setLastMove(sowing);
+    setSowing(null);
+  }
+
+  return { game, sowing, frame, events, board: frame?.board ?? game.board, move, show, restart, finish };
 }

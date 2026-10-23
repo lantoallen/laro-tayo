@@ -78,8 +78,61 @@ button.pd-card {
   min-width: 0;
 }
 
+/* On your turn a finger on a card drags it, rather than scrolling the page. */
+.pd-hand-live .pd-card {
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+
+/* Cards being dragged: faded in the hand, and following the finger above it. */
+.pd-lifted {
+  opacity: 0.35;
+}
+
+.pd-dragged {
+  position: fixed;
+  z-index: 50;
+  display: flex;
+  gap: 2px;
+  translate: -50% -85%;
+  rotate: -4deg;
+  filter: drop-shadow(0 8px 10px rgb(0 0 0 / 0.3));
+  pointer-events: none;
+}
+
+/* The table while cards are dragged, and once they're over it. */
+.pd-drop {
+  outline: 3px dashed color-mix(in srgb, #fcd116 60%, transparent);
+  outline-offset: 3px;
+}
+
+.pd-drop-over {
+  outline: 4px solid #fcd116;
+}
+
+/* A drop that isn't a legal play: the table gives a little shake. */
+.pd-refused {
+  animation: pd-shake 320ms ease-in-out;
+}
+
+@keyframes pd-shake {
+  25% {
+    translate: -6px 0;
+  }
+  50% {
+    translate: 5px 0;
+  }
+  75% {
+    translate: -3px 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   button.pd-card {
     transition: none;
+  }
+
+  .pd-refused {
+    animation: none;
   }
 }
