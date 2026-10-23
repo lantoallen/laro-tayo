@@ -1,0 +1,115 @@
+.rx-bar {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.rx-button {
+  display: grid;
+  place-items: center;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  padding: 0 0.6rem;
+  border: 2px solid var(--outline);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 2px 2px 0 var(--outline);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 100ms ease,
+    box-shadow 100ms ease;
+}
+
+.rx-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.rx-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.rx-button:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* Reactions rise from just above the bottom of the screen and fade out. */
+.rx-bubbles {
+  position: fixed;
+  left: 50%;
+  bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  translate: -50% 0;
+  pointer-events: none;
+}
+
+.rx-bubble {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  border: 2px solid var(--outline);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 3px 3px 0 var(--outline);
+  color: var(--ink);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  animation: rx-rise 2600ms ease-out forwards;
+}
+
+.rx-text {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+@keyframes rx-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.8);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0) scale(1.05);
+  }
+  18% {
+    transform: translateY(0) scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-48px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rx-bubble {
+    animation: rx-fade 2600ms linear forwards;
+  }
+
+  .rx-button {
+    transition: none;
+  }
+}
+
+@keyframes rx-fade {
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

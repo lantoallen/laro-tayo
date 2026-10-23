@@ -1,15 +1,33 @@
-import type { Rng } from "@laro/games";
+import type { Rng, Seat } from "@laro/games";
 import type { MoveRecord, RoomSnapshot } from "./room";
+
+/**
+ * Goes up by one whenever a change to the game rules or to these messages
+ * means a page from before the change can't play against the server any more.
+ * The server sends it with every update, so a page that's out of step with the
+ * server can say so instead of getting stuck.
+ */
+export const ROOM_VERSION = 1;
+
+/** The quick reactions players can send each other during a game. */
+export const REACTIONS = ["thumbs", "laugh", "wow", "cry", "nice", "gg"] as const;
+export type Reaction = (typeof REACTIONS)[number];
+
+export function isReaction(value: unknown): value is Reaction {
+  return REACTIONS.includes(value as Reaction);
+}
 
 /** Messages a browser sends to its room. `hello` comes first and says who is connecting. */
 export type ClientMessage =
   | { type: "hello"; playerId: string; name: string }
   | { type: "move"; move: unknown }
-  | { type: "rematch" };
+  | { type: "rematch" }
+  | { type: "react"; reaction: Reaction };
 
-/** Messages a room sends to each browser. */
+/** Messages a room sends to each browser. Reactions are passed on as they come and never stored. */
 export type ServerMessage =
-  | { type: "room"; room: RoomSnapshot; lastMove?: MoveRecord }
+  | { type: "room"; room: RoomSnapshot; lastMove?: MoveRecord; version: number }
+  | { type: "reaction"; seat: Seat; reaction: Reaction }
   | { type: "error"; message: string };
 
 /** Sent as a plain string and answered by the server without waking the room. */
@@ -65,5 +83,8 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
   }
   if (data.type === "move" && "move" in data) return { type: "move", move: data.move };
   if (data.type === "rematch") return { type: "rematch" };
+  if (data.type === "react" && "reaction" in data && isReaction(data.reaction)) {
+    return { type: "react", reaction: data.reaction };
+  }
   return null;
 }

@@ -12,9 +12,12 @@ import {
   PONG,
   requestRematch,
   ROOM_NOT_FOUND,
+  ROOM_VERSION,
   RoomError,
+  seatOf,
   snapshotFor,
   type MoveRecord,
+  type Reaction,
   type Room,
   type ServerMessage,
 } from "@laro/rooms";
@@ -25,7 +28,12 @@ const ROOM_LIFETIME_MS = 24 * 60 * 60 * 1000;
 /** Stored on each socket. The player id is filled in once the browser says hello. */
 interface SocketInfo {
   playerId: string | null;
+  /** When this socket last sent a reaction, so nobody can flood the room with them. */
+  reactedAt?: number;
 }
+
+/** The shortest gap between two reactions from the same player. */
+const REACTION_GAP_MS = 700;
 
 function allowedOrigin(request: Request, env: Env): string | null {
   const origin = request.headers.get("Origin");
@@ -143,6 +151,15 @@ export class RoomObject extends DurableObject<Env> {
     }
     if (playerId === null) return;
 
+    if (message.type === "react") {
+      const seat = seatOf(room, playerId);
+      const { reactedAt = 0 } = ws.deserializeAttachment() as SocketInfo;
+      if (seat === null || Date.now() - reactedAt < REACTION_GAP_MS) return;
+      ws.serializeAttachment({ playerId, reactedAt: Date.now() } satisfies SocketInfo);
+      this.sendReaction(seat, message.reaction);
+      return;
+    }
+
     try {
       if (message.type === "move") {
         const { room: next, lastMove } = playMove(room, playerId, message.move, Date.now());
@@ -193,11 +210,25 @@ export class RoomObject extends DurableObject<Env> {
       .filter((socket): socket is { ws: WebSocket; playerId: string } => socket.playerId !== null);
     const online = new Set(players.map((socket) => socket.playerId));
     for (const { ws, playerId } of players) {
-      const message: ServerMessage = { type: "room", room: snapshotFor(room, playerId, online), lastMove };
+      const snapshot = snapshotFor(room, playerId, online);
+      const message: ServerMessage = { type: "room", room: snapshot, lastMove, version: ROOM_VERSION };
       try {
         ws.send(JSON.stringify(message));
       } catch {
         // The socket closed while we were sending. Its close handler will tell the others.
+      }
+    }
+  }
+
+  /** Passes a reaction on to everyone in the room, the player who sent it included. */
+  private sendReaction(seat: number, reaction: Reaction): void {
+    const message = JSON.stringify({ type: "reaction", seat, reaction } satisfies ServerMessage);
+    for (const ws of this.ctx.getWebSockets()) {
+      if ((ws.deserializeAttachment() as SocketInfo).playerId === null) continue;
+      try {
+        ws.send(message);
+      } catch {
+        // Already closing.
       }
     }
   }
