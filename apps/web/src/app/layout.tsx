@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Bungee, Rubik } from "next/font/google";
+import { ServiceWorker } from "@/components/ServiceWorker";
 import "./globals.css";
 
 // Bungee is the hand-painted sign lettering. Rubik is for everything else.
@@ -36,7 +37,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${bungee.variable} ${rubik.variable}`}>
-      <body className="min-h-svh antialiased">{children}</body>
+      <body className="min-h-svh antialiased">
+        {children}
+        <ServiceWorker />
+      </body>
     </html>
   );
 }
