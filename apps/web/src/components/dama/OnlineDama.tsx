@@ -14,6 +14,7 @@ import {
   WaitingRoom,
   type OnlineProps,
 } from "@/components/room/online";
+import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { DamaBoard } from "./DamaBoard";
 import { Rules } from "./Rules";
@@ -57,6 +58,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   const outcome = over ? result(game) : null;
   useTurnTitle(yourMove);
   useResultSound(outcome?.winners ?? null, you);
+  useRecordResult("dama", "online", outcome?.winners ?? null, you, `${room.code}:${room.round}`);
 
   function tapSquare(square: number) {
     const complete = tap(square);

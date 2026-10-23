@@ -8,6 +8,7 @@ import { RulesButton } from "@/components/game/RulesButton";
 import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { SEAT_COLORS } from "@/components/game/settings";
+import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { Board } from "./Board";
 import { Rules } from "./Rules";
@@ -40,6 +41,7 @@ export function SungkaGame({
   const playable = humanToMove ? legalMoves(game, game.turn!) : [];
   const outcome = sowing ? null : result(game);
   useResultSound(outcome?.winners ?? null, vsBot ? 0 : null);
+  useRecordResult("sungka", vsBot ? settings.level : null, outcome?.winners ?? null, 0);
 
   // Let the bot take its turn after a short pause.
   useEffect(() => {

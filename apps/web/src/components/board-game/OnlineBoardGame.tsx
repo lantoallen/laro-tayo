@@ -11,6 +11,7 @@ import {
   WaitingRoom,
   type OnlineProps,
 } from "@/components/room/online";
+import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { promptFor, type BoardGameConfig } from "./types";
 import { useMoveSound } from "./useMoveSound";
@@ -54,6 +55,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
   useTurnTitle(yourMove);
   useMoveSound(config, state, room.moveCount, you);
   useResultSound(outcome?.winners ?? null, you);
+  useRecordResult(game.id, "online", outcome?.winners ?? null, you, `${room.code}:${room.round}`);
 
   function move(next: Move) {
     if (send({ type: "move", move: next })) pending.markSent();

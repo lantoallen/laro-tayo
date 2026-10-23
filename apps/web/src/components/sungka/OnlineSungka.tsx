@@ -14,6 +14,7 @@ import {
   WaitingRoom,
   type OnlineProps,
 } from "@/components/room/online";
+import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { Board } from "./Board";
 import { Rules } from "./Rules";
@@ -51,6 +52,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   const outcome = over ? result(game) : null;
   useTurnTitle(yourMove);
   useResultSound(outcome?.winners ?? null, you);
+  useRecordResult("sungka", "online", outcome?.winners ?? null, you, `${room.code}:${room.round}`);
 
   function playHouse(house: number) {
     if (yourTurn && send({ type: "move", move: house })) pending.markSent();

@@ -8,6 +8,7 @@ import { RulesButton } from "@/components/game/RulesButton";
 import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { LEVEL_LABELS, SEAT_COLORS } from "@/components/game/settings";
+import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { DamaBoard } from "./DamaBoard";
 import { Rules } from "./Rules";
@@ -41,6 +42,7 @@ export function DamaGame({
   const { selection, movable, targets, tap } = useMoveSelection(moves);
   const outcome = playing ? null : result(game);
   useResultSound(outcome?.winners ?? null, vsBot ? 0 : null);
+  useRecordResult("dama", vsBot ? settings.level : null, outcome?.winners ?? null, 0);
 
   // Let the bot take its turn after a short pause.
   useEffect(() => {

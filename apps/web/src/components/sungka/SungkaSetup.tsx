@@ -6,6 +6,7 @@ import type { BotLevel } from "@laro/games";
 import { NameField } from "@/components/room/NameField";
 import { usePlayer } from "@/lib/player";
 import { ONLINE_ENABLED } from "@/lib/rooms";
+import { RecordLine } from "@/components/game/RecordLine";
 import { Segmented } from "@/components/game/Segmented";
 import { Rules } from "./Rules";
 import { LEVEL_LABELS, type FirstPlayer, type SungkaMode, type SungkaSettings } from "./settings";
@@ -110,6 +111,8 @@ export function SungkaSetup({
           </p>
         )}
       </form>
+
+      <RecordLine gameId="sungka" />
 
       <section aria-labelledby="how-to" className="mt-10 border-t border-line pt-6">
         <h2 id="how-to" className="mb-3 text-lg font-bold">

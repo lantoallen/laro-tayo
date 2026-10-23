@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { BotLevel } from "@laro/games";
+import { RecordLine } from "@/components/game/RecordLine";
 import { Segmented } from "@/components/game/Segmented";
 import { LEVEL_LABELS, type FirstPlayer } from "@/components/game/settings";
 import { NameField } from "@/components/room/NameField";
@@ -108,6 +109,8 @@ export function DamaSetup({
           </p>
         )}
       </form>
+
+      <RecordLine gameId="dama" />
 
       <section aria-labelledby="how-to" className="mt-10 border-t border-line pt-6">
         <h2 id="how-to" className="mb-3 text-lg">

@@ -8,6 +8,7 @@ import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { resultTitle } from "@/components/game/results";
 import { LEVEL_LABELS, YOU, botName, type BoardGameSettings } from "@/components/game/settings";
+import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { promptFor, type BoardGameConfig } from "./types";
 import { useMoveSound } from "./useMoveSound";
@@ -44,6 +45,9 @@ export function LocalBoardGame<State, Move>({
   const outcome = game.result(state);
   useMoveSound(config, state, moves, you);
   useResultSound(outcome?.winners ?? null, you);
+  // Games against a bot count toward this phone's record. Pass and play doesn't.
+  const opponent = !vsBot ? null : config.botLevels === false ? "bot" : settings.level;
+  useRecordResult(game.id, opponent, outcome?.winners ?? null, you);
 
   const { botDelayMs = BOT_DELAY_MS } = config;
   const botDelay = typeof botDelayMs === "number" ? botDelayMs : botDelayMs(state);

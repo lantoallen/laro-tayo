@@ -21,6 +21,7 @@ import { RulesButton } from "@/components/game/RulesButton";
 import { SoundButton } from "@/components/game/SoundButton";
 import { PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { LEVEL_LABELS, SEAT_COLORS } from "@/components/game/settings";
+import { useRecordResult } from "@/lib/record";
 import { playSound, useResultSound } from "@/lib/sound";
 import { CardBack, PlayingCard } from "./PlayingCard";
 import { Rules } from "./Rules";
@@ -88,6 +89,7 @@ export function PusoyGame({
   const canPass = yourTurn && game.table !== null;
   const outcome = result(game);
   useResultSound(outcome?.winners ?? null, YOU);
+  useRecordResult("pusoy-dos", level, outcome?.winners ?? null, YOU);
 
   // Explain why the picked cards can't be played yet.
   let problem: string | null = null;
