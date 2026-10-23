@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import type { BotLevel, Seat } from "@laro/games";
 import {
   beats,
@@ -21,6 +21,7 @@ import { RulesButton } from "@/components/game/RulesButton";
 import { SoundButton } from "@/components/game/SoundButton";
 import { PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { LEVEL_LABELS, SEAT_COLORS } from "@/components/game/settings";
+import { useRecordResult } from "@/lib/record";
 import { playSound, useResultSound } from "@/lib/sound";
 import { CardBack, PlayingCard } from "./PlayingCard";
 import { Rules } from "./Rules";
@@ -32,6 +33,19 @@ const NAMES = ["You", "Bot 1", "Bot 2", "Bot 3"];
 const COLUMNS: Record<number, string> = { 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3" };
 /** How long a bot waits before playing, so people can follow along. */
 const THINK_MS = { normal: 900, fast: 350 };
+/** How far a finger has to move before a press on a card becomes a drag. */
+const DRAG_START_PX = 8;
+
+/** The card a pointer event happened on, from the `data-card` on each card in the hand. */
+function cardFrom(target: EventTarget | null): Card | null {
+  const element = target instanceof Element ? target.closest<HTMLElement>("[data-card]") : null;
+  return element ? Number(element.dataset.card) : null;
+}
+
+const inside = (element: Element | null, x: number, y: number) => {
+  const box = element?.getBoundingClientRect();
+  return box !== undefined && x >= box.left && x <= box.right && y >= box.top && y <= box.bottom;
+};
 
 type Speed = keyof typeof THINK_MS;
 
@@ -88,6 +102,7 @@ export function PusoyGame({
   const canPass = yourTurn && game.table !== null;
   const outcome = result(game);
   useResultSound(outcome?.winners ?? null, YOU);
+  useRecordResult("pusoy-dos", level, outcome?.winners ?? null, YOU);
 
   // Explain why the picked cards can't be played yet.
   let problem: string | null = null;
@@ -109,6 +124,61 @@ export function PusoyGame({
     setSelected([]);
     setHint(null);
     apply(YOU, move);
+  }
+
+  // Cards can also be dragged onto the table: the card pressed, plus any already picked, are played if they can be.
+  const handRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLElement>(null);
+  const press = useRef<{ card: Card; x: number; y: number; moved: boolean } | null>(null);
+  // Set once a press has been dealt with, so the click some browsers send after it doesn't pick or drop a card again.
+  const handled = useRef(false);
+  const [lifted, setLifted] = useState<{ x: number; y: number; cards: Card[] } | null>(null);
+  const [overTable, setOverTable] = useState(false);
+  const [refused, setRefused] = useState(0);
+
+  function onPointerDown(event: PointerEvent<HTMLDivElement>) {
+    const card = cardFrom(event.target);
+    if (!yourTurn || event.button !== 0 || card === null) return;
+    press.current = { card, x: event.clientX, y: event.clientY, moved: false };
+    // Follow this pointer wherever it goes, even off the hand, until it lets go.
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function onPointerMove(event: PointerEvent<HTMLDivElement>) {
+    const current = press.current;
+    if (!current) return;
+    if (!current.moved && Math.hypot(event.clientX - current.x, event.clientY - current.y) < DRAG_START_PX) return;
+    const cards = selected.includes(current.card) ? selected : [...selected, current.card];
+    if (!current.moved) {
+      current.moved = true;
+      setHint(null);
+      setSelected(cards);
+    }
+    setLifted({ x: event.clientX, y: event.clientY, cards: [...cards].sort((a, b) => a - b) });
+    setOverTable(inside(tableRef.current, event.clientX, event.clientY));
+  }
+
+  function onPointerUp(event: PointerEvent<HTMLDivElement>) {
+    const current = press.current;
+    press.current = null;
+    setLifted(null);
+    setOverTable(false);
+    if (!current) return;
+    handled.current = true;
+    setTimeout(() => (handled.current = false), 0);
+    // A press that didn't move is a tap, which picks the card or puts it back.
+    if (!current.moved) return toggle(current.card);
+    if (!inside(tableRef.current, event.clientX, event.clientY)) return;
+    const cards = (selected.includes(current.card) ? selected : [...selected, current.card]).sort((a, b) => a - b);
+    // Played if it's a legal play. If not, the cards stay picked and the line under the hand says why.
+    if (moves.some((move) => move.join() === cards.join())) submit(cards);
+    else setRefused(refused + 1);
+  }
+
+  function onPointerCancel() {
+    press.current = null;
+    setLifted(null);
+    setOverTable(false);
   }
 
   function suggest() {
@@ -191,8 +261,12 @@ export function PusoyGame({
 
       <div className="relative">
         <section
+          ref={tableRef}
+          key={refused}
           aria-label="Table"
-          className="card grid min-h-36 place-items-center gap-2 bg-[var(--wood)] p-4 text-center"
+          className={`card grid min-h-36 place-items-center gap-2 bg-[var(--wood)] p-4 text-center ${
+            lifted ? "pd-drop" : ""
+          } ${overTable ? "pd-drop-over" : ""} ${refused > 0 ? "pd-refused" : ""}`}
         >
           {game.table ? (
             <>
@@ -243,19 +317,41 @@ export function PusoyGame({
       />
 
       <section aria-label="Your hand">
-        <div className="pd-hand" style={{ "--count": Math.max(hand.length, 2) } as CSSProperties}>
+        <div
+          ref={handRef}
+          className={`pd-hand ${yourTurn ? "pd-hand-live" : ""}`}
+          style={{ "--count": Math.max(hand.length, 2) } as CSSProperties}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerCancel}
+        >
           {hand.map((card) => (
             <PlayingCard
               key={card}
               card={card}
               selected={selected.includes(card)}
-              onTap={yourTurn ? () => toggle(card) : undefined}
+              lifted={lifted?.cards.includes(card) ?? false}
+              onTap={yourTurn ? () => (handled.current ? undefined : toggle(card)) : undefined}
             />
           ))}
         </div>
         <p className="mt-2 min-h-5 text-center text-sm" aria-live="polite">
-          {problem ? <span className="text-red">{problem}</span> : hint ? <span className="text-muted">{hint}</span> : null}
+          {problem ? (
+            <span className="text-red">{problem}</span>
+          ) : hint ? (
+            <span className="text-muted">{hint}</span>
+          ) : yourTurn && selected.length === 0 ? (
+            <span className="text-muted">Tap cards to pick them, or drag them onto the table to play.</span>
+          ) : null}
         </p>
+        {lifted && (
+          <div className="pd-dragged" style={{ left: lifted.x, top: lifted.y }} aria-hidden="true">
+            {lifted.cards.map((card) => (
+              <PlayingCard key={card} card={card} small />
+            ))}
+          </div>
+        )}
         <div className="mt-2 grid grid-cols-4 gap-2">
           <button
             type="button"

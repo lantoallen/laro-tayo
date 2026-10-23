@@ -22,8 +22,8 @@ export function Rules() {
         </li>
       </ol>
       <p className="mt-3 text-sm text-muted">
-        To move, tap one of your pieces, then the square to land on. For a jump over several pieces, tap each landing
-        square in order.
+        To move, tap one of your pieces, then the square to land on, or drag the piece there. For a jump over several
+        pieces, tap or drag to each landing square in order.
       </p>
     </>
   );

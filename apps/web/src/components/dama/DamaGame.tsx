@@ -8,6 +8,7 @@ import { RulesButton } from "@/components/game/RulesButton";
 import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { LEVEL_LABELS, SEAT_COLORS } from "@/components/game/settings";
+import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { DamaBoard } from "./DamaBoard";
 import { Rules } from "./Rules";
@@ -41,6 +42,7 @@ export function DamaGame({
   const { selection, movable, targets, tap } = useMoveSelection(moves);
   const outcome = playing ? null : result(game);
   useResultSound(outcome?.winners ?? null, vsBot ? 0 : null);
+  useRecordResult("dama", vsBot ? settings.level : null, outcome?.winners ?? null, 0);
 
   // Let the bot take its turn after a short pause.
   useEffect(() => {
@@ -69,8 +71,9 @@ export function DamaGame({
   else if (playing) status = "Moving...";
   else if (humanSeat === null) status = "Thinking...";
   else if (selection.length > 1) status = "Keep jumping. Tap the next square.";
-  else if (selection.length === 1) status = mustCapture ? "Tap where to jump." : "Tap where to move it.";
-  else status = mustCapture ? "You have to capture." : "Pick a piece.";
+  else if (selection.length === 1) {
+    status = mustCapture ? "Tap where to jump, or drag there." : "Tap where to move it, or drag it.";
+  } else status = mustCapture ? "You have to capture." : "Tap a piece or drag it.";
 
   // In a bot game the messages talk to the player at the bottom. In pass and play they use names.
   const notice =

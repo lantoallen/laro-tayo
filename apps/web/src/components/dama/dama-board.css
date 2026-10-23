@@ -1,4 +1,5 @@
 .dm-board {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
   grid-template-rows: repeat(8, minmax(0, 1fr));
@@ -94,6 +95,34 @@
 
 button.dm-square {
   cursor: pointer;
+}
+
+/* Pieces that can move can be dragged, so a finger on them moves the piece instead of the page. */
+.dm-draggable {
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* The piece being dragged follows the finger. Its square shows where it came from. */
+.dm-ghost {
+  position: absolute;
+  z-index: 2;
+  width: calc(12.5% * 0.78);
+  translate: -50% -50%;
+  scale: 1.15;
+  box-shadow: 0 8px 14px rgb(0 0 0 / 0.35);
+  pointer-events: none;
+}
+
+.dm-lifted .dm-piece {
+  opacity: 0.35;
+}
+
+/* The landing square under a dragged piece. */
+.dm-over::after {
+  width: 60%;
+  background: color-mix(in srgb, #fcd116 70%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

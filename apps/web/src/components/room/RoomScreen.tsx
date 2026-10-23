@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { isRoomCode } from "@laro/rooms";
+import { ROOM_VERSION, isRoomCode } from "@laro/rooms";
 import { OnlineBoardGame } from "@/components/board-game/OnlineBoardGame";
 import { OnlineDama } from "@/components/dama/OnlineDama";
 import { DOTS_AND_BOXES } from "@/components/dots-and-boxes/config";
@@ -21,7 +21,10 @@ import { savePlayerName, useIsClient, usePlayer, type LocalPlayer } from "@/lib/
 import { ONLINE_ENABLED } from "@/lib/rooms";
 import { useRoom } from "@/lib/useRoom";
 import { NameField } from "./NameField";
+import type { OnlineProps } from "./online";
+import { Reactions } from "./Reactions";
 import { RoomMessage } from "./RoomMessage";
+import { UpdateNotice } from "./UpdateNotice";
 
 /** Everything at /room/CODE: asks for a name if needed, joins the room, and shows its game. */
 export function RoomScreen() {
@@ -71,7 +74,7 @@ function JoinForm() {
 }
 
 function Room({ code, player }: { code: string; player: LocalPlayer }) {
-  const { status, update, error, send } = useRoom(code, player);
+  const { status, update, error, send, serverVersion, reactions } = useRoom(code, player);
 
   if (status === "missing") {
     return (
@@ -86,8 +89,21 @@ function Room({ code, player }: { code: string; player: LocalPlayer }) {
   if (!update) {
     return <RoomMessage title={status === "reconnecting" ? "Can't reach the room. Trying again..." : "Joining the room..."} />;
   }
-  const props = { update, status, error, send };
-  switch (update.room.gameId) {
+  const { room } = update;
+  const outOfStep = serverVersion !== null && serverVersion !== ROOM_VERSION;
+  return (
+    <>
+      {outOfStep && <UpdateNotice newer={serverVersion > ROOM_VERSION} />}
+      <Game {...{ update, status, error, send }} />
+      {/* Players can react once the game is on. Someone watching can't. */}
+      {room.you !== null && room.phase !== "waiting" && <Reactions room={room} reactions={reactions} send={send} />}
+    </>
+  );
+}
+
+/** The screen for the room's game. */
+function Game(props: OnlineProps) {
+  switch (props.update.room.gameId) {
     case "dama":
       return <OnlineDama {...props} />;
     case "four-in-a-row":

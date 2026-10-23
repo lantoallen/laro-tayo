@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { InstallButton } from "./InstallButton";
 
 export function SiteFooter() {
   return (
@@ -10,6 +11,7 @@ export function SiteFooter() {
       <a href="https://github.com/lantoallen/laro-tayo" className="hover:text-ink">
         Code on GitHub
       </a>
+      <InstallButton className="btn-small" explain={false} />
       <span className="sm:ml-auto">
         Made by{" "}
         <a href="https://lantoallen.vercel.app" className="text-ink underline underline-offset-4">

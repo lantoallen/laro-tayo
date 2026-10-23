@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { Seat } from "@laro/games";
 import {
   PING,
   PONG,
   ROOM_NOT_FOUND,
   type ClientMessage,
   type MoveRecord,
+  type Reaction,
   type RoomSnapshot,
   type ServerMessage,
 } from "@laro/rooms";
@@ -19,6 +21,16 @@ export interface RoomUpdate {
   room: RoomSnapshot;
   lastMove?: MoveRecord;
 }
+
+/** A reaction someone sent, shown for a moment. `id` tells two of the same reaction apart. */
+export interface ShownReaction {
+  id: number;
+  seat: Seat;
+  reaction: Reaction;
+}
+
+/** How long a reaction stays on screen. */
+export const REACTION_MS = 2600;
 
 /** Phones and proxies drop quiet connections, so send a small ping now and then. */
 const PING_EVERY_MS = 25_000;
@@ -33,6 +45,9 @@ export function useRoom(code: string, player: LocalPlayer | null) {
   const [status, setStatus] = useState<ConnectionStatus>("connecting");
   const [update, setUpdate] = useState<RoomUpdate | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // The server's ROOM_VERSION, once it has sent something. Servers from before versions existed count as 0.
+  const [serverVersion, setServerVersion] = useState<number | null>(null);
+  const [reactions, setReactions] = useState<ShownReaction[]>([]);
   const socket = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -41,6 +56,8 @@ export function useRoom(code: string, player: LocalPlayer | null) {
     let stopped = false;
     let attempts = 0;
     let retry: ReturnType<typeof setTimeout> | undefined;
+    let reactionId = 0;
+    const fading = new Set<ReturnType<typeof setTimeout>>();
 
     function connect() {
       const ws = new WebSocket(socketUrl(code));
@@ -53,8 +70,19 @@ export function useRoom(code: string, player: LocalPlayer | null) {
       ws.onmessage = (event) => {
         if (event.data === PONG) return;
         const message = JSON.parse(event.data) as ServerMessage;
-        if (message.type === "room") setUpdate({ room: message.room, lastMove: message.lastMove });
-        else setError(message.message);
+        if (message.type === "room") {
+          setUpdate({ room: message.room, lastMove: message.lastMove });
+          setServerVersion(message.version ?? 0);
+        } else if (message.type === "reaction") {
+          const shown = { id: ++reactionId, seat: message.seat, reaction: message.reaction };
+          // Keep a few at most, so a burst doesn't fill the screen.
+          setReactions((list) => [...list.slice(-3), shown]);
+          const timer = setTimeout(() => {
+            fading.delete(timer);
+            setReactions((list) => list.filter((reaction) => reaction.id !== shown.id));
+          }, REACTION_MS);
+          fading.add(timer);
+        } else setError(message.message);
       };
       ws.onclose = (event) => {
         if (stopped) return;
@@ -76,6 +104,7 @@ export function useRoom(code: string, player: LocalPlayer | null) {
       stopped = true;
       clearTimeout(retry);
       clearInterval(ping);
+      fading.forEach(clearTimeout);
       socket.current?.close(1000);
       socket.current = null;
     };
@@ -90,5 +119,5 @@ export function useRoom(code: string, player: LocalPlayer | null) {
     return true;
   }, []);
 
-  return { status, update, error, send };
+  return { status, update, error, send, serverVersion, reactions };
 }

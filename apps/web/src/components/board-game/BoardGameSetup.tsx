@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { BotLevel } from "@laro/games";
+import { RecordLine } from "@/components/game/RecordLine";
 import { Segmented } from "@/components/game/Segmented";
 import {
   LEVEL_LABELS,
@@ -138,6 +139,8 @@ export function BoardGameSetup<State, Move>({
           </p>
         )}
       </form>
+
+      <RecordLine gameId={config.game.id} />
 
       <section aria-labelledby="how-to" className="mt-10 border-t border-line pt-6">
         <h2 id="how-to" className="mb-3 text-lg">

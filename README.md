@@ -30,6 +30,12 @@ The room server runs on http://localhost:8787 using Cloudflare's local runtime, 
 node apps/server/scripts/smoke-test.mjs
 ```
 
+This one plays a full game of every online game, and a full table of each game for more than two. The scripted players pick moves with each game's own rules, and it checks that everyone sees the same result, that the server says which version it runs, and that reactions reach the whole room:
+
+```bash
+node apps/server/scripts/play-every-game.mjs
+```
+
 Other scripts, run from the repo root:
 
 ```bash
@@ -66,6 +72,7 @@ Some details about Sungka:
 
 - `play` returns the new board along with a list of what happened (pick up, drop, capture, extra turn, skipped turn). The board on screen replays that list one step at a time to animate the move. One test plays 300 random games and checks that replaying the list always ends on the same board the rules produced, that no shells go missing, and that every game ends.
 - The bot uses minimax with alpha-beta pruning. Landing in your own store gives you another turn, so the search can't assume players simply alternate. Hard keeps searching one move deeper until 350 ms are up, which usually means 5 to 9 moves ahead. Medium looks 3 moves ahead, and easy plays a random move half the time.
+- Each shell drops into its pit with a little bounce. A long move can take a while to play out, so tapping the board while it does jumps to the end.
 
 ## Online rooms
 
@@ -76,6 +83,8 @@ Each room is a [Durable Object](https://developers.cloudflare.com/durable-object
 - A browser keeps a random player id. If the connection drops, it reconnects with the same id and gets its seat back. Anyone who opens the link after every seat is taken watches.
 - The id is sent in the first message over the socket, not in the URL, so it doesn't end up in request logs.
 - Rooms use WebSocket hibernation, so a room costs nothing while players think, and a room with no games for a day deletes itself.
+- Every update says which `ROOM_VERSION` the server runs (in `packages/rooms/src/protocol.ts`). While an update goes out, the server and the site change a minute or so apart. A page that doesn't match the server says so and offers to refresh, instead of getting stuck. Bump `ROOM_VERSION` whenever a change to the rules or the messages means an older page can't play against the new server.
+- Players can send each other quick reactions from a fixed list: 👍, 😂, 😮, 😭, "Nice!", and "GG". The room passes them on to everyone and doesn't keep them, and each player can send one every 0.7 seconds. There's no free text, so there's nothing to moderate.
 
 The room logic in `packages/rooms` has no Cloudflare code in it, so its tests run in plain Node. `apps/server` is a thin layer that stores the room and passes messages.
 
@@ -89,10 +98,18 @@ This uses Cloudflare's free Workers plan.
    npx wrangler login
    npm run deploy -w @laro/server
    ```
-3. Wrangler prints the server's address, like `https://laro-tayo-rooms.<your-subdomain>.workers.dev`. Check it with `node apps/server/scripts/smoke-test.mjs <that address>`.
+3. Wrangler prints the server's address, like `https://laro-tayo-rooms.<your-subdomain>.workers.dev`. Check it with `node apps/server/scripts/smoke-test.mjs <that address>` and `node apps/server/scripts/play-every-game.mjs <that address>`.
 4. Put that address in `DEFAULT_ROOMS_URL` in `apps/web/src/lib/rooms.ts` and push. You can also set `NEXT_PUBLIC_ROOMS_URL` in Vercel instead, which overrides it.
 
 If the site moves to a new domain, add it to `ALLOWED_ORIGINS` in `apps/server/wrangler.jsonc` and deploy again.
+
+## Installing and playing offline
+
+The site can be added to a phone's home screen and opened like an app. Android and desktop Chrome get an "Add to home screen" button on the start page and in the footer. On an iPhone, the start page explains how to do it from Safari's Share menu. The icons are drawn by `apps/web/src/lib/appIcon.tsx`.
+
+`apps/web/public/sw.js` is a small service worker that lets the site open without a connection. When it's first installed it saves the games page, every game's page, and the scripts, styles, and fonts they need. After that, pages always come from the network when there is one, and the saved copy is kept up to date. Offline, games against the bot and pass and play work as usual, and a room link shows a page saying online play needs a connection. Only production builds register it, so it never keeps a copy of a dev server's files. Change `CACHE` in it when the way it saves things changes.
+
+Each phone also keeps its own record for every game: wins, losses, and draws against each bot level, and online. It's stored in the browser and shown on each game's setup screen. Pass and play doesn't count.
 
 ## Sungka rules used here
 
@@ -119,6 +136,8 @@ Dama is the Filipino version of checkers. This version:
 
 These follow the descriptions on [BoardGameGeek](https://boardgamegeek.com/wiki/page/thing:430395) and [Checkers Online](https://checkersonline.io/rules/filipino-checkers/). Some sources say kings can only capture in one direction per turn. This version lets them change direction, as most do.
 
+A piece can be tapped and then the square it lands on, or dragged there. Dragging goes through the same steps as tapping (`useMoveSelection`), so the two can be mixed in one move, like dragging the first jump of a multi-jump and tapping the rest.
+
 ## Pusoy Dos rules used here
 
 - Two to four players get 13 cards each, and with fewer than four the rest of the deck sits out. Cards rank from 3 up to 2, and suits break ties: clubs, spades, hearts, then diamonds.
@@ -129,6 +148,8 @@ These follow the descriptions on [BoardGameGeek](https://boardgamegeek.com/wiki/
 - House rules differ on two points, so this version picks one each: a 2 can't be part of a straight, and flushes are compared by suit first.
 
 Each player only ever receives their own hand. The bots decide from that same limited view, so a test checks that shuffling the other players' cards never changes what a bot plays.
+
+Cards can be picked by tapping them, or dragged onto the table. A dragged card and any already picked are played if they make a legal play. If they don't, they stay picked, the table gives a little shake, and the line under the hand says why.
 
 ## Hulaan Mo rules used here
 
@@ -195,6 +216,8 @@ The bots work only from their own shots and the ships they've sunk, and a test c
 - Picks are made one after the other, but the first pick stays hidden from the second player until the round is decided, so it plays like picking at the same time. In pass and play, the screen only says that a player has picked, never what.
 
 Easy and medium pick at random, which can't be beaten in the long run. Hard watches what the other player picks most often and plays what beats it, part of the time.
+
+Once both have picked, the fists shake to "Jak... en... poy!", with a drum beat on each word, before the picks are shown.
 
 ## Tic-Tac-Toe rules used here
 

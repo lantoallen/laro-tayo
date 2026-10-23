@@ -4,6 +4,7 @@
  * Each slot carries its grid position for both layouts in CSS variables.
  */
 .sk-board {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: 1.35fr repeat(7, minmax(0, 1fr)) 1.35fr;
@@ -76,6 +77,36 @@
   background: var(--shell);
   rotate: var(--a);
   pointer-events: none;
+  /* Each shell drops in as it lands. */
+  animation: sk-drop 240ms cubic-bezier(0.3, 1.4, 0.6, 1);
+}
+
+@keyframes sk-drop {
+  from {
+    translate: 0 -10px;
+    scale: 0.4;
+    opacity: 0;
+  }
+}
+
+/* Covers the board while a move plays out, so a tap anywhere skips to its end. */
+.sk-skip {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  cursor: pointer;
+}
+
+.sk-skip:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-shell {
+    animation: none;
+  }
 }
 
 .sk-shell::after {

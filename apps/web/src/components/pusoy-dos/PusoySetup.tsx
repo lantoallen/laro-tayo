@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { BotLevel } from "@laro/games";
+import { RecordLine } from "@/components/game/RecordLine";
 import { Segmented } from "@/components/game/Segmented";
 import { LEVEL_LABELS } from "@/components/game/settings";
 import { Rules } from "./Rules";
@@ -60,6 +61,8 @@ export function PusoySetup({
           Deal the cards
         </button>
       </form>
+
+      <RecordLine gameId="pusoy-dos" />
 
       <section aria-labelledby="how-to" className="mt-10 border-t border-line pt-6">
         <h2 id="how-to" className="mb-3 text-lg">

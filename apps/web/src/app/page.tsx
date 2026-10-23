@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { GameArt } from "@/components/games/GameArt";
+import { InstallButton } from "@/components/InstallButton";
 import { Logo } from "@/components/Logo";
 import { COLOR_CLASSES, GAMES } from "@/lib/games";
 
@@ -29,6 +30,7 @@ export default function StartPage() {
         Get started
       </Link>
       <p className="mt-4 text-sm text-muted">Free, no ads, and nothing to download.</p>
+      <InstallButton className="mt-4 w-full" />
     </main>
   );
 }

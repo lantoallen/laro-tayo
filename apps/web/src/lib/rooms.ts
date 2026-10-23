@@ -8,11 +8,17 @@ export const ONLINE_ENABLED = ROOMS_URL !== "";
 
 /** Makes a new room on the server for `players` people, and returns its code. */
 export async function createRoom(game: GameId, players = 2): Promise<string> {
-  const response = await fetch(`${ROOMS_URL}/rooms`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ game, players }),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${ROOMS_URL}/rooms`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ game, players }),
+    });
+  } catch {
+    const offline = !navigator.onLine;
+    throw new Error(offline ? "You're offline. Playing online needs a connection." : "Couldn't reach the game server.");
+  }
   const data = await response.json().catch(() => null);
   if (!response.ok || !isRoomCode(data?.code)) {
     throw new Error(typeof data?.error === "string" ? data.error : "Couldn't make a room. Try again.");

@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "@laro/games";
-import { CODE_LENGTH, cleanName, isPlayerId, isRoomCode, makeRoomCode, parseClientMessage } from "./protocol";
+import {
+  CODE_LENGTH,
+  REACTIONS,
+  cleanName,
+  isPlayerId,
+  isRoomCode,
+  makeRoomCode,
+  parseClientMessage,
+} from "./protocol";
 
 describe("room codes", () => {
   it("are 5 characters that are hard to misread", () => {
@@ -57,6 +65,14 @@ describe("parseClientMessage", () => {
   it("reads moves and rematch requests", () => {
     expect(parseClientMessage('{"type":"move","move":3}')).toEqual({ type: "move", move: 3 });
     expect(parseClientMessage('{"type":"rematch"}')).toEqual({ type: "rematch" });
+  });
+
+  it("reads reactions from the fixed list only", () => {
+    for (const reaction of REACTIONS) {
+      expect(parseClientMessage(JSON.stringify({ type: "react", reaction }))).toEqual({ type: "react", reaction });
+    }
+    expect(parseClientMessage('{"type":"react","reaction":"<b>hi</b>"}')).toBeNull();
+    expect(parseClientMessage('{"type":"react"}')).toBeNull();
   });
 
   it.each(["not json", "null", "[]", '{"type":"move"}', '{"type":"cheat"}', `{"type":"move","move":"${"x".repeat(2000)}"}`])(
