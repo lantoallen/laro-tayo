@@ -9,6 +9,7 @@ import { LEVEL_LABELS, type FirstPlayer } from "@/components/game/settings";
 import { NameField } from "@/components/room/NameField";
 import { usePlayer } from "@/lib/player";
 import { ONLINE_ENABLED } from "@/lib/rooms";
+import { useIsOnline } from "@/lib/useIsOnline";
 import { Rules } from "./Rules";
 import type { DamaMode, DamaSettings } from "./settings";
 
@@ -31,6 +32,7 @@ export function DamaSetup({
   const [typedName, setTypedName] = useState<string | null>(null);
   const name = typedName ?? saved?.name ?? "";
   const [creating, setCreating] = useState(false);
+  const connected = useIsOnline();
   const [error, setError] = useState<string | null>(null);
   const levels = Object.keys(LEVEL_LABELS) as BotLevel[];
 
@@ -100,13 +102,16 @@ export function DamaSetup({
           />
         )}
 
-        <button type="submit" disabled={creating} className="btn btn-primary w-full py-3.5">
+        <button type="submit" disabled={creating || (online && !connected)} className="btn btn-primary w-full py-3.5">
           {!online ? "Start" : creating ? "Making a room..." : "Make a room"}
         </button>
         {error && (
           <p role="alert" className="-mt-2 text-sm text-red">
             {error}
           </p>
+        )}
+        {online && !connected && (
+          <p className="-mt-2 text-sm text-muted">You&apos;re offline. Playing online needs a connection.</p>
         )}
       </form>
 
