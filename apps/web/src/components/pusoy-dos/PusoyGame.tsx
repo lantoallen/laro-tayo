@@ -35,6 +35,8 @@ const COLUMNS: Record<number, string> = { 1: "grid-cols-1", 2: "grid-cols-2", 3:
 const THINK_MS = { normal: 900, fast: 350 };
 /** How far a finger has to move before a press on a card becomes a drag. */
 const DRAG_START_PX = 8;
+/** A press on a card is handled when it ends, so a click this soon after is the browser's echo of it, and ignored. */
+const CLICK_AFTER_PRESS_MS = 500;
 
 /** The card a pointer event happened on, from the `data-card` on each card in the hand. */
 function cardFrom(target: EventTarget | null): Card | null {
@@ -111,8 +113,9 @@ export function PusoyGame({
     if (!combo) problem = "Those cards aren't a hand you can play.";
     else if (game.opening !== null && !picked.includes(game.opening)) {
       problem = `Your first play has to include the ${label(game.opening)}.`;
+    } else if (game.table && !beats(combo, game.table.combo)) {
+      problem = `That doesn't beat ${playName(game.table.cards)}.`;
     }
-    else if (game.table && !beats(combo, game.table.combo)) problem = `That doesn't beat ${playName(game.table.cards)}.`;
   }
 
   function toggle(card: Card) {
@@ -130,8 +133,8 @@ export function PusoyGame({
   const handRef = useRef<HTMLDivElement>(null);
   const tableRef = useRef<HTMLElement>(null);
   const press = useRef<{ card: Card; x: number; y: number; moved: boolean } | null>(null);
-  // Set once a press has been dealt with, so the click some browsers send after it doesn't pick or drop a card again.
-  const handled = useRef(false);
+  // When a press on a card was last dealt with, so the click some browsers send after it doesn't count twice.
+  const handledAt = useRef(0);
   const [lifted, setLifted] = useState<{ x: number; y: number; cards: Card[] } | null>(null);
   const [overTable, setOverTable] = useState(false);
   const [refused, setRefused] = useState(0);
@@ -141,7 +144,11 @@ export function PusoyGame({
     if (!yourTurn || event.button !== 0 || card === null) return;
     press.current = { card, x: event.clientX, y: event.clientY, moved: false };
     // Follow this pointer wherever it goes, even off the hand, until it lets go.
-    event.currentTarget.setPointerCapture(event.pointerId);
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // The pointer is already gone.
+    }
   }
 
   function onPointerMove(event: PointerEvent<HTMLDivElement>) {
@@ -164,8 +171,7 @@ export function PusoyGame({
     setLifted(null);
     setOverTable(false);
     if (!current) return;
-    handled.current = true;
-    setTimeout(() => (handled.current = false), 0);
+    handledAt.current = event.timeStamp;
     // A press that didn't move is a tap, which picks the card or puts it back.
     if (!current.moved) return toggle(current.card);
     if (!inside(tableRef.current, event.clientX, event.clientY)) return;
@@ -192,8 +198,7 @@ export function PusoyGame({
   else if (!yourTurn) status = "Thinking...";
   else if (game.opening !== null) {
     status = `You have the ${label(game.opening)}, so you go first. Your play has to include it.`;
-  }
-  else if (!game.table) status = "Your lead. Play anything.";
+  } else if (!game.table) status = "Your lead. Play anything.";
   else status = `Beat ${playName(game.table.cards)} or pass.`;
 
   const notice = yourTurn || outcome ? null : noticeFor(events, NAMES, YOU);
@@ -332,7 +337,11 @@ export function PusoyGame({
               card={card}
               selected={selected.includes(card)}
               lifted={lifted?.cards.includes(card) ?? false}
-              onTap={yourTurn ? () => (handled.current ? undefined : toggle(card)) : undefined}
+              onTap={
+                yourTurn
+                  ? (event) => (event.timeStamp - handledAt.current > CLICK_AFTER_PRESS_MS ? toggle(card) : undefined)
+                  : undefined
+              }
             />
           ))}
         </div>
@@ -367,7 +376,12 @@ export function PusoyGame({
           <button type="button" onClick={() => submit([])} disabled={!canPass} className="btn btn-secondary btn-small">
             Pass
           </button>
-          <button type="button" onClick={() => submit(picked)} disabled={!canPlay} className="btn btn-primary btn-small">
+          <button
+            type="button"
+            onClick={() => submit(picked)}
+            disabled={!canPlay}
+            className="btn btn-primary btn-small"
+          >
             Play
           </button>
         </div>

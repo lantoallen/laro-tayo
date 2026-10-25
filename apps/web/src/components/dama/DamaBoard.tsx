@@ -25,6 +25,21 @@ interface DamaBoardProps {
 const FILES = "abcdefgh";
 /** How far a finger has to move before a press on a piece becomes a drag. */
 const DRAG_START_PX = 6;
+/**
+ * A press on a piece is handled when it happens, so the click the browser sends
+ * after it is ignored. Some phones send that click a little later, so any click
+ * this soon after a press ends is treated as part of it.
+ */
+const CLICK_AFTER_PRESS_MS = 500;
+
+/** Keeps getting a pointer's moves after it leaves the element. Without that, dragging still works inside it. */
+function holdPointer(event: PointerEvent<HTMLElement>) {
+  try {
+    event.currentTarget.setPointerCapture(event.pointerId);
+  } catch {
+    // The pointer is already gone.
+  }
+}
 
 /** The square a pointer event happened on, from the `data-square` on each dark square. */
 function squareFrom(target: EventTarget | null): number | null {
@@ -61,8 +76,8 @@ export function DamaBoard({
   // Dragging a piece works like tapping it and then tapping where it lands, so both can be mixed freely.
   const boardRef = useRef<HTMLDivElement>(null);
   const press = useRef<{ square: number; x: number; y: number; wasPicked: boolean; moved: boolean } | null>(null);
-  // Set when a press already did what the tap that follows it would do, so the tap is ignored.
-  const pressed = useRef(false);
+  // When a press on a piece was last handled, so the click that follows it is ignored. 0 for none.
+  const pressedAt = useRef(0);
   const [lifted, setLifted] = useState<{ square: number; x: number; y: number } | null>(null);
   const [over, setOver] = useState<number | null>(null);
 
@@ -71,11 +86,11 @@ export function DamaBoard({
     if (!onTap || event.button !== 0 || square === null || !movable.includes(square)) return;
     const wasPicked = path[0] === square;
     press.current = { square, x: event.clientX, y: event.clientY, wasPicked, moved: false };
-    pressed.current = true;
-    // Follow this pointer wherever it goes until it lets go, so a drag that leaves the board still ends cleanly.
-    event.currentTarget.setPointerCapture(event.pointerId);
+    pressedAt.current = event.timeStamp;
     // Pick the piece up straight away, so the squares it can move to show while it's dragged.
     if (!wasPicked) onTap(square);
+    // Follow this pointer wherever it goes until it lets go, so a drag that leaves the board still ends cleanly.
+    holdPointer(event);
   }
 
   function onPointerMove(event: PointerEvent<HTMLDivElement>) {
@@ -94,9 +109,8 @@ export function DamaBoard({
     press.current = null;
     setLifted(null);
     setOver(null);
-    // The click that follows this press, if any, comes right after. Forget the press once it has passed.
-    setTimeout(() => (pressed.current = false), 0);
     if (!current || !onTap) return;
+    pressedAt.current = event.timeStamp;
     if (current.moved) {
       const drop = squareFrom(document.elementFromPoint(event.clientX, event.clientY));
       if (drop !== null && targets.includes(drop)) onTap(drop);
@@ -108,7 +122,6 @@ export function DamaBoard({
 
   function onPointerCancel() {
     press.current = null;
-    pressed.current = false;
     setLifted(null);
     setOver(null);
   }
@@ -167,9 +180,8 @@ export function DamaBoard({
             data-square={square}
             type="button"
             className={className}
-            onClick={() => {
-              if (pressed.current) pressed.current = false;
-              else onTap(square);
+            onClick={(event) => {
+              if (event.timeStamp - pressedAt.current > CLICK_AFTER_PRESS_MS) onTap(square);
             }}
             aria-label={label}
           >
