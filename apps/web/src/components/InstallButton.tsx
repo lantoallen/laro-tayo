@@ -11,9 +11,15 @@ const noChange = () => () => {};
 /** Opened from the home screen already. */
 const isInstalled = () =>
   matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;
-/** Safari on an iPhone or iPad, which can add sites to the home screen but has no button for it. */
-const isIosSafari = () =>
-  /iPhone|iPad|iPod/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
+/**
+ * Safari on an iPhone or iPad, which can add sites to the home screen but has no button for it. iPads say
+ * they're Macs, so a Mac with a touch screen counts too.
+ */
+const isIosSafari = () => {
+  const agent = navigator.userAgent;
+  const apple = /iPhone|iPad|iPod/.test(agent) || (/Macintosh/.test(agent) && navigator.maxTouchPoints > 1);
+  return apple && /Safari/.test(agent) && !/CriOS|FxiOS|EdgiOS/.test(agent);
+};
 
 /**
  * Offers to add Laro Tayo! to the home screen. On Android and desktop Chrome

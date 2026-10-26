@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import { RANKS, SUITS, cardName, rankOf, suitOf, type Card } from "@laro/games/pusoy-dos";
 import "./pusoy.css";
 
@@ -14,7 +15,7 @@ export function PlayingCard({
   selected?: boolean;
   /** Being dragged, so the card in the hand only shows where it came from. */
   lifted?: boolean;
-  onTap?: () => void;
+  onTap?: (event: MouseEvent<HTMLButtonElement>) => void;
 }) {
   const suit = SUITS[suitOf(card)];
   const className = [

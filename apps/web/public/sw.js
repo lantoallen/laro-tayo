@@ -9,6 +9,8 @@ const CACHE = "laro-tayo-1";
 const BUILD_FILE = /^\/_next\/static\//;
 /** Each update to the site adds new build files. Only the newest this many are kept. */
 const MAX_BUILD_FILES = 400;
+/** On a connection this slow, a saved copy of the page is shown instead of waiting any longer. */
+const SLOW_PAGE_MS = 4000;
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -31,7 +33,7 @@ self.addEventListener("fetch", (event) => {
   // Rooms, the room server, and anything that isn't a plain read go straight to the network.
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
   if (BUILD_FILE.test(url.pathname)) event.respondWith(savedFirst(request));
-  else if (request.mode === "navigate") event.respondWith(networkFirst(request));
+  else if (request.mode === "navigate") event.respondWith(networkFirst(event));
 });
 
 async function saveEverything() {
@@ -77,16 +79,26 @@ async function savedFirst(request) {
   return response;
 }
 
-async function networkFirst(request) {
+async function networkFirst(event) {
+  const { request } = event;
   const path = new URL(request.url).pathname;
   const cache = await caches.open(CACHE);
-  try {
-    const response = await fetch(request);
+  const saved = await cache.match(path);
+  const fromNetwork = fetch(request).then(async (response) => {
     // Rooms only work online, so there's no point keeping them.
     if (response.ok && !response.redirected && !path.startsWith("/room/")) await cache.put(path, response.clone());
     return response;
+  });
+  // Keep running until the network copy is saved, even if the saved copy was shown first. If the network
+  // then fails, that's expected, not an error.
+  event.waitUntil(fromNetwork.catch(() => {}));
+  try {
+    if (!saved) return await fromNetwork;
+    // With a saved copy to fall back on, don't wait forever on a weak signal. The network copy still
+    // gets saved when it arrives, for next time.
+    const slow = new Promise((resolve) => setTimeout(() => resolve(saved), SLOW_PAGE_MS));
+    return await Promise.race([fromNetwork, slow]);
   } catch {
-    const saved = await cache.match(path);
     if (saved) return saved;
     if (!path.startsWith("/room/")) {
       const games = await cache.match("/games");
