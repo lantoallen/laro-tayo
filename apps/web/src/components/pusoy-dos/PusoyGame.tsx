@@ -35,7 +35,7 @@ const COLUMNS: Record<number, string> = { 1: "grid-cols-1", 2: "grid-cols-2", 3:
 const THINK_MS = { normal: 900, fast: 350 };
 /** How far a finger has to move before a press on a card becomes a drag. */
 const DRAG_START_PX = 8;
-/** A press on a card is handled when it ends, so a click this soon after is the browser's echo of it, and ignored. */
+/** A press on a card is handled when it ends, so a click on that card this soon after is its echo, and ignored. */
 const CLICK_AFTER_PRESS_MS = 500;
 
 /** The card a pointer event happened on, from the `data-card` on each card in the hand. */
@@ -133,8 +133,8 @@ export function PusoyGame({
   const handRef = useRef<HTMLDivElement>(null);
   const tableRef = useRef<HTMLElement>(null);
   const press = useRef<{ card: Card; x: number; y: number; moved: boolean } | null>(null);
-  // When a press on a card was last dealt with, so the click some browsers send after it doesn't count twice.
-  const handledAt = useRef(0);
+  // The card last pressed and when, so the click some browsers send after that press doesn't count twice.
+  const handled = useRef({ card: -1, at: 0 });
   const [lifted, setLifted] = useState<{ x: number; y: number; cards: Card[] } | null>(null);
   const [overTable, setOverTable] = useState(false);
   const [refused, setRefused] = useState(0);
@@ -171,7 +171,7 @@ export function PusoyGame({
     setLifted(null);
     setOverTable(false);
     if (!current) return;
-    handledAt.current = event.timeStamp;
+    handled.current = { card: current.card, at: event.timeStamp };
     // A press that didn't move is a tap, which picks the card or puts it back.
     if (!current.moved) return toggle(current.card);
     if (!inside(tableRef.current, event.clientX, event.clientY)) return;
@@ -339,7 +339,11 @@ export function PusoyGame({
               lifted={lifted?.cards.includes(card) ?? false}
               onTap={
                 yourTurn
-                  ? (event) => (event.timeStamp - handledAt.current > CLICK_AFTER_PRESS_MS ? toggle(card) : undefined)
+                  ? (event) => {
+                      const echo =
+                        handled.current.card === card && event.timeStamp - handled.current.at < CLICK_AFTER_PRESS_MS;
+                      if (!echo) toggle(card);
+                    }
                   : undefined
               }
             />
