@@ -27,8 +27,8 @@ const FILES = "abcdefgh";
 const DRAG_START_PX = 6;
 /**
  * A press on a piece is handled when it happens, so the click the browser sends
- * after it is ignored. Some phones send that click a little later, so any click
- * this soon after a press ends is treated as part of it.
+ * after it is ignored. Some phones send that click a little later, so a click on
+ * the same piece this soon after the press ends is treated as part of it.
  */
 const CLICK_AFTER_PRESS_MS = 500;
 
@@ -76,8 +76,8 @@ export function DamaBoard({
   // Dragging a piece works like tapping it and then tapping where it lands, so both can be mixed freely.
   const boardRef = useRef<HTMLDivElement>(null);
   const press = useRef<{ square: number; x: number; y: number; wasPicked: boolean; moved: boolean } | null>(null);
-  // When a press on a piece was last handled, so the click that follows it is ignored. 0 for none.
-  const pressedAt = useRef(0);
+  // The piece last pressed and when, so the click that echoes that press is ignored. Taps elsewhere still count.
+  const pressed = useRef({ square: -1, at: 0 });
   const [lifted, setLifted] = useState<{ square: number; x: number; y: number } | null>(null);
   const [over, setOver] = useState<number | null>(null);
 
@@ -86,7 +86,7 @@ export function DamaBoard({
     if (!onTap || event.button !== 0 || square === null || !movable.includes(square)) return;
     const wasPicked = path[0] === square;
     press.current = { square, x: event.clientX, y: event.clientY, wasPicked, moved: false };
-    pressedAt.current = event.timeStamp;
+    pressed.current = { square, at: event.timeStamp };
     // Pick the piece up straight away, so the squares it can move to show while it's dragged.
     if (!wasPicked) onTap(square);
     // Follow this pointer wherever it goes until it lets go, so a drag that leaves the board still ends cleanly.
@@ -110,7 +110,7 @@ export function DamaBoard({
     setLifted(null);
     setOver(null);
     if (!current || !onTap) return;
-    pressedAt.current = event.timeStamp;
+    pressed.current = { square: current.square, at: event.timeStamp };
     if (current.moved) {
       const drop = squareFrom(document.elementFromPoint(event.clientX, event.clientY));
       if (drop !== null && targets.includes(drop)) onTap(drop);
@@ -181,7 +181,9 @@ export function DamaBoard({
             type="button"
             className={className}
             onClick={(event) => {
-              if (event.timeStamp - pressedAt.current > CLICK_AFTER_PRESS_MS) onTap(square);
+              const echo =
+                pressed.current.square === square && event.timeStamp - pressed.current.at < CLICK_AFTER_PRESS_MS;
+              if (!echo) onTap(square);
             }}
             aria-label={label}
           >
