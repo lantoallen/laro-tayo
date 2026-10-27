@@ -1,0 +1,61 @@
+# Runs on every pull request and every push to main, so a change that breaks the rules, the types, or online
+# play shows up on the PR before it's merged. Vercel builds the site separately.
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A newer push to the same PR replaces a run that's still going.
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code:
+    name: Types, lint, and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+  online:
+    name: Online games
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # The room server in Cloudflare's local runtime. It needs no Cloudflare account.
+      - name: Start the room server
+        run: |
+          npm run dev -w @laro/server > room-server.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -s -o /dev/null http://localhost:8787/rooms/ZZZZZ && exit 0
+            sleep 1
+          done
+          cat room-server.log
+          exit 1
+      - run: node apps/server/scripts/smoke-test.mjs
+      - run: node apps/server/scripts/play-every-game.mjs
+      - name: Room server log
+        if: failure()
+        run: cat room-server.log

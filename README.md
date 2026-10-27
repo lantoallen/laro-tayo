@@ -45,6 +45,8 @@ npm run typecheck
 npm run build
 ```
 
+Every pull request runs the tests, lint, and typecheck on GitHub, and starts a local room server to run both scripts above against it (`.github/workflows/checks.yml`). Vercel builds the site separately.
+
 ## How it's organized
 
 ```text
