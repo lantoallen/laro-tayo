@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { GameList } from "@/components/games/GameList";
 import { About } from "@/components/landing/About";
+import { JoinByCode } from "@/components/room/JoinByCode";
 import { LiveDemo } from "@/components/landing/LiveDemo";
 import { WaysToPlay } from "@/components/landing/WaysToPlay";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -15,7 +16,10 @@ export default function GamesPage() {
   return (
     <>
       <main className="mx-auto max-w-4xl px-4">
-        <h1 className="mt-4 text-3xl font-bold">Pick a game</h1>
+        <div className="mt-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+          <h1 className="text-3xl font-bold">Pick a game</h1>
+          <JoinByCode />
+        </div>
         <GameList />
         <WaysToPlay />
         <LiveDemo />

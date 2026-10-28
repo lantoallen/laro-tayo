@@ -54,8 +54,9 @@ export function WaitingRoom({
       <h1 className="mt-2 text-3xl">{needed === 2 ? "Waiting for your friend" : "Waiting for your friends"}</h1>
       <p className="mt-2 text-muted">
         {needed === 2
-          ? `Send this link to the person you want to play ${gameName} with. The game starts as soon as they open it.`
-          : `Send this link to the people you want to play ${gameName} with. ` +
+          ? `Send this link to the person you want to play ${gameName} with, or read them the room code. ` +
+            "The game starts as soon as they join."
+          : `Send this link to the people you want to play ${gameName} with, or read them the room code. ` +
             `The game starts once all ${needed} players have joined.`}
       </p>
       {needed > 2 && (

@@ -2,7 +2,7 @@
 
 Filipino games and classics you can play on your phone, at https://laro-tayo.vercel.app.
 
-There are fourteen games so far. Five are Filipino: Sungka, Dama (Filipino checkers), and Jak-en-poy (rock, paper, scissors) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link. Pusoy Dos, the card game, is played against one to three bots. Hulaan Mo is a guessing game for a group sharing one phone.
+There are fourteen games so far. Five are Filipino: Sungka, Dama (Filipino checkers), and Jak-en-poy (rock, paper, scissors) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link or the room code. Pusoy Dos, the card game, is played against one to three bots. Hulaan Mo is a guessing game for a group sharing one phone.
 
 The other nine are classics played everywhere: Four in a Row, Reversi, Dots and Boxes, Memory, Nine Men's Morris, Sea Battle, Tic-Tac-Toe, Snakes and Ladders, and Pig. They can be played the same three ways, except Sea Battle, which hides each player's ships and so is played against the bot or online. Snakes and Ladders, Pig, Memory, and Dots and Boxes take two to four players, and the rest are for two.
 
@@ -82,6 +82,7 @@ Each room is a [Durable Object](https://developers.cloudflare.com/durable-object
 
 - A room is made for a set number of players, two to four for the games that allow it, and the game starts once every seat is filled. A rematch starts when everyone in the room asks for one.
 - After each move the room sends every player their own view of the game plus the move's events, and each screen animates the move from those events.
+- Friends join from the invite link, or by typing the 5-character room code into the box on the games page. Codes leave out I, L, O, 0, and 1 so they're easy to read out loud. The box also takes a pasted link.
 - A browser keeps a random player id. If the connection drops, it reconnects with the same id and gets its seat back. Anyone who opens the link after every seat is taken watches.
 - The id is sent in the first message over the socket, not in the URL, so it doesn't end up in request logs.
 - Rooms use WebSocket hibernation, so a room costs nothing while players think, and a room with no games for a day deletes itself.
