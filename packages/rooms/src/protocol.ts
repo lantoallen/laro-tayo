@@ -50,6 +50,16 @@ export function isRoomCode(value: unknown): value is string {
   return typeof value === "string" && CODE_PATTERN.test(value);
 }
 
+/**
+ * The room code in what someone typed or pasted: the code in any case, with spaces or a dash in it, or a whole
+ * room link. Null if there isn't one.
+ */
+export function roomCodeFrom(text: string): string | null {
+  const link = text.match(/\/room\/([^/?#\s]+)/);
+  const code = (link ? link[1] : text).replace(/[\s-]/g, "").toUpperCase();
+  return isRoomCode(code) ? code : null;
+}
+
 /** Player ids are random UUIDs made by the browser. */
 export function isPlayerId(value: unknown): value is string {
   return typeof value === "string" && /^[A-Za-z0-9-]{8,64}$/.test(value);

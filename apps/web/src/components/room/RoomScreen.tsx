@@ -79,7 +79,7 @@ function Room({ code, player }: { code: string; player: LocalPlayer }) {
   if (status === "missing") {
     return (
       <RoomMessage title="This room doesn't exist">
-        <p>The link may be wrong, or the room was closed after a day without any games.</p>
+        <p>The code or link may be wrong, or the room was closed after a day without any games.</p>
         <Link href="/games" className="btn btn-primary">
           Start a new game
         </Link>

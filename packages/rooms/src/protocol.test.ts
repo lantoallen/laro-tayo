@@ -8,6 +8,7 @@ import {
   isRoomCode,
   makeRoomCode,
   parseClientMessage,
+  roomCodeFrom,
 } from "./protocol";
 
 describe("room codes", () => {
@@ -26,6 +27,28 @@ describe("room codes", () => {
     expect(isRoomCode("ABCD")).toBe(false);
     expect(isRoomCode("ABCDO")).toBe(false);
     expect(isRoomCode(12345)).toBe(false);
+  });
+});
+
+describe("roomCodeFrom", () => {
+  it("reads a code however it was typed", () => {
+    expect(roomCodeFrom("K7MXP")).toBe("K7MXP");
+    expect(roomCodeFrom(" k7mxp ")).toBe("K7MXP");
+    expect(roomCodeFrom("k7m xp")).toBe("K7MXP");
+    expect(roomCodeFrom("K7M-XP")).toBe("K7MXP");
+  });
+
+  it("reads the code out of a pasted room link", () => {
+    expect(roomCodeFrom("https://laro-tayo.vercel.app/room/K7MXP")).toBe("K7MXP");
+    expect(roomCodeFrom("Join me! laro-tayo.vercel.app/room/k7mxp?ref=1")).toBe("K7MXP");
+  });
+
+  it("finds nothing in a wrong code", () => {
+    expect(roomCodeFrom("")).toBeNull();
+    expect(roomCodeFrom("K7MX")).toBeNull();
+    expect(roomCodeFrom("K7MXPQ")).toBeNull();
+    expect(roomCodeFrom("K0MXP")).toBeNull();
+    expect(roomCodeFrom("https://laro-tayo.vercel.app/games")).toBeNull();
   });
 });
 
