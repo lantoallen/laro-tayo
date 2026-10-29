@@ -17,6 +17,7 @@ const BOARD_GAMES = [
   "snakes-and-ladders",
   "pig",
   "jak-en-poy",
+  "sinking-tiles",
 ] as const;
 
 describe.each(BOARD_GAMES)("%s rooms", (id) => {

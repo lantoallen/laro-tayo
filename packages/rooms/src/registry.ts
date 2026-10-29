@@ -8,6 +8,7 @@ import { morris } from "@laro/games/morris";
 import { pig } from "@laro/games/pig";
 import { reversi } from "@laro/games/reversi";
 import { seaBattle } from "@laro/games/sea-battle";
+import { sinkingTiles } from "@laro/games/sinking-tiles";
 import { snakesAndLadders } from "@laro/games/snakes-and-ladders";
 import { sungka } from "@laro/games/sungka";
 import { ticTacToe } from "@laro/games/tic-tac-toe";
@@ -29,6 +30,7 @@ export const GAMES = {
   "snakes-and-ladders": snakesAndLadders,
   pig,
   "jak-en-poy": jakEnPoy,
+  "sinking-tiles": sinkingTiles,
 } satisfies Record<string, AnyGame>;
 
 export type GameId = keyof typeof GAMES;

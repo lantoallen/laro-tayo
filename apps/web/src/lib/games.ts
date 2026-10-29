@@ -12,10 +12,11 @@ export type GameId =
   | "tic-tac-toe"
   | "snakes-and-ladders"
   | "pig"
-  | "jak-en-poy";
+  | "jak-en-poy"
+  | "sinking-tiles";
 
-/** Games are shown in two groups: ones from the Philippines, and classics played everywhere. */
-export type GameGroup = "filipino" | "classic";
+/** Games are shown in groups: ones from the Philippines, classics played everywhere, and ones made here. */
+export type GameGroup = "filipino" | "classic" | "original";
 
 /** The flag color each game is shown in. */
 export type GameColor = "blue" | "red" | "yellow" | "ink";
@@ -178,6 +179,16 @@ export const GAMES: GameInfo[] = [
     href: "/pig",
     modes: ["bot", "local", "online"],
   },
+  {
+    id: "sinking-tiles",
+    name: "Sinking Tiles",
+    players: "2 to 4 players",
+    tagline: "Every tile sinks after two steps. Be the last one standing.",
+    group: "original",
+    color: "yellow",
+    href: "/sinking-tiles",
+    modes: ["bot", "local", "online"],
+  },
 ];
 
 export const MODE_LABELS: Record<PlayMode, string> = {
@@ -190,6 +201,7 @@ export const MODE_LABELS: Record<PlayMode, string> = {
 export const GROUP_TITLES: Record<GameGroup, string> = {
   filipino: "Filipino games",
   classic: "Classics",
+  original: "Made for Laro Tayo!",
 };
 
 /** Background and text classes for each game color. */

@@ -16,6 +16,7 @@ const FRAMES: Record<GameId, string> = {
   "snakes-and-ladders": "50 0 60 60",
   pig: "36 0 88 60",
   "jak-en-poy": "26 0 108 60",
+  "sinking-tiles": "40 0 80 60",
 };
 
 /** A small drawing for each game, used on the game tiles and the games page. */
@@ -36,6 +37,7 @@ export function GameArt({ id, className }: { id: GameId; className?: string }) {
       {id === "snakes-and-ladders" && <SnakeAndLadder />}
       {id === "pig" && <TwoDice />}
       {id === "jak-en-poy" && <RockPaperScissors />}
+      {id === "sinking-tiles" && <FloatingTiles />}
     </svg>
   );
 }
@@ -429,5 +431,41 @@ function RockPaperScissors() {
         <circle cx="19" cy="32" r="5" fill="none" stroke="#fcd116" strokeWidth="3" />
       </g>
     </>
+  );
+}
+
+/** A few tiles floating on the water, one of them going under, with a piece standing on another. */
+function FloatingTiles() {
+  const hex = (x: number, y: number, size: number) =>
+    Array.from({ length: 6 }, (_, i) => {
+      const angle = (Math.PI / 3) * i;
+      return `${(x + size * Math.cos(angle)).toFixed(1)},${(y + size * Math.sin(angle)).toFixed(1)}`;
+    }).join(" ");
+  const tiles: [number, number][] = [
+    [66, 22],
+    [80, 14],
+    [94, 22],
+    [80, 30],
+    [66, 38],
+    [94, 38],
+  ];
+  return (
+    <g>
+      <rect x="42" y="2" width="76" height="56" rx="5" fill="#2f7fc1" stroke="#1b1b1b" strokeWidth="2" />
+      <path d="M48 52q4-2 8 0t8 0M98 9q4-2 8 0t8 0" fill="none" stroke="#8cc4ec" strokeWidth="1.2" strokeLinecap="round" />
+      {tiles.map(([x, y]) => (
+        <g key={`${x}-${y}`} stroke="#1b1b1b" strokeWidth="1.2">
+          <polygon points={hex(x, y + 2, 7.4)} fill="#a8753b" />
+          <polygon points={hex(x, y, 7.4)} fill="#f6e5bd" />
+        </g>
+      ))}
+      <path d="M92 20l2 2.5-1 3M94 22.5l3-.5" fill="none" stroke="#5c3d1a" strokeWidth="1" strokeLinecap="round" />
+      <g opacity="0.55" stroke="#1b1b1b" strokeWidth="1.2">
+        <polygon points={hex(80, 48, 5.6)} fill="#f6e5bd" />
+      </g>
+      <ellipse cx="80" cy="48" rx="10" ry="3.5" fill="none" stroke="#8cc4ec" strokeWidth="1.2" />
+      <circle cx="66" cy="20" r="4.6" fill="#ce1126" stroke="#1b1b1b" strokeWidth="1.4" />
+      <circle cx="94" cy="36" r="4.6" fill="#fcd116" stroke="#1b1b1b" strokeWidth="1.4" />
+    </g>
   );
 }

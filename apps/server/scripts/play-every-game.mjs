@@ -99,9 +99,17 @@ async function playGame(gameId, players) {
   if (!seen.every((s) => s.reactions.some((r) => r.seat === sender && r.reaction === "gg"))) {
     problems.push("not everyone got the reaction");
   }
-  // Turns go around the table in order. A player who gets another turn just keeps it for longer.
+  // Turns go around the table in order. A player who gets another turn just keeps it for longer, and a player
+  // who's out of the game, like a player who fell in in Sinking Tiles, is skipped from then on.
   const order = seen[0].turns.filter((turn) => turn !== null);
-  if (order.some((turn, i) => i > 0 && turn !== (order[i - 1] + 1) % players)) problems.push("turns went out of order");
+  const skipped = new Set();
+  for (let i = 1; i < order.length; i++) {
+    for (let seat = (order[i - 1] + 1) % players; seat !== order[i]; seat = (seat + 1) % players) skipped.add(seat);
+    if (skipped.has(order[i])) {
+      problems.push("turns went out of order");
+      break;
+    }
+  }
   const moves = seen.reduce((sum, s) => sum + s.moves, 0);
   const summary = `${gameId} for ${players} in room ${room}: ${moves} moves, result ${result}`;
   console.log(
