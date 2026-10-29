@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { BotLevel } from "@laro/games";
 import { RecordLine } from "@/components/game/RecordLine";
 import { Segmented } from "@/components/game/Segmented";
@@ -24,6 +24,7 @@ export function BoardGameSetup<State, Move>({
   onChange,
   onStart,
   onStartOnline,
+  choices,
 }: {
   config: BoardGameConfig<State, Move>;
   settings: BoardGameSettings;
@@ -31,6 +32,7 @@ export function BoardGameSetup<State, Move>({
   onStart: () => void;
   /** Makes a room and goes to it. Rejects with a message to show if that fails. */
   onStartOnline: (name: string) => Promise<void>;
+  choices?: ReactNode;
 }) {
   const { Rules } = config;
   const vsBot = settings.mode === "bot";
@@ -69,6 +71,7 @@ export function BoardGameSetup<State, Move>({
           });
         }}
       >
+        {choices}
         <Segmented<PlayMode>
           legend="Opponent"
           name="mode"
@@ -118,7 +121,7 @@ export function BoardGameSetup<State, Move>({
           />
         )}
 
-        {!online && (
+        {!online && config.choosesFirst !== false && (
           <Segmented<FirstPlayer>
             legend="Who goes first"
             name="first"

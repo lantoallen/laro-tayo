@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { boardFor, legalMoves, type TilesMove, type TilesState } from "@laro/games/sinking-tiles";
+import { boardFor, legalMoves, movers, type TilesMove, type TilesState } from "@laro/games/sinking-tiles";
 import type { BoardProps } from "@/components/board-game/types";
 import { FOUR_SWATCHES } from "@/components/game/settings";
 import "./tiles.css";
@@ -79,12 +79,22 @@ function Tile({
   );
 }
 
-export function TilesBoard({ state, onMove }: BoardProps<TilesState, TilesMove>) {
+export function TilesBoard({ state, you, onMove }: BoardProps<TilesState, TilesMove>) {
   const { radius, tiles, at, last, turn } = state;
   const box = frame(radius);
-  const targets = onMove && turn !== null ? legalMoves(state, turn) : [];
+  const together = state.mode === "together";
+  // Changes when there's something new to animate. Picks don't count, so they don't replay the last round.
+  const moment = together ? state.round : state.turns;
+  // Who is picking a tile on this screen: you when everyone picks at once, otherwise whoever's turn it is.
+  const picker = together ? you : turn;
+  const targets = onMove && picker !== null ? legalMoves(state, picker) : [];
+  // Only ever your own pick. In a game against bots this state has theirs too, and they stay secret.
+  const yourPick =
+    together && you !== null && typeof state.picks[you] === "number" ? (state.picks[you] as number) : null;
+  const waiting = new Set(movers(state));
   // Tiles that sank on the last move, to show them going under.
-  const sinking = last ? [...(last.sank ? [last.from] : []), ...last.fell.map((fall) => fall.tile)] : [];
+  const sinking = last ? [...last.sank, ...last.fell.map((fall) => fall.tile)] : [];
+  const bumped = new Map(last?.bumps.flatMap(({ tile, seats }) => seats.map((seat) => [seat, tile] as const)) ?? []);
   const percent = (value: number, start: number, length: number) => `${((value - start) / length) * 100}%`;
 
   return (
@@ -103,7 +113,7 @@ export function TilesBoard({ state, onMove }: BoardProps<TilesState, TilesMove>)
         {sinking.map((tile) => {
           const { x, y } = centre(radius, tile);
           return (
-            <g key={`sink-${tile}-${state.turns}`}>
+            <g key={`sink-${tile}-${moment}`}>
               <circle cx={x} cy={y} r={TILE * 0.8} className="st-ripple" />
               <Tile x={x} y={y} steps={2} tile={tile} sinking />
             </g>
@@ -121,10 +131,22 @@ export function TilesBoard({ state, onMove }: BoardProps<TilesState, TilesMove>)
           return <polygon key={tile} points={HEX_POINTS} transform={`translate(${x} ${y})`} className="st-target" />;
         })}
 
+        {yourPick !== null && (
+          <g transform={`translate(${centre(radius, yourPick).x} ${centre(radius, yourPick).y})`}>
+            <polygon points={HEX_POINTS} className="st-picked" style={{ stroke: FOUR_SWATCHES[you!] }} />
+            <circle r={SIZE * 0.36} fill={FOUR_SWATCHES[you!]} className="st-ghost" />
+          </g>
+        )}
+
+        {last?.bumps.map(({ tile }) => {
+          const { x, y } = centre(radius, tile);
+          return <circle key={`bump-${tile}-${moment}`} cx={x} cy={y} r={TILE * 0.5} className="st-knock" />;
+        })}
+
         {last?.fell.map(({ seat, tile }) => {
           const { x, y } = centre(radius, tile);
           return (
-            <g key={`fell-${seat}-${state.turns}`} transform={`translate(${x} ${y - 2})`}>
+            <g key={`fell-${seat}-${moment}`} transform={`translate(${x} ${y - 2})`}>
               <circle r={SIZE * 0.46} fill={FOUR_SWATCHES[seat]} className="st-piece st-falling" />
             </g>
           );
@@ -133,12 +155,25 @@ export function TilesBoard({ state, onMove }: BoardProps<TilesState, TilesMove>)
         {at.map((tile, seat) => {
           if (tile === null) return null;
           const { x, y } = centre(radius, tile);
+          const knock = bumped.get(seat);
+          const toward = knock === undefined ? null : centre(radius, knock);
+          // A piece that bumped lunges toward the tile it wanted and comes back.
+          const lunge =
+            toward && ({ "--bx": `${(toward.x - x) * 0.4}px`, "--by": `${(toward.y - y) * 0.4}px` } as CSSProperties);
           return (
             <g key={seat} className="st-mover" style={{ transform: `translate(${x}px, ${y - 2}px)` }}>
-              {turn === seat && <circle r={SIZE * 0.66} className="st-turn" style={{ stroke: FOUR_SWATCHES[seat] }} />}
-              <ellipse cy={3.4} rx={SIZE * 0.4} ry={SIZE * 0.14} className="st-shadow" />
-              <circle r={SIZE * 0.46} fill={FOUR_SWATCHES[seat]} className="st-piece" />
-              <circle cx={-1.5} cy={-1.6} r={1.3} className="st-shine" />
+              {waiting.has(seat) && (
+                <circle r={SIZE * 0.66} className="st-turn" style={{ stroke: FOUR_SWATCHES[seat] }} />
+              )}
+              <g
+                key={lunge ? `lunge-${moment}` : "still"}
+                className={lunge ? "st-lunge" : undefined}
+                style={lunge || undefined}
+              >
+                <ellipse cy={3.4} rx={SIZE * 0.4} ry={SIZE * 0.14} className="st-shadow" />
+                <circle r={SIZE * 0.46} fill={FOUR_SWATCHES[seat]} className="st-piece" />
+                <circle cx={-1.5} cy={-1.6} r={1.3} className="st-shine" />
+              </g>
             </g>
           );
         })}
@@ -150,7 +185,7 @@ export function TilesBoard({ state, onMove }: BoardProps<TilesState, TilesMove>)
           <button
             key={tile}
             type="button"
-            aria-label={`Step ${direction(radius, at[turn!]!, tile)}${tiles[tile] === 1 ? ", onto a cracked tile" : ""}`}
+            aria-label={`${together ? "Pick the tile" : "Step"} ${direction(radius, at[picker!]!, tile)}${tiles[tile] === 1 ? ", a cracked one" : ""}`}
             onClick={() => onMove!(tile)}
             className="st-hit"
             style={{

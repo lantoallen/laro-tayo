@@ -37,6 +37,8 @@ export interface BoardGameConfig<State, Move> {
   prompt: string | ((state: State) => string);
   /** False for games with hidden pieces, which can't be shared on one screen. */
   passAndPlay?: boolean;
+  /** False for games where nobody goes first, like ones where everyone picks at once. */
+  choosesFirst?: boolean;
   /** How long the bot waits before each move, or before a move from this position. */
   botDelayMs?: number | ((state: State) => number);
   /** False for games of pure luck, where a bot level would mean nothing. */

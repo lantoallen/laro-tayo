@@ -7,6 +7,7 @@ import {
   joinRoom,
   makeRoomCode,
   parseClientMessage,
+  pauseClock,
   PING,
   playMove,
   PONG,
@@ -16,6 +17,7 @@ import {
   RoomError,
   seatOf,
   snapshotFor,
+  timeOutRound,
   type MoveRecord,
   type Reaction,
   type Room,
@@ -186,28 +188,51 @@ export class RoomObject extends DurableObject<Env> {
     if (room) this.broadcast(room, undefined, ws);
   }
 
+  /** Goes off when a round's time is up, in games played against the clock, and a day after a room was last used. */
   async alarm(): Promise<void> {
     const room = await this.ctx.storage.get<Room>("room");
     if (!room) return;
-    if (Date.now() - room.updatedAt >= ROOM_LIFETIME_MS && this.ctx.getWebSockets().length === 0) {
+    const now = Date.now();
+    if (room.deadline != null && now >= room.deadline) {
+      if (this.players().length > 0) {
+        const next = timeOutRound(room, now, Math.random)!;
+        await this.save(next);
+        this.broadcast(next);
+      } else {
+        // Nobody's here, so stop the clock instead of playing the game out on its own. Coming back starts it again.
+        await this.save(pauseClock(room));
+      }
+      return;
+    }
+    if (now - room.updatedAt >= ROOM_LIFETIME_MS && this.ctx.getWebSockets().length === 0) {
       await this.ctx.storage.deleteAll();
     } else {
-      await this.ctx.storage.setAlarm(Date.now() + ROOM_LIFETIME_MS);
+      await this.schedule(room);
     }
   }
 
   private async save(room: Room): Promise<void> {
     await this.ctx.storage.put("room", room);
-    await this.ctx.storage.setAlarm(Date.now() + ROOM_LIFETIME_MS);
+    await this.schedule(room);
   }
 
-  /** Sends every player its own view of the room. `leaving` is a socket that is closing right now. */
-  private broadcast(room: Room, lastMove?: MoveRecord, leaving?: WebSocket): void {
-    const players = this.ctx
+  /** One alarm does both jobs: the end of a round if a clock is running, otherwise a day from now. */
+  private async schedule(room: Room): Promise<void> {
+    await this.ctx.storage.setAlarm(room.deadline ?? Date.now() + ROOM_LIFETIME_MS);
+  }
+
+  /** The sockets of everyone who has said hello. */
+  private players(leaving?: WebSocket): { ws: WebSocket; playerId: string }[] {
+    return this.ctx
       .getWebSockets()
       .filter((ws) => ws !== leaving)
       .map((ws) => ({ ws, playerId: (ws.deserializeAttachment() as SocketInfo).playerId }))
       .filter((socket): socket is { ws: WebSocket; playerId: string } => socket.playerId !== null);
+  }
+
+  /** Sends every player its own view of the room. `leaving` is a socket that is closing right now. */
+  private broadcast(room: Room, lastMove?: MoveRecord, leaving?: WebSocket): void {
+    const players = this.players(leaving);
     const online = new Set(players.map((socket) => socket.playerId));
     for (const { ws, playerId } of players) {
       const snapshot = snapshotFor(room, playerId, online);

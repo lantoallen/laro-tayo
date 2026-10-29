@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Seat } from "@laro/games";
+import { moversOf, type Seat } from "@laro/games";
 import { LeaveButton } from "@/components/game/LeaveButton";
+import { RoundClock } from "@/components/game/RoundClock";
 import { RulesButton } from "@/components/game/RulesButton";
 import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
@@ -40,8 +41,11 @@ export function LocalBoardGame<State, Move>({
   // In a bot game the player at the bottom is "you". In pass and play nobody is.
   const you: Seat | null = vsBot ? YOU : null;
   const turn = game.turn(state);
-  const botToMove = vsBot && turn !== null && turn !== YOU;
-  const humanSeat = turn !== null && !botToMove ? turn : null;
+  // Usually just whoever's turn it is. In a game where everyone picks at once, everyone still to pick.
+  const movers = moversOf(game, state);
+  const botSeat = vsBot ? (movers.find((seat) => seat !== YOU) ?? null) : null;
+  const botToMove = botSeat !== null;
+  const humanSeat = vsBot ? (movers.includes(YOU) ? YOU : null) : (movers[0] ?? null);
   const outcome = game.result(state);
   useMoveSound(config, state, moves, you);
   useResultSound(outcome?.winners ?? null, you);
@@ -52,14 +56,14 @@ export function LocalBoardGame<State, Move>({
   const { botDelayMs = BOT_DELAY_MS } = config;
   const botDelay = typeof botDelayMs === "number" ? botDelayMs : botDelayMs(state);
   useEffect(() => {
-    if (!botToMove || turn === null) return;
+    if (botSeat === null) return;
     const timer = setTimeout(() => {
-      const move = game.bot!(state, turn, { level: settings.level, rng: Math.random });
-      setState(game.play(state, turn, move).state);
+      const move = game.bot!(state, botSeat, { level: settings.level, rng: Math.random });
+      setState(game.play(state, botSeat, move).state);
       setMoves((count) => count + 1);
     }, botDelay);
     return () => clearTimeout(timer);
-  }, [botDelay, botToMove, game, state, settings.level, turn]);
+  }, [botDelay, botSeat, game, state, settings.level]);
 
   function move(next: Move) {
     if (humanSeat === null) return;
@@ -67,10 +71,21 @@ export function LocalBoardGame<State, Move>({
     setMoves(moves + 1);
   }
 
-  const turnLabel = turn === null ? null : turn === you ? "Your turn" : `${names[turn]}'s turn`;
+  // In a game against the clock, time running out plays for you.
+  const clock = game.timer && vsBot && humanSeat !== null ? game.timer : null;
+  function timeUp() {
+    if (!clock) return;
+    setState(clock.timeOut(state, Math.random).state);
+    setMoves(moves + 1);
+  }
+
+  let turnLabel: string | null;
+  if (game.movers) turnLabel = humanSeat !== null && vsBot ? "Your turn" : null;
+  else turnLabel = turn === null ? null : turn === you ? "Your turn" : `${names[turn]}'s turn`;
+  const badgeSeat = game.movers ? YOU : turn;
   let status: string;
   if (outcome) status = "Game over";
-  else if (botToMove) status = config.othersTurn?.(state, names[turn]) ?? "Thinking...";
+  else if (botToMove && humanSeat === null) status = config.othersTurn?.(state, names[botSeat]) ?? "Thinking...";
   else status = promptFor(config, state);
   // In a game against one bot, the messages say "the bot".
   const noticeNames = vsBot && players === 2 ? ["You", "The bot"] : names;
@@ -90,7 +105,7 @@ export function LocalBoardGame<State, Move>({
         name={name}
         color={config.swatches[seat]}
         stat={{ label: config.stat.label, value: config.stat.value(state, seat) }}
-        active={turn === seat}
+        active={movers.includes(seat)}
         note={config.seatNote?.(state, seat) ?? undefined}
       />
     );
@@ -137,11 +152,14 @@ export function LocalBoardGame<State, Move>({
           </button>
         </ResultCard>
       ) : (
-        <StatusLine
-          notice={notice}
-          status={status}
-          turn={turnLabel === null ? null : { label: turnLabel, color: config.swatches[turn!] }}
-        />
+        <>
+          {clock && <RoundClock key={clock.round(state)} ms={clock.ms} onTimeUp={timeUp} />}
+          <StatusLine
+            notice={notice}
+            status={status}
+            turn={turnLabel === null ? null : { label: turnLabel, color: config.swatches[badgeSeat!] }}
+          />
+        </>
       )}
     </main>
   );

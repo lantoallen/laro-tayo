@@ -125,6 +125,51 @@
   }
 }
 
+/* The time left to move in a round, for games played against the clock. */
+.round-clock {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.round-clock-track {
+  flex: 1;
+  height: 0.7rem;
+  overflow: hidden;
+  border: 2px solid var(--outline);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.round-clock-bar {
+  display: block;
+  height: 100%;
+  background: var(--yellow);
+  transform-origin: left;
+  animation: round-clock-run linear forwards;
+}
+
+@keyframes round-clock-run {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.round-clock-text {
+  min-width: 2.2rem;
+  font-family: var(--font-display);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.round-clock-hurry .round-clock-bar {
+  background: var(--red);
+}
+
+.round-clock-hurry .round-clock-text {
+  color: var(--red);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .player-row {
     transition: none;

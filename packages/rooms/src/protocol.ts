@@ -7,7 +7,7 @@ import type { MoveRecord, RoomSnapshot } from "./room";
  * The server sends it with every update, so a page that's out of step with the
  * server can say so instead of getting stuck.
  */
-export const ROOM_VERSION = 1;
+export const ROOM_VERSION = 2;
 
 /** The quick reactions players can send each other during a game. */
 export const REACTIONS = ["thumbs", "laugh", "wow", "cry", "nice", "gg"] as const;

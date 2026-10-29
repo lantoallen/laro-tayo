@@ -6,7 +6,7 @@ There are fifteen games so far. Five are Filipino: Sungka, Dama (Filipino checke
 
 The other nine are classics played everywhere: Four in a Row, Reversi, Dots and Boxes, Memory, Nine Men's Morris, Sea Battle, Tic-Tac-Toe, Snakes and Ladders, and Pig. They can be played the same three ways, except Sea Battle, which hides each player's ships and so is played against the bot or online. Snakes and Ladders, Pig, Memory, and Dots and Boxes take two to four players, and the rest are for two.
 
-Sinking Tiles was made for Laro Tayo!: two to four players step across tiles floating on the water, every tile sinks after its second step, and the last one standing wins. It can be played the same three ways.
+Sinking Tiles was made for Laro Tayo!: two to four players step across tiles floating on the water, every tile sinks after its second step, and the last one standing wins. Players can take turns, which works all three ways, or move all at once, where everyone picks a tile in secret each round, against bots or online.
 
 ## Running it
 
@@ -257,7 +257,19 @@ Each player's view leaves out the dice seed, so nobody can work out the next rol
 - If it's your turn and there's nowhere to step, your tile sinks with you on it and you're out. Turns skip players who are out.
 - The last one standing wins. The result scores each player by how many others they outlasted.
 
+### All at once
+
+- Instead of taking turns, everyone picks a tile next to them in secret, with 10 seconds to pick. Then all the pieces move together.
+- Players who pick the same tile bump into each other and stay put. The tile they wanted cracks from the knock, or sinks if it was already cracked. So every round either moves someone or cracks a tile, and a game can't go on forever.
+- Anyone left with nowhere to step falls in. If the last players fall in together, they share the win.
+
+Online, the room keeps the clock. When a round's time is up, a [Durable Object alarm](https://developers.cloudflare.com/durable-objects/api/alarms/) plays a random step for anyone who hasn't picked, and the same alarm deletes the room after a day without games. If everyone leaves mid-game the clock stops, and it starts again when someone comes back. Each player's view hides everyone else's pick until the round is played. Games built this way list who can move with `movers` and set a `timer` in the `Game` interface; every other game still has one player to move at a time.
+
+### Bots
+
 Every tile can only be stepped on twice, so a game can't go on forever. Easy steps anywhere, but usually not onto a tile it couldn't step off again. Medium and hard score a position by how much room each player has: the steps left in the tiles they can reach before anyone else. Medium picks the step that looks best right away, and hard searches 6 steps ahead with two players, or 5 with more, assuming everyone else plays against it. Over 400 games each, medium beat easy 97% of the time, hard beat easy 100%, and hard beat medium 79%. Against three medium bots, hard won 49% of games, where chance would be 25%.
+
+Moving all at once, the bots can't see anyone's pick. Medium guesses that everyone else takes the step with the most ways out, and hard guesses that each of them usually picks what medium would, then looks two rounds ahead against 36 such guesses. Over 400 games each, medium beat easy 95% of the time, hard beat easy 94%, and hard beat medium 68%, with most of the rest shared when both fell in together. Against three medium bots, hard won 55% of games.
 
 ---
 

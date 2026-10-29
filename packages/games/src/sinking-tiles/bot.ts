@@ -1,13 +1,27 @@
-import { pick } from "../engine/rng";
+import { pick, type Rng } from "../engine/rng";
 import { searchBestMoves, WIN, type SearchGame } from "../engine/search";
 import { IllegalMoveError, type BotOptions, type Seat } from "../engine/types";
-import { boardFor, legalMoves, openNeighbours, openSteps, play, result, type TilesMove, type TilesState } from "./rules";
+import {
+  boardFor,
+  legalMoves,
+  openNeighbours,
+  openSteps,
+  play,
+  result,
+  type TilesMove,
+  type TilesState,
+} from "./rules";
 
 /**
  * - Easy steps anywhere, but usually not onto a tile it couldn't step off again.
  * - Medium looks one step ahead and picks the step that leaves it the most
  *   room compared with everyone else.
  * - Hard searches several steps ahead, assuming everyone else plays against it.
+ *
+ * When everyone moves at once, the bots can't see anyone's pick. Medium
+ * guesses that everyone else takes the step with the most ways out. Hard
+ * guesses that each of them usually plays like medium, and looks two rounds
+ * ahead against many such guesses.
  */
 
 /**
@@ -81,6 +95,108 @@ function bestByOneStep(state: TilesState, seat: Seat, moves: TilesMove[]): Tiles
   return found;
 }
 
+/** How good a step looks to someone who only counts the ways out from where it lands. */
+function waysOutAfter(state: TilesState, seat: Seat, move: TilesMove): number {
+  const from = state.at[seat]!;
+  return openNeighbours(state, move).filter((next) => next !== from).length;
+}
+
+/** The step with the most ways out, which is everyone's first guess at what someone else will pick. */
+function carefulPick(state: TilesState, seat: Seat, rng: Rng): TilesMove {
+  const moves = openNeighbours(state, state.at[seat]!);
+  const best = Math.max(...moves.map((move) => waysOutAfter(state, seat, move)));
+  return pick(
+    rng,
+    moves.filter((move) => waysOutAfter(state, seat, move) === best),
+  );
+}
+
+/** The round played with these picks for everyone else and `move` for `seat`. */
+function afterRound(state: TilesState, seat: Seat, move: TilesMove, others: Map<Seat, TilesMove>): TilesState {
+  const picks = state.at.map((tile, s) => (tile === null || s === seat ? null : others.get(s)!));
+  return play({ ...state, picks, turn: seat }, seat, move).state;
+}
+
+/** The moves that score best on average against a set of guesses at everyone else's picks. */
+function bestAgainst(state: TilesState, seat: Seat, moves: TilesMove[], guesses: Map<Seat, TilesMove>[]): TilesMove[] {
+  let best = -Infinity;
+  let found: TilesMove[] = [];
+  for (const move of moves) {
+    let total = 0;
+    for (const guess of guesses) total += evaluate(afterRound(state, seat, move, guess), seat);
+    if (total > best) {
+      best = total;
+      found = [move];
+    } else if (total === best) {
+      found.push(move);
+    }
+  }
+  return found;
+}
+
+const othersOf = (state: TilesState, seat: Seat) =>
+  state.at.flatMap((tile, s) => (tile === null || s === seat ? [] : [s]));
+
+/**
+ * Medium, moving at once: the best step if everyone else takes the step with
+ * the most ways out. Hard also uses this to guess what others will do, even
+ * once they've picked, so it looks at the tiles next to them, not their moves.
+ */
+function mediumTogether(state: TilesState, seat: Seat, rng: Rng): TilesMove[] {
+  const guess = new Map(othersOf(state, seat).map((s) => [s, carefulPick(state, s, rng)]));
+  return bestAgainst(state, seat, openNeighbours(state, state.at[seat]!), [guess]);
+}
+
+/** Guesses tried by hard for each of its steps. */
+const HARD_GUESSES = 36;
+/** How often hard guesses that someone else picks what medium would. */
+const PLAYS_LIKE_MEDIUM = 0.6;
+
+/** The best `seat` can do next round, if everyone else plays like medium. */
+function bestNextRound(state: TilesState, seat: Seat, rng: Rng): number {
+  if (state.turn === null || state.at[seat] === null) return evaluate(state, seat);
+  const guess = new Map(othersOf(state, seat).map((s) => [s, pick(rng, mediumTogether(state, s, rng))]));
+  let best = -Infinity;
+  for (const move of openNeighbours(state, state.at[seat]!)) {
+    best = Math.max(best, evaluate(afterRound(state, seat, move, guess), seat));
+  }
+  return best;
+}
+
+/**
+ * Hard, moving at once: guesses that each other player usually picks what
+ * medium would, and otherwise any step at all. For each of its steps it plays
+ * the round against many such guesses, then its best step in the round after,
+ * and takes the step that does best on average.
+ */
+function hardTogether(state: TilesState, seat: Seat, moves: TilesMove[], rng: Rng): TilesMove[] {
+  const others = othersOf(state, seat);
+  const likely = new Map(others.map((s) => [s, mediumTogether(state, s, rng)]));
+  const guesses = Array.from(
+    { length: HARD_GUESSES },
+    () =>
+      new Map(
+        others.map((s) => {
+          const options = rng() < PLAYS_LIKE_MEDIUM ? likely.get(s)! : openNeighbours(state, state.at[s]!);
+          return [s, pick(rng, options)];
+        }),
+      ),
+  );
+  let best = -Infinity;
+  let found: TilesMove[] = [];
+  for (const move of moves) {
+    let total = 0;
+    for (const guess of guesses) total += bestNextRound(afterRound(state, seat, move, guess), seat, rng);
+    if (total > best) {
+      best = total;
+      found = [move];
+    } else if (total === best) {
+      found.push(move);
+    }
+  }
+  return found;
+}
+
 export function chooseMove(state: TilesState, seat: Seat, { level, rng }: BotOptions): TilesMove {
   const moves = legalMoves(state, seat);
   if (moves.length === 0) throw new IllegalMoveError(`Seat ${seat} has no moves`);
@@ -90,6 +206,9 @@ export function chooseMove(state: TilesState, seat: Seat, { level, rng }: BotOpt
     const from = state.at[seat]!;
     const ways = moves.filter((move) => openNeighbours(state, move).some((next) => next !== from));
     return pick(rng, ways.length > 0 && rng() < 0.8 ? ways : moves);
+  }
+  if (state.mode === "together") {
+    return pick(rng, level === "medium" ? mediumTogether(state, seat, rng) : hardTogether(state, seat, moves, rng));
   }
   if (level === "medium") return pick(rng, bestByOneStep(state, seat, moves));
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createRng, pick } from "../engine/rng";
 import { IllegalMoveError } from "../engine/types";
-import { boardFor, legalMoves, openSteps, play, result, setup, type TilesState } from "./rules";
+import { boardFor, legalMoves, movers, openSteps, play, result, setup, timeOut, view, type TilesState } from "./rules";
 
 /** The index of the tile at (q, r) on a board with `radius` rings. */
 const tileAt = (q: number, r: number, radius = 3) => boardFor(radius).hexes.findIndex((h) => h.q === q && h.r === r);
@@ -67,7 +67,12 @@ describe("play", () => {
     const outcome = play(state, 0, tileAt(1, 2));
     expect(outcome.state.tiles[start]).toBeNull();
     expect(outcome.events).toContainEqual({ type: "sink", tile: start });
-    expect(outcome.state.last).toMatchObject({ seat: 0, from: start, to: tileAt(1, 2), sank: true, fell: [] });
+    expect(outcome.state.last).toEqual({
+      steps: [{ seat: 0, from: start, to: tileAt(1, 2) }],
+      bumps: [],
+      sank: [start],
+      fell: [],
+    });
   });
 
   it("drops a player with nowhere to step, and the last one standing wins", () => {
@@ -117,6 +122,91 @@ describe("play", () => {
       expect(state.out).toHaveLength(seats - 1);
       expect([...outcome.scores].sort()).toEqual(Array.from({ length: seats }, (_, i) => i));
       expect(outcome.scores[outcome.winners[0]]).toBe(seats - 1);
+    }
+  });
+});
+
+describe("moving all at once", () => {
+  /** Two players next to the middle tile, with every other tile but theirs sunk unless `keep` says so. */
+  function aroundTheMiddle(keep: number[] = [], middle: 0 | 1 = 0): TilesState {
+    const base = setup({ mode: "together" });
+    const a = tileAt(-1, 0);
+    const b = tileAt(1, -1);
+    const centre = tileAt(0, 0);
+    const tiles = base.tiles.map((_, i) =>
+      i === a || i === b ? 1 : i === centre ? middle : keep.includes(i) ? 0 : null,
+    );
+    return { ...base, tiles, at: [a, b] };
+  }
+
+  it("lets everyone pick, in any order, and keeps picks hidden from the others", () => {
+    const state = setup({ seats: 3, mode: "together" });
+    expect(movers(state)).toEqual([0, 1, 2]);
+    const picked = play(state, 2, legalMoves(state, 2)[0]).state;
+    expect(movers(picked)).toEqual([0, 1]);
+    expect(picked.turn).toBe(0);
+    expect(legalMoves(picked, 2)).toEqual([]);
+    expect(() => play(picked, 2, legalMoves(state, 2)[1])).toThrow(IllegalMoveError);
+    expect(view(picked, 0).picks).toEqual([null, null, "hidden"]);
+    expect(view(picked, 2).picks).toEqual([null, null, legalMoves(state, 2)[0]]);
+    expect(view(picked, null).picks).toEqual([null, null, "hidden"]);
+  });
+
+  it("moves everyone at once when the last pick is in", () => {
+    let state = setup({ mode: "together" });
+    const [a, b] = [legalMoves(state, 0)[0], legalMoves(state, 1)[0]];
+    state = play(state, 1, b).state;
+    const outcome = play(state, 0, a);
+    expect(outcome.state.at).toEqual([a, b]);
+    expect(outcome.state.round).toBe(1);
+    expect(outcome.state.picks).toEqual([null, null]);
+    expect(movers(outcome.state)).toEqual([0, 1]);
+    expect(outcome.state.last!.steps).toHaveLength(2);
+    expect(outcome.events.filter((event) => event.type === "step")).toHaveLength(2);
+  });
+
+  it("bumps players who pick the same tile: they stay put and the tile cracks", () => {
+    const centre = tileAt(0, 0);
+    const state = aroundTheMiddle([tileAt(-2, 0), tileAt(2, -2)]);
+    const outcome = play(play(state, 0, centre).state, 1, centre);
+    expect(outcome.state.at).toEqual(state.at);
+    expect(outcome.state.tiles[centre]).toBe(1);
+    expect(outcome.state.last!.bumps).toEqual([{ tile: centre, seats: [0, 1] }]);
+    expect(outcome.events).toContainEqual({ type: "bump", tile: centre, seats: [0, 1] });
+    expect(result(outcome.state)).toBeNull();
+  });
+
+  it("sinks a cracked tile that two players bump on, and lets players who fall in together share the win", () => {
+    const centre = tileAt(0, 0);
+    const state = aroundTheMiddle([], 1);
+    const outcome = play(play(state, 1, centre).state, 0, centre);
+    expect(outcome.state.tiles[centre]).toBeNull();
+    expect(outcome.state.last!.sank).toEqual([centre]);
+    expect(outcome.state.at).toEqual([null, null]);
+    expect(outcome.state.turn).toBeNull();
+    expect(result(outcome.state)).toEqual({ winners: [0, 1], scores: [1, 1] });
+  });
+
+  it("steps everyone who hasn't picked somewhere at random when time runs out", () => {
+    let state = setup({ seats: 4, mode: "together" });
+    state = play(state, 1, legalMoves(state, 1)[0]).state;
+    const outcome = timeOut(state, createRng(3));
+    expect(outcome.state.round).toBe(1);
+    expect(outcome.state.last!.steps.length + 2 * outcome.state.last!.bumps.length).toBeGreaterThanOrEqual(3);
+    expect(movers(outcome.state)).toEqual([0, 1, 2, 3]);
+  });
+
+  it.each([2, 3, 4])("always ends, with %i players picking at random", (seats) => {
+    const rng = createRng(10 + seats);
+    for (let game = 0; game < 30; game++) {
+      let state = setup({ seats, mode: "together" });
+      while (state.turn !== null) {
+        expect(state.round).toBeLessThanOrEqual(state.tiles.length * 2);
+        state = timeOut(state, rng).state;
+      }
+      const outcome = result(state)!;
+      expect(outcome.winners.length).toBeGreaterThanOrEqual(1);
+      for (const seat of outcome.winners) expect(outcome.scores[seat]).toBe(seats - 1);
     }
   });
 });
