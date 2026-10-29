@@ -82,7 +82,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
         color={config.swatches[seat]}
         stat={{ label: config.stat.label, value: config.stat.value(state, seat) }}
         active={turn === seat}
-        note={connected[seat] ? undefined : "offline"}
+        note={config.seatNote?.(state, seat) ?? (connected[seat] ? undefined : "offline")}
       />
     );
   };

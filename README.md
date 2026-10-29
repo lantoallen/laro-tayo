@@ -2,9 +2,11 @@
 
 Filipino games and classics you can play on your phone, at https://laro-tayo.vercel.app.
 
-There are fourteen games so far. Five are Filipino: Sungka, Dama (Filipino checkers), and Jak-en-poy (rock, paper, scissors) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link or the room code. Pusoy Dos, the card game, is played against one to three bots. Hulaan Mo is a guessing game for a group sharing one phone.
+There are fifteen games so far. Five are Filipino: Sungka, Dama (Filipino checkers), and Jak-en-poy (rock, paper, scissors) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link or the room code. Pusoy Dos, the card game, is played against one to three bots. Hulaan Mo is a guessing game for a group sharing one phone.
 
 The other nine are classics played everywhere: Four in a Row, Reversi, Dots and Boxes, Memory, Nine Men's Morris, Sea Battle, Tic-Tac-Toe, Snakes and Ladders, and Pig. They can be played the same three ways, except Sea Battle, which hides each player's ships and so is played against the bot or online. Snakes and Ladders, Pig, Memory, and Dots and Boxes take two to four players, and the rest are for two.
+
+Sinking Tiles was made for Laro Tayo!: two to four players step across tiles floating on the water, every tile sinks after its second step, and the last one standing wins. It can be played the same three ways.
 
 ## Running it
 
@@ -57,7 +59,7 @@ packages/games   Game rules in plain TypeScript, no React
   src/pusoy-dos  Pusoy Dos cards, rules, bots, and tests
   src/hulaan-mo  Hulaan Mo word packs, game logic, and tests
   src/four-in-a-row, src/reversi, src/dots-and-boxes, src/memory, src/morris, src/sea-battle,
-  src/tic-tac-toe, src/snakes-and-ladders, src/pig, src/jak-en-poy
+  src/tic-tac-toe, src/snakes-and-ladders, src/pig, src/jak-en-poy, src/sinking-tiles
                  Rules, bots, and tests for the games that share their screens
 packages/rooms   Online room logic: seats, turns, rematches, and the messages sent over the socket
 apps/server      The room server, a Cloudflare Worker
@@ -246,6 +248,16 @@ The snakes are drawn from the same points the pieces follow when they slide (`ap
 - The first to 100 points wins, as soon as they reach it.
 
 Each player's view leaves out the dice seed, so nobody can work out the next roll. Easy banks at 10 points, medium at 20, and hard adjusts around 20 depending on the score, taking more risks when behind and rolling on when anyone else is close to winning. Over 4,000 games each, medium beat easy 78% of the time, hard beat easy 80%, and hard beat medium 55%. In a game this lucky, that's about as much as skill can do.
+
+## Sinking Tiles rules
+
+- The board is a raft of hexagon tiles on the water: 37 tiles for two players, and a bigger one of 61 for three or four. Everyone starts on a corner.
+- On your turn, step onto a tile next to you that nobody is standing on.
+- The first step onto a tile cracks it. The second step onto it means it sinks as soon as that player steps off. Starting tiles count as already stepped on once.
+- If it's your turn and there's nowhere to step, your tile sinks with you on it and you're out. Turns skip players who are out.
+- The last one standing wins. The result scores each player by how many others they outlasted.
+
+Every tile can only be stepped on twice, so a game can't go on forever. Easy steps anywhere, but usually not onto a tile it couldn't step off again. Medium and hard score a position by how much room each player has: the steps left in the tiles they can reach before anyone else. Medium picks the step that looks best right away, and hard searches 6 steps ahead with two players, or 5 with more, assuming everyone else plays against it. Over 400 games each, medium beat easy 97% of the time, hard beat easy 100%, and hard beat medium 79%. Against three medium bots, hard won 49% of games, where chance would be 25%.
 
 ---
 

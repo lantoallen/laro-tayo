@@ -31,6 +31,8 @@ export interface BoardGameConfig<State, Move> {
   Rules: ComponentType;
   /** The number shown next to each player's name. */
   stat: { label: string; value: (state: State, seat: Seat) => number };
+  /** A word or two after a player's name, like "fell in" for a player who's out. */
+  seatNote?: (state: State, seat: Seat) => string | null;
   /** What to do on your turn, like "Pick a column." */
   prompt: string | ((state: State) => string);
   /** False for games with hidden pieces, which can't be shared on one screen. */

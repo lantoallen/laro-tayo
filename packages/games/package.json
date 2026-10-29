@@ -18,7 +18,8 @@
     "./tic-tac-toe": "./src/tic-tac-toe/index.ts",
     "./snakes-and-ladders": "./src/snakes-and-ladders/index.ts",
     "./pig": "./src/pig/index.ts",
-    "./jak-en-poy": "./src/jak-en-poy/index.ts"
+    "./jak-en-poy": "./src/jak-en-poy/index.ts",
+    "./sinking-tiles": "./src/sinking-tiles/index.ts"
   },
   "scripts": {
     "test": "vitest run",

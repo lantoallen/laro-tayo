@@ -91,6 +91,7 @@ export function LocalBoardGame<State, Move>({
         color={config.swatches[seat]}
         stat={{ label: config.stat.label, value: config.stat.value(state, seat) }}
         active={turn === seat}
+        note={config.seatNote?.(state, seat) ?? undefined}
       />
     );
   };
