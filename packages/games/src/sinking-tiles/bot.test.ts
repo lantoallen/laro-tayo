@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createRng, pick, type Rng } from "../engine/rng";
 import type { BotLevel, Seat } from "../engine/types";
 import { chooseMove, room } from "./bot";
-import { boardFor, legalMoves, play, result, setup, type TilesState } from "./rules";
+import { boardFor, legalMoves, movers, play, result, setup, type TilesState } from "./rules";
 
 const tileAt = (q: number, r: number) => boardFor(3).hexes.findIndex((h) => h.q === q && h.r === r);
 
@@ -90,5 +90,51 @@ describe("chooseMove", () => {
       if (playGame(["medium", "easy", "easy", "easy"], rng) === 0) wins++;
     }
     expect(wins).toBeGreaterThan(3);
+  });
+});
+
+describe("chooseMove when everyone moves at once", () => {
+  function playTogether(levels: BotLevel[], rng: Rng): Seat[] {
+    let state = setup({ seats: levels.length, mode: "together" });
+    while (state.turn !== null) {
+      for (const seat of movers(state)) {
+        state = play(state, seat, chooseMove(state, seat, { level: levels[seat], rng })).state;
+        if (state.turn === null) break;
+      }
+    }
+    return result(state)!.winners;
+  }
+
+  it.each<BotLevel>(["easy", "medium", "hard"])("always picks a legal step on %s", (level) => {
+    const rng = createRng(6);
+    for (const seats of [2, 4]) {
+      let state = setup({ seats, mode: "together" });
+      for (let round = 0; round < 8 && state.turn !== null; round++) {
+        for (const seat of movers(state)) {
+          const move = chooseMove(state, seat, { level, rng });
+          expect(legalMoves(state, seat)).toContain(move);
+          state = play(state, seat, move).state;
+          if (state.turn === null) break;
+        }
+      }
+    }
+  });
+
+  it("doesn't peek at picks already made", () => {
+    let state = setup({ mode: "together" });
+    const before = chooseMove(state, 0, { level: "medium", rng: createRng(1) });
+    state = play(state, 1, legalMoves(state, 1)[0]).state;
+    expect(chooseMove(state, 0, { level: "medium", rng: createRng(1) })).toBe(before);
+  });
+
+  it("hard beats easy most of the time", () => {
+    const rng = createRng(21);
+    let wins = 0;
+    for (let game = 0; game < 10; game++) {
+      const hardSeat = game % 2;
+      const winners = playTogether(hardSeat === 0 ? ["hard", "easy"] : ["easy", "hard"], rng);
+      if (winners.length === 1 && winners[0] === hardSeat) wins++;
+    }
+    expect(wins).toBeGreaterThanOrEqual(7);
   });
 });

@@ -14,7 +14,7 @@ import { MORRIS } from "@/components/morris/config";
 import { PIG } from "@/components/pig/config";
 import { REVERSI } from "@/components/reversi/config";
 import { SEA_BATTLE } from "@/components/sea-battle/config";
-import { SINKING_TILES } from "@/components/sinking-tiles/config";
+import { SINKING_TILES, SINKING_TILES_TOGETHER } from "@/components/sinking-tiles/config";
 import { SNAKES_AND_LADDERS } from "@/components/snakes-and-ladders/config";
 import { OnlineSungka } from "@/components/sungka/OnlineSungka";
 import { TIC_TAC_TOE } from "@/components/tic-tac-toe/config";
@@ -129,6 +129,8 @@ function Game(props: OnlineProps) {
       return <OnlineBoardGame config={JAK_EN_POY} {...props} />;
     case "sinking-tiles":
       return <OnlineBoardGame config={SINKING_TILES} {...props} />;
+    case "sinking-tiles-together":
+      return <OnlineBoardGame config={SINKING_TILES_TOGETHER} {...props} />;
     default:
       return <OnlineSungka {...props} />;
   }
