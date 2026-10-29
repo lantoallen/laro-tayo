@@ -36,13 +36,24 @@ async function makeRoom(game, players) {
 }
 
 /** One scripted player. Resolves with what it saw once the game is over. */
-function player(room, name, { react = false } = {}) {
+function player(room, name, { react = false, sitOut = false } = {}) {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(`${wsBase}/rooms/${room}/socket`);
     // `reactedAs` is the seat this player sent its reaction from. Players join all at once, so any seat can be theirs.
-    const seen = { versions: new Set(), turns: [], reactions: [], reactedAs: null, moves: 0, result: null };
+    const seen = {
+      versions: new Set(),
+      turns: [],
+      reactions: [],
+      reactedAs: null,
+      moves: 0,
+      result: null,
+      clocked: false,
+      satOut: false,
+    };
     let lastSent = -1;
     let reacted = false;
+    // A player who sits out the first round leaves it to the server's clock.
+    let sittingOut = sitOut ? null : false;
     const timer = setTimeout(() => {
       ws.close();
       reject(new Error(`${name} timed out`));
@@ -76,8 +87,18 @@ function player(room, name, { react = false } = {}) {
       const game = gameFor(snapshot.gameId);
       const turn = game.turn(snapshot.view);
       if (seen.turns.at(-1) !== turn) seen.turns.push(turn);
-      if (turn !== snapshot.you || lastSent === snapshot.moveCount) return;
-      lastSent = snapshot.moveCount;
+      // In a game where everyone picks at once, anyone still to pick can move.
+      const movers = game.movers ? game.movers(snapshot.view) : [turn];
+      if (snapshot.timeLeftMs !== null) seen.clocked = true;
+      // Updates from other players' picks can arrive before this player's pick lands, so pick once a round.
+      const moment = game.timer ? `${snapshot.round}-${game.timer.round(snapshot.view)}` : snapshot.moveCount;
+      if (!movers.includes(snapshot.you) || lastSent === moment) return;
+      if (sittingOut === null) sittingOut = moment;
+      if (sittingOut === moment) {
+        seen.satOut = true;
+        return;
+      }
+      lastSent = moment;
       seen.moves++;
       ws.send(JSON.stringify({ type: "move", move: pick(game.legalMoves(snapshot.view, snapshot.you)) }));
     });
@@ -87,7 +108,11 @@ function player(room, name, { react = false } = {}) {
 
 async function playGame(gameId, players) {
   const room = await makeRoom(gameId, players);
-  const seats = Array.from({ length: players }, (_, i) => player(room, `player-${i}`, { react: i === 0 }));
+  const clock = Boolean(gameFor(gameId).timer);
+  // In games against the clock, one player skips their first pick, so the server has to play it for them.
+  const seats = Array.from({ length: players }, (_, i) =>
+    player(room, `player-${i}`, { react: i === 0, sitOut: clock && i === players - 1 }),
+  );
   const seen = await Promise.all(seats);
   const result = JSON.stringify(seen[0].result);
   const problems = [];
@@ -99,9 +124,12 @@ async function playGame(gameId, players) {
   if (!seen.every((s) => s.reactions.some((r) => r.seat === sender && r.reaction === "gg"))) {
     problems.push("not everyone got the reaction");
   }
+  if (clock && !seen.every((s) => s.clocked)) problems.push("no clock was running");
+  if (clock && !seen.at(-1).satOut) problems.push("nobody sat out a round");
   // Turns go around the table in order. A player who gets another turn just keeps it for longer, and a player
   // who's out of the game, like a player who fell in in Sinking Tiles, is skipped from then on.
-  const order = seen[0].turns.filter((turn) => turn !== null);
+  // When everyone picks at once, there's no order to check.
+  const order = gameFor(gameId).movers ? [] : seen[0].turns.filter((turn) => turn !== null);
   const skipped = new Set();
   for (let i = 1; i < order.length; i++) {
     for (let seat = (order[i - 1] + 1) % players; seat !== order[i]; seat = (seat + 1) % players) skipped.add(seat);

@@ -43,6 +43,28 @@ export interface Game<State, Move, Event, View = State> {
   view(state: State, seat: Seat | null): View;
   result(state: State): GameResult | null;
   bot?(state: State, seat: Seat, options: BotOptions): Move;
+  /**
+   * Every seat that can move now, for games where players pick at the same
+   * time. Without it, only the seat whose turn it is can move.
+   */
+  movers?(state: State): Seat[];
+  /** For games played in rounds against the clock: how long each round lasts, and what happens when time runs out. */
+  timer?: RoundTimer<State, Event>;
+}
+
+export interface RoundTimer<State, Event> {
+  ms: number;
+  /** Which round the game is on. A new number starts the clock again. */
+  round(state: State): number;
+  /** Plays for everyone who hasn't moved yet when the time is up. */
+  timeOut(state: State, rng: Rng): MoveOutcome<State, Event>;
+}
+
+/** Every seat that can move now. */
+export function moversOf<State>(game: Game<State, unknown, unknown, unknown>, state: State): Seat[] {
+  if (game.movers) return game.movers(state);
+  const turn = game.turn(state);
+  return turn === null ? [] : [turn];
 }
 
 export class IllegalMoveError extends Error {

@@ -1,7 +1,8 @@
 "use client";
 
-import type { Seat } from "@laro/games";
+import { moversOf, type Seat } from "@laro/games";
 import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
+import { RoundClock } from "@/components/game/RoundClock";
 import {
   RoomBar,
   RoomResult,
@@ -50,7 +51,9 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
   const connected = room.seats.map((seat) => seat?.connected ?? false);
   const turn = game.turn(state);
   const outcome = game.result(state);
-  const yourMove = you !== null && turn === you;
+  // Usually just whoever's turn it is. In a game where everyone picks at once, everyone still to pick.
+  const movers = moversOf(game, state);
+  const yourMove = you !== null && movers.includes(you);
   const yourTurn = yourMove && status === "open" && !pending.waiting;
   useTurnTitle(yourMove);
   useMoveSound(config, state, room.moveCount, you);
@@ -61,13 +64,18 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
     if (send({ type: "move", move: next })) pending.markSent();
   }
 
-  const turnLabel = turn === null ? null : turn === you ? "Your turn" : `${names[turn]}'s turn`;
+  let turnLabel: string | null;
+  if (game.movers) turnLabel = yourMove ? "Your turn" : null;
+  else turnLabel = turn === null ? null : turn === you ? "Your turn" : `${names[turn]}'s turn`;
+  const badgeSeat = game.movers ? you : turn;
   let statusText: string;
   if (status === "reconnecting") statusText = "Connection lost. Reconnecting...";
   else if (turn === null) statusText = "Game over";
-  else if (turn === you && pending.waiting) statusText = "Sending your move...";
-  else if (turn === you) statusText = promptFor(config, state);
-  else if (!connected[turn]) statusText = `Waiting for ${names[turn]} to come back...`;
+  else if (yourMove && pending.waiting) statusText = "Sending your move...";
+  else if (yourMove) statusText = promptFor(config, state);
+  else if (game.movers && movers.some((seat) => !connected[seat])) {
+    statusText = "Waiting for the others. Anyone who doesn't pick in time steps at random.";
+  } else if (!connected[turn]) statusText = `Waiting for ${names[turn]} to come back...`;
   else statusText = config.othersTurn?.(state, names[turn]) ?? "Waiting for their move...";
 
   const errorNotice: Notice | null = error ? { tone: "bad", text: error } : null;
@@ -81,7 +89,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
         name={seat === you ? `${names[seat]} (you, ${color})` : `${names[seat]} (${color})`}
         color={config.swatches[seat]}
         stat={{ label: config.stat.label, value: config.stat.value(state, seat) }}
-        active={turn === seat}
+        active={movers.includes(seat)}
         note={config.seatNote?.(state, seat) ?? (connected[seat] ? undefined : "offline")}
       />
     );
@@ -106,11 +114,17 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
           send={send}
         />
       ) : (
-        <StatusLine
-          notice={notice}
-          status={statusText}
-          turn={turnLabel === null ? null : { label: turnLabel, color: config.swatches[turn!] }}
-        />
+        <>
+          {yourMove && room.timeLeftMs !== null && game.timer && (
+            // The server plays for you when time runs out, so the clock here only shows how long is left.
+            <RoundClock key={`${room.round}-${game.timer.round(state)}`} ms={room.timeLeftMs} />
+          )}
+          <StatusLine
+            notice={notice}
+            status={statusText}
+            turn={turnLabel === null ? null : { label: turnLabel, color: config.swatches[badgeSeat!] }}
+          />
+        </>
       )}
     </main>
   );
