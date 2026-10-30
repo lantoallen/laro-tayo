@@ -14,7 +14,7 @@ import {
 } from "@/components/room/online";
 import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
-import { promptFor, type BoardGameConfig } from "./types";
+import { colorWord, promptFor, type BoardGameConfig } from "./types";
 import { useMoveSound } from "./useMoveSound";
 
 type Props<State, Move> = OnlineProps & { config: BoardGameConfig<State, Move> };
@@ -82,7 +82,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
   const notice = errorNotice ?? config.notice?.(state, names, you) ?? null;
 
   const row = (seat: Seat) => {
-    const color = config.colors[seat].toLowerCase();
+    const color = colorWord(config.colors[seat]);
     return (
       <PlayerRow
         key={seat}

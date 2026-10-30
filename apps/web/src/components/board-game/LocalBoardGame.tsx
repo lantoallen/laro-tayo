@@ -11,7 +11,7 @@ import { resultTitle } from "@/components/game/results";
 import { LEVEL_LABELS, YOU, botName, type BoardGameSettings } from "@/components/game/settings";
 import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
-import { promptFor, type BoardGameConfig } from "./types";
+import { colorWord, promptFor, type BoardGameConfig } from "./types";
 import { useMoveSound } from "./useMoveSound";
 
 /** How long the bot waits before playing, so its move doesn't appear the instant yours lands. */
@@ -92,7 +92,7 @@ export function LocalBoardGame<State, Move>({
   const notice = outcome ? null : (config.notice?.(state, noticeNames, you) ?? null);
 
   const row = (seat: Seat) => {
-    const color = config.colors[seat].toLowerCase();
+    const color = colorWord(config.colors[seat]);
     let name = names[seat];
     if (vsBot && seat !== YOU) {
       name = config.botLevels === false ? `${name}, ${color}` : `${name} (${LEVEL_LABELS[settings.level]}), ${color}`;
