@@ -1,5 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import {
+  comeBack,
   createRoom,
   gameFor,
   isGameId,
@@ -17,7 +18,7 @@ import {
   RoomError,
   seatOf,
   snapshotFor,
-  timeOutRound,
+  timeOut,
   type MoveRecord,
   type Reaction,
   type Room,
@@ -167,6 +168,11 @@ export class RoomObject extends DurableObject<Env> {
         const { room: next, lastMove } = playMove(room, playerId, message.move, Date.now());
         await this.save(next);
         this.broadcast(next, lastMove);
+      } else if (message.type === "back") {
+        const next = comeBack(room, playerId, Date.now());
+        if (next === room) return;
+        await this.save(next);
+        this.broadcast(next);
       } else {
         const next = requestRematch(room, playerId, Date.now());
         await this.save(next);
@@ -188,16 +194,16 @@ export class RoomObject extends DurableObject<Env> {
     if (room) this.broadcast(room, undefined, ws);
   }
 
-  /** Goes off when a round's time is up, in games played against the clock, and a day after a room was last used. */
+  /** Goes off when time is up for a move, and a day after a room was last used. */
   async alarm(): Promise<void> {
     const room = await this.ctx.storage.get<Room>("room");
     if (!room) return;
     const now = Date.now();
     if (room.deadline != null && now >= room.deadline) {
-      if (this.players().length > 0) {
-        const next = timeOutRound(room, now, Math.random)!;
-        await this.save(next);
-        this.broadcast(next);
+      const timedOut = this.players().length > 0 ? timeOut(room, now, Math.random) : null;
+      if (timedOut) {
+        await this.save(timedOut.room);
+        this.broadcast(timedOut.room, timedOut.lastMove);
       } else {
         // Nobody's here, so stop the clock instead of playing the game out on its own. Coming back starts it again.
         await this.save(pauseClock(room));
@@ -216,7 +222,7 @@ export class RoomObject extends DurableObject<Env> {
     await this.schedule(room);
   }
 
-  /** One alarm does both jobs: the end of a round if a clock is running, otherwise a day from now. */
+  /** One alarm does both jobs: when time is up for a move if a clock is running, otherwise a day from now. */
   private async schedule(room: Room): Promise<void> {
     await this.ctx.storage.setAlarm(room.deadline ?? Date.now() + ROOM_LIFETIME_MS);
   }
