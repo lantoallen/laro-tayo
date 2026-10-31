@@ -56,6 +56,11 @@ export interface BoardGameConfig<State, Move> {
   sound: (state: State, you: Seat | null) => SoundName | null;
 }
 
+/** A seat's color as it reads after a name: "Ana, red". A single letter, like X in Tic-Tac-Toe, stays a capital. */
+export function colorWord(color: string): string {
+  return color.length === 1 ? color : color.toLowerCase();
+}
+
 export function promptFor<State, Move>(config: BoardGameConfig<State, Move>, state: State): string {
   return typeof config.prompt === "string" ? config.prompt : config.prompt(state);
 }

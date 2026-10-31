@@ -78,7 +78,7 @@ function FleetList({ fleet, shots }: { fleet: readonly Ship[]; shots: readonly S
         const sunk = isSunk(fleet[i], shots);
         return (
           <li key={i} className={`flex justify-between gap-2 ${sunk ? "text-muted line-through" : ""}`}>
-            <span>{SHIP_NAMES[i]}</span>
+            <span className="capitalize">{SHIP_NAMES[i]}</span>
             <span className="tabular-nums">{length}</span>
             {sunk && <span className="sr-only">, sunk</span>}
           </li>

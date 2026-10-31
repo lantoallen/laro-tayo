@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { moversOf, type Seat } from "@laro/games";
 import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
 import { RoundClock } from "@/components/game/RoundClock";
@@ -14,7 +15,7 @@ import {
 } from "@/components/room/online";
 import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
-import { promptFor, type BoardGameConfig } from "./types";
+import { colorWord, promptFor, type BoardGameConfig } from "./types";
 import { useMoveSound } from "./useMoveSound";
 
 type Props<State, Move> = OnlineProps & { config: BoardGameConfig<State, Move> };
@@ -53,7 +54,14 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
   const outcome = game.result(state);
   // Usually just whoever's turn it is. In a game where everyone picks at once, everyone still to pick.
   const movers = moversOf(game, state);
-  const yourMove = you !== null && movers.includes(you);
+  // When everyone moves at once, someone else's move can arrive before yours lands and still show you
+  // as picking. So once you've moved, wait for the next round, unless the server turned your move down.
+  const roundKey = game.movers && game.timer ? `${room.round}-${game.timer.round(state)}` : null;
+  const [movedIn, setMovedIn] = useState<string | null>(null);
+  // What the last move was sent for, set straight away, so a quick double tap can't send two before the screen updates.
+  const sentFor = useRef<string | number | null>(null);
+  const movedThisRound = roundKey !== null && movedIn === roundKey && error === null;
+  const yourMove = you !== null && movers.includes(you) && !movedThisRound;
   const yourTurn = yourMove && status === "open" && !pending.waiting;
   useTurnTitle(yourMove);
   useMoveSound(config, state, room.moveCount, you);
@@ -61,7 +69,12 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
   useRecordResult(game.id, "online", outcome?.winners ?? null, you, `${room.code}:${room.round}`);
 
   function move(next: Move) {
-    if (send({ type: "move", move: next })) pending.markSent();
+    const key = roundKey ?? room.moveCount;
+    if (sentFor.current === key && error === null) return;
+    if (!send({ type: "move", move: next })) return;
+    sentFor.current = key;
+    pending.markSent();
+    setMovedIn(roundKey);
   }
 
   let turnLabel: string | null;
@@ -82,7 +95,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
   const notice = errorNotice ?? config.notice?.(state, names, you) ?? null;
 
   const row = (seat: Seat) => {
-    const color = config.colors[seat].toLowerCase();
+    const color = colorWord(config.colors[seat]);
     return (
       <PlayerRow
         key={seat}
