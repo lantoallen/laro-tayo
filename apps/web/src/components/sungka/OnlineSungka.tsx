@@ -5,15 +5,19 @@ import { legalMoves, result, storeOf, type SungkaEvent, type SungkaState } from 
 import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
 import { SEAT_COLORS } from "@/components/game/settings";
 import {
+  onlineNote,
   RoomBar,
   RoomResult,
   roomNames,
   usePendingMove,
   useRoomMoves,
+  timedOutNotice,
   useTurnTitle,
   WaitingRoom,
+  waitingOn,
   type OnlineProps,
 } from "@/components/room/online";
+import { TurnClock } from "@/components/room/TurnClock";
 import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { Board } from "./Board";
@@ -47,7 +51,6 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   const names = roomNames(room);
   const bottom: Seat = you ?? 0;
   const top: Seat = bottom === 0 ? 1 : 0;
-  const connected = room.seats.map((seat) => seat?.connected ?? false);
   const yourMove = !sowing && you !== null && game.turn === you;
   const yourTurn = yourMove && status === "open" && !pending.waiting;
   const playable = yourTurn ? legalMoves(game, you) : [];
@@ -68,11 +71,10 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   else if (playing === null) statusText = "Game over";
   else if (sowing) statusText = "Sowing... Tap the board to skip ahead.";
   else if (playing === you) statusText = "Pick a house on your side.";
-  else if (!connected[playing]) statusText = `Waiting for ${names[playing]} to come back...`;
-  else statusText = "Waiting for their move...";
+  else statusText = waitingOn(room, playing, names) ?? "Waiting for their move...";
 
   const errorNotice: Notice | null = error ? { tone: "bad", text: error } : null;
-  const notice = over ? null : (errorNotice ?? latestNotice(events, names, you));
+  const notice = over ? null : (errorNotice ?? timedOutNotice(update) ?? latestNotice(events, names, you));
   const label = (seat: Seat) => (seat === you ? `${names[seat]} (you)` : names[seat]);
 
   return (
@@ -84,7 +86,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
         stat={{ label: "Store", value: board[storeOf(top)] }}
         active={playing === top}
         color={SEAT_COLOR[top]}
-        note={connected[top] ? undefined : "offline"}
+        note={onlineNote(room, top)}
       />
 
       <div className="relative">
@@ -116,9 +118,10 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
         stat={{ label: "Store", value: board[storeOf(bottom)] }}
         active={playing === bottom}
         color={SEAT_COLOR[bottom]}
-        note={connected[bottom] ? undefined : "offline"}
+        note={onlineNote(room, bottom)}
       />
 
+      <TurnClock room={room} send={send} />
       <StatusLine
         notice={notice}
         status={statusText}

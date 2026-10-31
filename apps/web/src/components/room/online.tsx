@@ -8,7 +8,7 @@ import type { ClientMessage, RoomSnapshot } from "@laro/rooms";
 import { LeaveButton } from "@/components/game/LeaveButton";
 import { RulesButton } from "@/components/game/RulesButton";
 import { SoundButton } from "@/components/game/SoundButton";
-import { PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON } from "@/components/game/parts";
+import { PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, type Notice } from "@/components/game/parts";
 import { listNames, resultTitle } from "@/components/game/results";
 import type { ConnectionStatus, RoomUpdate } from "@/lib/useRoom";
 import { ShareLink } from "./ShareLink";
@@ -28,6 +28,28 @@ export function roomNames(room: RoomSnapshot): [string, string] {
 /** Every seat's name, for rooms of any size. */
 export function seatNames(room: RoomSnapshot): string[] {
   return room.seats.map((seat, i) => seat?.name ?? `Player ${i + 1}`);
+}
+
+/** What to show next to a player's name: away while the bot plays for them, or offline. */
+export function onlineNote(room: RoomSnapshot, seat: Seat): string | undefined {
+  const player = room.seats[seat];
+  if (player?.away && room.phase === "playing") return "away";
+  return player?.connected ? undefined : "offline";
+}
+
+/** What to say while waiting on someone who's away or offline. Null if they're here. */
+export function waitingOn(room: RoomSnapshot, seat: Seat, names: readonly string[]): string | null {
+  const player = room.seats[seat];
+  if (player?.away) return `The bot is moving for ${names[seat]}...`;
+  return player?.connected ? null : `Waiting for ${names[seat]} to come back...`;
+}
+
+/** Says so when your time ran out and the bot moved for you. Once you're away, the away notice says it instead. */
+export function timedOutNotice({ room, lastMove }: RoomUpdate): Notice | null {
+  if (!lastMove?.timedOut || room.you === null || lastMove.seat !== room.you || room.seats[room.you]?.away) {
+    return null;
+  }
+  return { tone: "bad", text: "Time ran out, so the bot moved for you" };
 }
 
 /** Shown until everyone has opened the link. Pass `room` to show how many have joined. */

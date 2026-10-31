@@ -5,14 +5,18 @@ import { moversOf, type Seat } from "@laro/games";
 import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
 import { RoundClock } from "@/components/game/RoundClock";
 import {
+  onlineNote,
   RoomBar,
   RoomResult,
   seatNames,
+  timedOutNotice,
   usePendingMove,
   useTurnTitle,
   WaitingRoom,
+  waitingOn,
   type OnlineProps,
 } from "@/components/room/online";
+import { TurnClock } from "@/components/room/TurnClock";
 import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { colorWord, promptFor, type BoardGameConfig } from "./types";
@@ -88,11 +92,13 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
   else if (yourMove) statusText = promptFor(config, state);
   else if (game.movers && movers.some((seat) => !connected[seat])) {
     statusText = "Waiting for the others. Anyone who doesn't pick in time steps at random.";
-  } else if (!connected[turn]) statusText = `Waiting for ${names[turn]} to come back...`;
-  else statusText = config.othersTurn?.(state, names[turn]) ?? "Waiting for their move...";
+  } else {
+    statusText =
+      waitingOn(room, turn, names) ?? config.othersTurn?.(state, names[turn]) ?? "Waiting for their move...";
+  }
 
   const errorNotice: Notice | null = error ? { tone: "bad", text: error } : null;
-  const notice = errorNotice ?? config.notice?.(state, names, you) ?? null;
+  const notice = errorNotice ?? timedOutNotice(update) ?? config.notice?.(state, names, you) ?? null;
 
   const row = (seat: Seat) => {
     const color = colorWord(config.colors[seat]);
@@ -103,7 +109,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
         color={config.swatches[seat]}
         stat={{ label: config.stat.label, value: config.stat.value(state, seat) }}
         active={movers.includes(seat)}
-        note={config.seatNote?.(state, seat) ?? (connected[seat] ? undefined : "offline")}
+        note={config.seatNote?.(state, seat) ?? onlineNote(room, seat)}
       />
     );
   };
@@ -128,9 +134,14 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
         />
       ) : (
         <>
-          {yourMove && room.timeLeftMs !== null && game.timer && (
-            // The server plays for you when time runs out, so the clock here only shows how long is left.
-            <RoundClock key={`${room.round}-${game.timer.round(state)}`} ms={room.timeLeftMs} />
+          {game.timer ? (
+            yourMove &&
+            room.timeLeftMs !== null && (
+              // The server plays for you when time runs out, so the clock here only shows how long is left.
+              <RoundClock key={`${room.round}-${game.timer.round(state)}`} ms={room.timeLeftMs} />
+            )
+          ) : (
+            <TurnClock room={room} send={send} />
           )}
           <StatusLine
             notice={notice}

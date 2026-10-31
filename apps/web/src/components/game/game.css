@@ -150,6 +150,9 @@
 }
 
 @keyframes round-clock-run {
+  from {
+    transform: scaleX(var(--clock-from, 1));
+  }
   to {
     transform: scaleX(0);
   }
@@ -185,4 +188,17 @@
   .confetti {
     display: none;
   }
+}
+
+.away-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border: 2px solid var(--outline);
+  border-radius: 12px;
+  background: var(--surface);
+  font-weight: 600;
 }
