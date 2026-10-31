@@ -7,7 +7,7 @@ import type { MoveRecord, RoomSnapshot } from "./room";
  * The server sends it with every update, so a page that's out of step with the
  * server can say so instead of getting stuck.
  */
-export const ROOM_VERSION = 2;
+export const ROOM_VERSION = 3;
 
 /** The quick reactions players can send each other during a game. */
 export const REACTIONS = ["thumbs", "laugh", "wow", "cry", "nice", "gg"] as const;
@@ -17,11 +17,15 @@ export function isReaction(value: unknown): value is Reaction {
   return REACTIONS.includes(value as Reaction);
 }
 
-/** Messages a browser sends to its room. `hello` comes first and says who is connecting. */
+/**
+ * Messages a browser sends to its room. `hello` comes first and says who is connecting. `back` is from a player who
+ * was away and wants their turns back from the bot.
+ */
 export type ClientMessage =
   | { type: "hello"; playerId: string; name: string }
   | { type: "move"; move: unknown }
   | { type: "rematch" }
+  | { type: "back" }
   | { type: "react"; reaction: Reaction };
 
 /** Messages a room sends to each browser. Reactions are passed on as they come and never stored. */
@@ -93,6 +97,7 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
   }
   if (data.type === "move" && "move" in data) return { type: "move", move: data.move };
   if (data.type === "rematch") return { type: "rematch" };
+  if (data.type === "back") return { type: "back" };
   if (data.type === "react" && "reaction" in data && isReaction(data.reaction)) {
     return { type: "react", reaction: data.reaction };
   }
