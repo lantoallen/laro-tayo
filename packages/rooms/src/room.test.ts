@@ -132,8 +132,8 @@ describe("snapshotFor", () => {
     const snapshot = snapshotFor(room, ben.id, new Set([ben.id]));
     expect(snapshot.you).toBe(1);
     expect(snapshot.seats).toEqual([
-      { name: "Ana", connected: false },
-      { name: "Ben", connected: true },
+      { name: "Ana", connected: false, away: false },
+      { name: "Ben", connected: true, away: false },
     ]);
     expect(snapshot.phase).toBe("playing");
     expect(snapshot.view).toEqual(room.state);

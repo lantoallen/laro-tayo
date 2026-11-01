@@ -124,7 +124,8 @@ async function playGame(gameId, players) {
   if (!seen.every((s) => s.reactions.some((r) => r.seat === sender && r.reaction === "gg"))) {
     problems.push("not everyone got the reaction");
   }
-  if (clock && !seen.every((s) => s.clocked)) problems.push("no clock was running");
+  // Every game has a clock: rounds in games played at once, and turns in the rest.
+  if (!seen.every((s) => s.clocked)) problems.push("no clock was running");
   if (clock && !seen.at(-1).satOut) problems.push("nobody sat out a round");
   // Turns go around the table in order. A player who gets another turn just keeps it for longer, and a player
   // who's out of the game, like a player who fell in in Sinking Tiles, is skipped from then on.

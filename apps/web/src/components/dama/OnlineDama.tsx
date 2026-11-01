@@ -5,15 +5,19 @@ import { countPieces, fullMoves, legalMoves, result, type DamaEvent, type DamaSt
 import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
 import { SEAT_COLORS } from "@/components/game/settings";
 import {
+  onlineNote,
   RoomBar,
   RoomResult,
   roomNames,
   usePendingMove,
   useRoomMoves,
+  timedOutNotice,
   useTurnTitle,
   WaitingRoom,
+  waitingOn,
   type OnlineProps,
 } from "@/components/room/online";
+import { TurnClock } from "@/components/room/TurnClock";
 import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { DamaBoard } from "./DamaBoard";
@@ -48,7 +52,6 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   // Each player sees their own pieces at the bottom. Someone watching sees red at the bottom.
   const bottom: Seat = you ?? 0;
   const top: Seat = bottom === 0 ? 1 : 0;
-  const connected = room.seats.map((seat) => seat?.connected ?? false);
   const yourMove = !playing && you !== null && game.turn === you;
   const yourTurn = yourMove && status === "open" && !pending.waiting;
   const moves = yourTurn ? legalMoves(game, you) : [];
@@ -76,11 +79,13 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
   else if (turn === you && selection.length === 1) {
     statusText = mustCapture ? "Tap where to jump, or drag there." : "Tap where to move it, or drag it.";
   } else if (turn === you) statusText = mustCapture ? "You have to capture." : "Tap a piece or drag it.";
-  else if (!connected[turn]) statusText = `Waiting for ${names[turn]} to come back...`;
-  else statusText = "Waiting for their move...";
+  else statusText = waitingOn(room, turn, names) ?? "Waiting for their move...";
 
   const errorNotice: Notice | null = error ? { tone: "bad", text: error } : null;
-  const notice = over || selection.length > 0 ? null : (errorNotice ?? latestNotice(events, mover, names, you));
+  const notice =
+    over || selection.length > 0
+      ? null
+      : (errorNotice ?? timedOutNotice(update) ?? latestNotice(events, mover, names, you));
   const label = (seat: Seat) => {
     const color = seat === 0 ? "red" : "blue";
     return seat === you ? `${names[seat]} (you, ${color})` : `${names[seat]} (${color})`;
@@ -95,7 +100,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
         stat={{ label: "Pieces", value: countPieces(board, top) }}
         active={turn === top}
         color={seatColor(top)}
-        note={connected[top] ? undefined : "offline"}
+        note={onlineNote(room, top)}
       />
 
       <div className="relative mx-auto w-full max-w-[32rem]">
@@ -126,9 +131,10 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
         stat={{ label: "Pieces", value: countPieces(board, bottom) }}
         active={turn === bottom}
         color={seatColor(bottom)}
-        note={connected[bottom] ? undefined : "offline"}
+        note={onlineNote(room, bottom)}
       />
 
+      <TurnClock room={room} send={send} />
       <StatusLine
         notice={notice}
         status={statusText}
