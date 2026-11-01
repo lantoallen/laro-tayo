@@ -1,4 +1,5 @@
-// Plays a full Sungka game against a running room server with two fake players.
+// Plays a full Sungka game against a running room server with two fake players, then matches four people
+// looking for a game with anyone.
 //
 //   node apps/server/scripts/smoke-test.mjs                      # local server on port 8787
 //   node apps/server/scripts/smoke-test.mjs https://example.dev  # a deployed server
@@ -122,4 +123,39 @@ await until(lost, () => lost.closeCode !== null, "the missing room to close");
 check(lost.closeCode === 4404, "a link to a missing room closes with 4404");
 
 for (const client of [...players, cai]) client.ws.close();
+
+/** Someone looking for a game with anyone. A table of four, so a real player waiting for two isn't matched with it. */
+function seek(id) {
+  const ws = new WebSocket(`${wsBase}/match/snakes-and-ladders/4/socket`);
+  const client = { ws, here: 0, code: null, errors: [], closeCode: null, waiters: [] };
+  ws.addEventListener("open", () => ws.send(JSON.stringify({ type: "hello", playerId: id, name: "Seeker" })));
+  ws.addEventListener("message", (event) => {
+    const message = JSON.parse(event.data);
+    if (message.type === "waiting") client.here = message.here;
+    else if (message.type === "matched") client.code = message.code;
+    else client.errors.push(message.message);
+    for (const waiter of client.waiters.splice(0)) waiter();
+  });
+  ws.addEventListener("close", (event) => {
+    client.closeCode = event.code;
+    for (const waiter of client.waiters.splice(0)) waiter();
+  });
+  return client;
+}
+
+const run = Math.random().toString(36).slice(2, 8);
+const first = seek(`smoke-seek-${run}-0`);
+await until(first, () => first.here >= 1, "the lobby to count the first seeker");
+check(first.code === null, "someone looking alone waits in the lobby");
+const again = seek(`smoke-seek-${run}-0`);
+await until(first, () => first.closeCode !== null, "the first tab to stop looking");
+check(first.closeCode === 4409, "looking again in another tab takes over from the first");
+const seekers = [again, ...[1, 2, 3].map((i) => seek(`smoke-seek-${run}-${i}`))];
+for (const seeker of seekers) await until(seeker, () => seeker.code !== null, "a match");
+check(new Set(seekers.map((seeker) => seeker.code)).size === 1, "four people looking for the same game get the same room");
+const table = seekers.map((seeker, i) => connect(seeker.code, `smoke-seek-${run}-${i}`, `Seeker ${i}`));
+for (const client of table) await until(client, () => client.room?.phase === "playing", "the matched game to start");
+check(table.every((client) => client.room.you !== null), "everyone matched gets a seat and the game starts");
+for (const client of table) client.ws.close();
+
 console.log("All checks passed.");

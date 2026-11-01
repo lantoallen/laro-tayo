@@ -1,0 +1,49 @@
+.match-wait {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 2px solid var(--outline);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.match-dots {
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.match-dots span {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--yellow);
+  animation: match-bob 1.2s ease-in-out infinite;
+}
+
+.match-dots span:nth-child(2) {
+  background: var(--red);
+  animation-delay: 0.15s;
+}
+
+.match-dots span:nth-child(3) {
+  background: var(--blue);
+  animation-delay: 0.3s;
+}
+
+@keyframes match-bob {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-0.35rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .match-dots span {
+    animation: none;
+  }
+}

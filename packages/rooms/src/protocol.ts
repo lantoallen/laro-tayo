@@ -34,12 +34,24 @@ export type ServerMessage =
   | { type: "reaction"; seat: Seat; reaction: Reaction }
   | { type: "error"; message: string };
 
+/**
+ * Messages the lobby sends to someone looking for a game with anyone. `waiting` says how many are looking for the
+ * same game, them included. `matched` gives the room to go to.
+ */
+export type MatchMessage =
+  | { type: "waiting"; here: number; players: number }
+  | { type: "matched"; code: string }
+  | { type: "error"; message: string };
+
 /** Sent as a plain string and answered by the server without waking the room. */
 export const PING = "ping";
 export const PONG = "pong";
 
 /** Close code for a link to a room that doesn't exist or has expired. */
 export const ROOM_NOT_FOUND = 4404;
+
+/** Close code for someone looking for a game in another tab, which takes over from this one. */
+export const LOOKING_ELSEWHERE = 4409;
 
 /** Letters and digits that are hard to mix up when read aloud or typed (no I, L, O, 0, or 1). */
 const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
