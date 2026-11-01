@@ -35,3 +35,14 @@ export function socketUrl(code: string): string {
 export function roomPath(code: string): string {
   return `/room/${code}`;
 }
+
+/** The page where someone waits to be matched with anyone else who wants the same game. */
+export function matchPath(game: GameId, players: number): string {
+  return `/match/${game}/${players}`;
+}
+
+export function matchSocketUrl(game: GameId, players: number): string {
+  const url = new URL(`${ROOMS_URL}/match/${game}/${players}/socket`);
+  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+  return url.toString();
+}

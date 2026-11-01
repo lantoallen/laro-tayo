@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { Seat } from "@laro/games";
 import { firstSeatFor } from "@/components/game/settings";
 import { savePlayerName } from "@/lib/player";
-import { createRoom, roomPath } from "@/lib/rooms";
+import { createRoom, matchPath, roomPath } from "@/lib/rooms";
 import { DamaGame } from "./DamaGame";
 import { DamaSetup } from "./DamaSetup";
 import { DEFAULT_SETTINGS, type DamaSettings } from "./settings";
@@ -16,9 +16,9 @@ export function DamaApp() {
 
   const router = useRouter();
 
-  async function startOnline(name: string) {
+  async function startOnline(name: string, anyone: boolean) {
     savePlayerName(name);
-    router.push(roomPath(await createRoom("dama")));
+    router.push(anyone ? matchPath("dama", 2) : roomPath(await createRoom("dama")));
   }
 
   function start() {

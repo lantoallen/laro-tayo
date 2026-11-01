@@ -5,7 +5,7 @@ import { useState, type ReactNode } from "react";
 import type { Seat } from "@laro/games";
 import { DEFAULT_BOARD_GAME, firstSeatFor, type BoardGameSettings } from "@/components/game/settings";
 import { savePlayerName } from "@/lib/player";
-import { createRoom, roomPath } from "@/lib/rooms";
+import { createRoom, matchPath, roomPath } from "@/lib/rooms";
 import { BoardGameSetup } from "./BoardGameSetup";
 import { LocalBoardGame } from "./LocalBoardGame";
 import type { BoardGameConfig } from "./types";
@@ -27,10 +27,10 @@ export function BoardGameApp<State, Move>({
   const [match, setMatch] = useState<{ id: number; firstSeat: Seat } | null>(null);
   const router = useRouter();
 
-  async function startOnline(name: string) {
+  async function startOnline(name: string, anyone: boolean) {
     if (!config.roomId) return;
     savePlayerName(name);
-    router.push(roomPath(await createRoom(config.roomId, players)));
+    router.push(anyone ? matchPath(config.roomId, players) : roomPath(await createRoom(config.roomId, players)));
   }
 
   function start() {

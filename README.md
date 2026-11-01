@@ -26,7 +26,7 @@ cp apps/web/.env.example apps/web/.env.local
 npm run dev:server
 ```
 
-The room server runs on http://localhost:8787 using Cloudflare's local runtime, so you don't need a Cloudflare account to work on it. With both running, this plays a full game against it with two fake players:
+The room server runs on http://localhost:8787 using Cloudflare's local runtime, so you don't need a Cloudflare account to work on it. With both running, this plays a full game against it with two fake players, then checks that four people looking for a game with anyone end up in the same room:
 
 ```bash
 node apps/server/scripts/smoke-test.mjs
@@ -85,6 +85,7 @@ Each room is a [Durable Object](https://developers.cloudflare.com/durable-object
 - A room is made for a set number of players, two to four for the games that allow it, and the game starts once every seat is filled. A rematch starts when everyone in the room asks for one.
 - After each move the room sends every player their own view of the game plus the move's events, and each screen animates the move from those events.
 - Friends join from the invite link, or by typing the 5-character room code into the box on the games page. Codes leave out I, L, O, 0, and 1 so they're easy to read out loud. The box also takes a pasted link.
+- Players without a friend to invite can pick "Anyone" instead. They wait in a lobby, another Durable Object (`LobbyObject` in `apps/server/src/index.ts`), with everyone else looking for the same game and number of players. Once there are enough of them, the lobby makes a room, sends them all its code, and they join it like any other room. Whoever has waited longest is matched first. The lobby keeps nothing in storage, since whoever is connected is who's waiting. After 30 seconds alone, the waiting page says nobody else is looking right now.
 - A browser keeps a random player id. If the connection drops, it reconnects with the same id and gets its seat back. Anyone who opens the link after every seat is taken watches.
 - The id is sent in the first message over the socket, not in the URL, so it doesn't end up in request logs.
 - Rooms use WebSocket hibernation, so a room costs nothing while players think, and a room with no games for a day deletes itself.

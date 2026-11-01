@@ -13,6 +13,7 @@ import {
   type PlayMode,
 } from "@/components/game/settings";
 import { NameField } from "@/components/room/NameField";
+import { PlayWithField, type PlayWith } from "@/components/room/PlayWith";
 import { usePlayer } from "@/lib/player";
 import { ONLINE_ENABLED } from "@/lib/rooms";
 import { useIsOnline } from "@/lib/useIsOnline";
@@ -30,8 +31,8 @@ export function BoardGameSetup<State, Move>({
   settings: BoardGameSettings;
   onChange: (settings: BoardGameSettings) => void;
   onStart: () => void;
-  /** Makes a room and goes to it. Rejects with a message to show if that fails. */
-  onStartOnline: (name: string) => Promise<void>;
+  /** Makes a room and goes to it, or goes to look for anyone to play. Rejects with a message to show if that fails. */
+  onStartOnline: (name: string, anyone: boolean) => Promise<void>;
   choices?: ReactNode;
 }) {
   const { Rules } = config;
@@ -41,6 +42,8 @@ export function BoardGameSetup<State, Move>({
   // Null until the player types, so a saved name can fill the box once it loads.
   const [typedName, setTypedName] = useState<string | null>(null);
   const name = typedName ?? saved?.name ?? "";
+  const [playWith, setPlayWith] = useState<PlayWith>("friends");
+  const anyone = online && playWith === "anyone";
   const [creating, setCreating] = useState(false);
   const connected = useIsOnline();
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +68,7 @@ export function BoardGameSetup<State, Move>({
           if (!online) return onStart();
           setCreating(true);
           setError(null);
-          onStartOnline(name).catch((reason: unknown) => {
+          onStartOnline(name, anyone).catch((reason: unknown) => {
             setCreating(false);
             setError(reason instanceof Error ? reason.message : "Couldn't make a room. Try again.");
           });
@@ -85,9 +88,14 @@ export function BoardGameSetup<State, Move>({
         />
         {settings.mode === "local" && <p className="-mt-3 text-sm text-muted">Take turns on one phone.</p>}
         {online && (
-          <p className="-mt-3 text-sm text-muted">
-            You&apos;ll get a link to send to {others === 1 ? "a friend" : "your friends"}.
-          </p>
+          <>
+            <PlayWithField value={playWith} onChange={setPlayWith} />
+            <p className="-mt-3 text-sm text-muted">
+              {anyone
+                ? "You'll play whoever else is looking for a game right now."
+                : `You'll get a link to send to ${others === 1 ? "a friend" : "your friends"}.`}
+            </p>
+          </>
         )}
 
         {counts.length > 1 && (
@@ -103,7 +111,7 @@ export function BoardGameSetup<State, Move>({
               {vsBot
                 ? `You and ${others === 1 ? "1 bot" : `${others} bots`}.`
                 : online
-                  ? `You and ${others === 1 ? "1 friend" : `${others} friends`}, each on their own phone.`
+                  ? `You and ${others} ${anyone ? "other" : "friend"}${others === 1 ? "" : "s"}, each on their own phone.`
                   : `${players} people sharing one phone.`}
             </p>
           </div>
@@ -136,7 +144,7 @@ export function BoardGameSetup<State, Move>({
         )}
 
         <button type="submit" disabled={creating || (online && !connected)} className="btn btn-primary w-full py-3.5">
-          {!online ? "Start" : creating ? "Making a room..." : "Make a room"}
+          {!online ? "Start" : anyone ? "Find a game" : creating ? "Making a room..." : "Make a room"}
         </button>
         {error && (
           <p role="alert" className="-mt-2 text-sm text-red">
