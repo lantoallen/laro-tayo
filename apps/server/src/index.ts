@@ -6,6 +6,7 @@ import {
   isGameId,
   isRoomCode,
   joinRoom,
+  LOOKING_ELSEWHERE,
   makeRoomCode,
   parseClientMessage,
   pauseClock,
@@ -19,6 +20,8 @@ import {
   seatOf,
   snapshotFor,
   timeOut,
+  type GameId,
+  type MatchMessage,
   type MoveRecord,
   type Reaction,
   type Room,
@@ -85,13 +88,21 @@ export default {
         return json({ error: `${game.name} is played by ${minSeats} to ${maxSeats} players.` }, 400, origin);
       }
 
-      // Codes are random, so a clash is rare. Try a few times before giving up.
-      for (let attempt = 0; attempt < 5; attempt++) {
-        const code = makeRoomCode(Math.random);
-        const room = env.ROOMS.get(env.ROOMS.idFromName(code));
-        if (await room.create(code, gameId, players)) return json({ code }, 201, origin);
-      }
+      const code = await makeRoom(env, gameId, players);
+      if (code) return json({ code }, 201, origin);
       return json({ error: "Couldn't make a room. Try again." }, 503, origin);
+    }
+
+    // Everyone looking for a game with anyone waits in the one lobby.
+    const match = url.pathname.match(/^\/match\/([^/]+)\/(\d)\/socket$/);
+    if (match) {
+      if (request.headers.get("Upgrade") !== "websocket") return json({ error: "Expected a WebSocket" }, 426, origin);
+      const [, gameId, count] = match;
+      const players = Number(count);
+      if (!isGameId(gameId)) return json({ error: "Unknown game" }, 404, origin);
+      const { minSeats, maxSeats } = gameFor(gameId);
+      if (players < minSeats || players > maxSeats) return json({ error: "Wrong number of players" }, 400, origin);
+      return env.LOBBY.get(env.LOBBY.idFromName("lobby")).fetch(request);
     }
 
     const socket = url.pathname.match(/^\/rooms\/([^/]+)\/socket$/);
@@ -105,6 +116,16 @@ export default {
     return json({ error: "Not found" }, 404, origin);
   },
 } satisfies ExportedHandler<Env>;
+
+/** Makes a room with a fresh code. Returns null if every code tried was taken. */
+async function makeRoom(env: Env, gameId: GameId, players: number): Promise<string | null> {
+  // Codes are random, so a clash is rare. Try a few times before giving up.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = makeRoomCode(Math.random);
+    if (await env.ROOMS.get(env.ROOMS.idFromName(code)).create(code, gameId, players)) return code;
+  }
+  return null;
+}
 
 /**
  * One room. It keeps the game state, decides whose move counts, and sends every
@@ -262,5 +283,111 @@ export class RoomObject extends DurableObject<Env> {
         // Already closing.
       }
     }
+  }
+}
+
+/** Stored on each socket in the lobby. */
+interface SeekerInfo {
+  /** Which game and how many players, like "dama/2". Only people looking for the same thing are matched. */
+  wants: string;
+  playerId: string | null;
+  /** When they started looking, so whoever waited longest is matched first. */
+  since: number;
+  /** Set once they're put in a room, while the room is being made. */
+  matched?: boolean;
+}
+
+/**
+ * The lobby, where people looking for a game with anyone wait. Once enough
+ * people want the same game, it makes a room, tells them its code, and they
+ * join it like any other room. Nothing is stored: whoever is connected is who's
+ * waiting.
+ */
+export class LobbyObject extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env);
+    this.ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair(PING, PONG));
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    const [, gameId, players] = new URL(request.url).pathname.split("/").slice(1);
+    const [client, server] = Object.values(new WebSocketPair());
+    const wants = `${gameId}/${players}`;
+    this.ctx.acceptWebSocket(server, [wants]);
+    server.serializeAttachment({ wants, playerId: null, since: Date.now() } satisfies SeekerInfo);
+    return new Response(null, { status: 101, webSocket: client });
+  }
+
+  async webSocketMessage(ws: WebSocket, raw: string | ArrayBuffer): Promise<void> {
+    const message = parseClientMessage(raw);
+    const info = ws.deserializeAttachment() as SeekerInfo;
+    if (message?.type !== "hello" || info.playerId !== null) return;
+    // The same player looking in two tabs would be matched with themselves, so the older tab stops looking.
+    for (const other of this.seekers(info.wants)) {
+      if (other.info.playerId === message.playerId) other.ws.close(LOOKING_ELSEWHERE, "Looking in another tab");
+    }
+    ws.serializeAttachment({ ...info, playerId: message.playerId } satisfies SeekerInfo);
+    await this.match(info.wants);
+  }
+
+  async webSocketClose(ws: WebSocket, code: number): Promise<void> {
+    const { wants } = ws.deserializeAttachment() as SeekerInfo;
+    try {
+      ws.close(code === 1005 ? 1000 : code, "Closing");
+    } catch {
+      // Already closed.
+    }
+    this.tellWaiting(wants, ws);
+  }
+
+  /** Puts the people who have waited longest in rooms, as many rooms as there are people for. */
+  private async match(wants: string): Promise<void> {
+    const [gameId, count] = wants.split("/");
+    const players = Number(count);
+    let waiting = this.seekers(wants);
+    while (waiting.length >= players) {
+      const group = waiting.slice(0, players);
+      waiting = waiting.slice(players);
+      // Marked before the room is made, since someone else can arrive while we wait for it.
+      for (const { ws, info } of group) ws.serializeAttachment({ ...info, matched: true } satisfies SeekerInfo);
+      const code = await makeRoom(this.env, gameId as GameId, players);
+      const message: MatchMessage = code ? { type: "matched", code } : { type: "error", message: "Couldn't make a room. Try again." };
+      for (const { ws } of group) {
+        try {
+          ws.send(JSON.stringify(message));
+          ws.close(1000, "Matched");
+        } catch {
+          // They left just now. The others go to the room and wait there.
+        }
+      }
+    }
+    this.tellWaiting(wants);
+  }
+
+  /** Tells everyone still looking for this game how many are looking. */
+  private tellWaiting(wants: string, leaving?: WebSocket): void {
+    const waiting = this.seekers(wants).filter(({ ws }) => ws !== leaving);
+    const message = JSON.stringify({
+      type: "waiting",
+      here: waiting.length,
+      players: Number(wants.split("/")[1]),
+    } satisfies MatchMessage);
+    for (const { ws } of waiting) {
+      try {
+        ws.send(message);
+      } catch {
+        // Already closing.
+      }
+    }
+  }
+
+  /** Everyone who has said hello and is still looking for this game, longest waiting first. */
+  private seekers(wants: string): { ws: WebSocket; info: SeekerInfo }[] {
+    return this.ctx
+      .getWebSockets(wants)
+      .filter((ws) => ws.readyState === WebSocket.OPEN)
+      .map((ws) => ({ ws, info: ws.deserializeAttachment() as SeekerInfo }))
+      .filter(({ info }) => info.playerId !== null && !info.matched)
+      .sort((a, b) => a.info.since - b.info.since);
   }
 }
