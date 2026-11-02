@@ -3,7 +3,8 @@ export function Logo({ large = false, className = "" }: { large?: boolean; class
   return (
     <span role="img" aria-label="Laro Tayo!" className={`sign ${large ? "sign-large" : ""} ${className}`}>
       <span aria-hidden="true">LARO</span>
-      <span aria-hidden="true" className="text-[#ce1126]">
+      {/* A deeper red than the flag's, so the small sign in the header is easy to read on the yellow. */}
+      <span aria-hidden="true" className="text-[#b3101f]">
         TAYO!
       </span>
     </span>

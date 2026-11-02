@@ -118,20 +118,21 @@ function Looking({
         The game starts as soon as {others === 1 ? "they're" : "everyone's"} found.
       </p>
 
-      <div className="match-wait mt-6" aria-live="polite">
+      <div className="match-wait mt-6">
         <span className="match-dots" aria-hidden="true">
           <span />
           <span />
           <span />
         </span>
-        <span className="font-semibold">
+        {/* Only this is read out as it changes. The time ticks every second, so it isn't. */}
+        <span className="font-semibold" aria-live="polite">
           {status === "reconnecting"
             ? "Connection lost. Reconnecting..."
             : players > 2
               ? `${here} of ${players} players here`
               : "Waiting for another player"}
         </span>
-        <span className="ml-auto font-mono text-muted tabular-nums" aria-label={`Waited ${seconds} seconds`}>
+        <span className="ml-auto font-mono text-muted tabular-nums" aria-hidden="true">
           {waited}
         </span>
       </div>

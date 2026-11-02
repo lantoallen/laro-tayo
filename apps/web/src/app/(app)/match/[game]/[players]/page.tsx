@@ -5,6 +5,7 @@ import { RoomMessage } from "@/components/room/RoomMessage";
 
 export const metadata: Metadata = {
   title: "Finding a game",
+  description: "Waiting for someone else who wants to play the same game on Laro Tayo!",
   robots: { index: false },
 };
 

@@ -13,7 +13,8 @@ const LOOKS: Record<Reaction, { text: string; label: string }> = {
   wow: { text: "😮", label: "Wow" },
   cry: { text: "😭", label: "Crying" },
   nice: { text: "Nice!", label: "Nice!" },
-  gg: { text: "GG", label: "Good game" },
+  // Names start with the text on the button, so someone using voice control can say what they see.
+  gg: { text: "GG", label: "GG, good game" },
 };
 
 /** Matches the gap the server keeps between one player's reactions. */
