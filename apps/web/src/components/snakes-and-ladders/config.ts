@@ -8,6 +8,7 @@ import {
   type SnakesState,
 } from "@laro/games/snakes-and-ladders";
 import type { BoardGameConfig } from "@/components/board-game/types";
+import { who } from "@/components/game/MoveSaid";
 import type { Notice } from "@/components/game/parts";
 import { FOUR_COLORS, FOUR_SWATCHES } from "@/components/game/settings";
 import { Rules } from "./Rules";
@@ -75,8 +76,30 @@ function botDelayMs(state: SnakesState): number {
   return 900;
 }
 
+/** The last roll in words, like "The bot rolled a 4 and moved to square 12, then climbed a ladder to square 30." */
+function said(state: SnakesState, names: readonly string[], you: Seat | null): string | null {
+  // Partway through a turn: say the roll, then nothing for each step, since the next square is on the focused button.
+  if (state.moving) {
+    return state.lastMove === "roll" && state.turn !== null
+      ? `${who(state.turn, names, you)} rolled a ${state.moving.roll}.`
+      : null;
+  }
+  const last = state.last;
+  if (!last) return null;
+  const name = who(last.seat, names, you);
+  if (last.landed === last.from) return `${name} rolled a ${last.roll}, too many to finish, and stayed on square ${last.from}.`;
+  const jump =
+    last.jump === "ladder"
+      ? `, then climbed a ladder to square ${last.to}`
+      : last.jump === "snake"
+        ? `, then slid down a snake to square ${last.to}`
+        : "";
+  return `${name} rolled a ${last.roll} and moved to square ${last.landed}${jump}.`;
+}
+
 export const SNAKES_AND_LADDERS: BoardGameConfig<SnakesState, SnakesMove> = {
   game: snakesAndLadders,
+  said,
   href: "/snakes-and-ladders",
   roomId: "snakes-and-ladders",
   tagline: "Roll the die, move your piece, climb the ladders, and watch out for snakes.",

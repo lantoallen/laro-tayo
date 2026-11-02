@@ -1,9 +1,10 @@
 import type { Seat } from "@laro/games";
 import { SHIP_NAMES, otherSeat, seaBattle, shipsLeft, type SeaMove, type SeaState } from "@laro/games/sea-battle";
 import type { BoardGameConfig } from "@/components/board-game/types";
+import { who } from "@/components/game/MoveSaid";
 import { SEAT_COLORS } from "@/components/game/settings";
 import type { Notice } from "@/components/game/parts";
-import { SeaBoard } from "./SeaBoard";
+import { SeaBoard, cellName } from "./SeaBoard";
 import { Rules } from "./Rules";
 
 /** Says what the last shot did: a miss, a hit, or a ship sunk. */
@@ -26,8 +27,17 @@ function notice(state: SeaState, names: readonly string[], you: Seat | null): No
   return { tone: "good", text: sunkName ? `${shooter} sank a ${sunkName}` : `${shooter} hit a ship` };
 }
 
+/** The last shot in words, like "The bot fired at C4. A hit, and it sank a cruiser." */
+function said(state: SeaState, names: readonly string[], you: Seat | null): string | null {
+  if (!state.last) return null;
+  const { seat, cell, hit, sunk } = state.last;
+  const outcome = !hit ? "A miss." : sunk === null ? "A hit." : `A hit, and it sank a ${SHIP_NAMES[sunk]}.`;
+  return `${who(seat, names, you)} fired at ${cellName(cell)}. ${outcome}`;
+}
+
 export const SEA_BATTLE: BoardGameConfig<SeaState, SeaMove> = {
   game: seaBattle,
+  said,
   href: "/sea-battle",
   roomId: "sea-battle",
   tagline: "Find the other side's hidden ships and sink them all first.",

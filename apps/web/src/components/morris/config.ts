@@ -1,6 +1,7 @@
 import type { Seat } from "@laro/games";
 import { canFly, morris, otherSeat, piecesLeft, type MorrisMove, type MorrisState } from "@laro/games/morris";
 import type { BoardGameConfig } from "@/components/board-game/types";
+import { who } from "@/components/game/MoveSaid";
 import { SEAT_COLORS } from "@/components/game/settings";
 import type { Notice } from "@/components/game/parts";
 import { MorrisBoard } from "./MorrisBoard";
@@ -31,8 +32,19 @@ function notice(state: MorrisState, names: readonly string[], you: Seat | null):
   return { tone: you === null ? "good" : "bad", text: `${names[last.seat]} took one of ${whose} pieces` };
 }
 
+/** The last move in words, like "The bot moved a piece from point 3 to point 4 and took the piece on point 9." */
+function said(state: MorrisState, names: readonly string[], you: Seat | null): string | null {
+  const last = state.last;
+  if (!last || last.to === null) return null;
+  const moved =
+    last.from === null ? `placed a piece on point ${last.to + 1}` : `moved a piece from point ${last.from + 1} to point ${last.to + 1}`;
+  const took = last.taken === null ? "" : ` and took the piece on point ${last.taken + 1}`;
+  return `${who(last.seat, names, you)} ${moved}${took}.`;
+}
+
 export const MORRIS: BoardGameConfig<MorrisState, MorrisMove> = {
   game: morris,
+  said,
   href: "/nine-mens-morris",
   roomId: "morris",
   tagline: "Make lines of three to take the other player's pieces.",

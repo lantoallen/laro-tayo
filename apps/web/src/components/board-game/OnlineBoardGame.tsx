@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { moversOf, type Seat } from "@laro/games";
 import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
 import { RoundClock } from "@/components/game/RoundClock";
+import { MoveSaid } from "@/components/game/MoveSaid";
 import { useBoardFocus } from "@/components/game/useBoardFocus";
 import {
   onlineNote,
@@ -101,6 +102,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
 
   const errorNotice: Notice | null = error ? { tone: "bad", text: error } : null;
   const notice = errorNotice ?? timedOutNotice(update) ?? config.notice?.(state, names, you) ?? null;
+  const said = room.moveCount === 0 ? null : (config.said?.(state, names, you) ?? null);
 
   const row = (seat: Seat) => {
     const color = colorWord(config.colors[seat]);
@@ -152,6 +154,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
           />
         </>
       )}
+      <MoveSaid text={said} moment={room.moveCount} />
     </main>
   );
 }

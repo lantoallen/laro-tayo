@@ -9,6 +9,7 @@ import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { resultTitle } from "@/components/game/results";
 import { LEVEL_LABELS, YOU, botName, type BoardGameSettings } from "@/components/game/settings";
+import { MoveSaid } from "@/components/game/MoveSaid";
 import { useBoardFocus } from "@/components/game/useBoardFocus";
 import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
@@ -92,6 +93,7 @@ export function LocalBoardGame<State, Move>({
   // In a game against one bot, the messages say "the bot".
   const noticeNames = vsBot && players === 2 ? ["You", "The bot"] : names;
   const notice = outcome ? null : (config.notice?.(state, noticeNames, you) ?? null);
+  const said = moves === 0 ? null : (config.said?.(state, noticeNames, you) ?? null);
 
   const row = (seat: Seat) => {
     const color = colorWord(config.colors[seat]);
@@ -163,6 +165,7 @@ export function LocalBoardGame<State, Move>({
           />
         </>
       )}
+      <MoveSaid text={said} moment={moves} />
     </main>
   );
 }

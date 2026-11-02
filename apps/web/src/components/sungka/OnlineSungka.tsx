@@ -4,6 +4,7 @@ import type { Seat } from "@laro/games";
 import { legalMoves, result, storeOf, type SungkaEvent, type SungkaState } from "@laro/games/sungka";
 import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
 import { SEAT_COLORS } from "@/components/game/settings";
+import { MoveSaid } from "@/components/game/MoveSaid";
 import { useBoardFocus } from "@/components/game/useBoardFocus";
 import {
   onlineNote,
@@ -23,7 +24,7 @@ import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { Board } from "./Board";
 import { Rules } from "./Rules";
-import { latestNotice } from "./notices";
+import { latestNotice, saidFor } from "./notices";
 import { useSowing } from "./useSowing";
 
 /** Sungka has no piece colors, so each side gets one for its row and turn badge. */
@@ -129,6 +130,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
         status={statusText}
         turn={turnLabel === null ? null : { label: turnLabel, color: SEAT_COLOR[playing!] }}
       />
+      <MoveSaid text={saidFor(events, names, you)} moment={room.moveCount} />
     </main>
   );
 }

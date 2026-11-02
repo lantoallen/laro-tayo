@@ -8,12 +8,13 @@ import { RulesButton } from "@/components/game/RulesButton";
 import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { SEAT_COLORS } from "@/components/game/settings";
+import { MoveSaid } from "@/components/game/MoveSaid";
 import { useBoardFocus } from "@/components/game/useBoardFocus";
 import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { Board } from "./Board";
 import { Rules } from "./Rules";
-import { latestNotice } from "./notices";
+import { latestNotice, saidFor } from "./notices";
 import { LEVEL_LABELS, seatNames, type SungkaSettings } from "./settings";
 import { DELAYS, useSowing, type Speed } from "./useSowing";
 
@@ -147,6 +148,7 @@ export function SungkaGame({
         status={status}
         turn={turnLabel === null ? null : { label: turnLabel, color: SEAT_COLOR[playing!] }}
       />
+      <MoveSaid text={saidFor(events, vsBot ? ["You", "The bot"] : names, vsBot ? 0 : null)} moment={game.turns} />
     </main>
   );
 }
