@@ -8,6 +8,7 @@ import { RulesButton } from "@/components/game/RulesButton";
 import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { SEAT_COLORS } from "@/components/game/settings";
+import { useBoardFocus } from "@/components/game/useBoardFocus";
 import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { Board } from "./Board";
@@ -31,6 +32,7 @@ export function SungkaGame({
   onRematch: () => void;
   onExit: () => void;
 }) {
+  const boardRef = useBoardFocus<HTMLDivElement>();
   const [speed, setSpeed] = useState<Speed>("normal");
   const { game, sowing, frame, events, board, move, finish } = useSowing(() => setup({ firstSeat }), speed);
 
@@ -106,7 +108,7 @@ export function SungkaGame({
         color={SEAT_COLOR[1]}
       />
 
-      <div className="relative">
+      <div className="relative" ref={boardRef} tabIndex={-1} role="group" aria-label="Board">
         <Board
           board={board}
           names={names}

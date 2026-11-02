@@ -8,6 +8,7 @@ import { RulesButton } from "@/components/game/RulesButton";
 import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { LEVEL_LABELS, SEAT_COLORS } from "@/components/game/settings";
+import { useBoardFocus } from "@/components/game/useBoardFocus";
 import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { DamaBoard } from "./DamaBoard";
@@ -31,6 +32,7 @@ export function DamaGame({
   onRematch: () => void;
   onExit: () => void;
 }) {
+  const boardRef = useBoardFocus<HTMLDivElement>();
   const [speed, setSpeed] = useState<Speed>("normal");
   const { game, playing, frame, board, last, events, mover, move } = useDamaPlayback(() => setup({ firstSeat }), speed);
   const vsBot = settings.mode === "bot";
@@ -116,7 +118,7 @@ export function DamaGame({
         color={SEAT_COLORS.blue}
       />
 
-      <div className="relative mx-auto w-full max-w-[32rem]">
+      <div className="relative mx-auto w-full max-w-[32rem]" ref={boardRef} tabIndex={-1} role="group" aria-label="Board">
         <DamaBoard
           board={board}
           movable={movable}

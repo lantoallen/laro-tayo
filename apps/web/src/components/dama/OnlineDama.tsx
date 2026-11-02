@@ -4,6 +4,7 @@ import type { Seat } from "@laro/games";
 import { countPieces, fullMoves, legalMoves, result, type DamaEvent, type DamaState } from "@laro/games/dama";
 import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
 import { SEAT_COLORS } from "@/components/game/settings";
+import { useBoardFocus } from "@/components/game/useBoardFocus";
 import {
   onlineNote,
   RoomBar,
@@ -39,6 +40,7 @@ export function OnlineDama(props: OnlineProps) {
 }
 
 function OnlineGame({ update, status, error, send }: OnlineProps) {
+  const boardRef = useBoardFocus<HTMLDivElement>();
   const { room } = update;
   const you = room.you;
   const { game, playing, frame, board, last, events, mover, show, restart } = useDamaPlayback(
@@ -103,7 +105,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
         note={onlineNote(room, top)}
       />
 
-      <div className="relative mx-auto w-full max-w-[32rem]">
+      <div className="relative mx-auto w-full max-w-[32rem]" ref={boardRef} tabIndex={-1} role="group" aria-label="Board">
         <DamaBoard
           board={board}
           perspective={bottom}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import type { Seat } from "@laro/games";
 import { SQUARES, colOf, isDark, isKing, ownerOf, rowOf, type Piece } from "@laro/games/dama";
 import "./dama-board.css";
@@ -78,6 +78,15 @@ export function DamaBoard({
   const press = useRef<{ square: number; x: number; y: number; wasPicked: boolean; moved: boolean } | null>(null);
   // The piece last pressed and when, so the click that echoes that press is ignored. Taps elsewhere still count.
   const pressed = useRef({ square: -1, at: 0 });
+
+  // Picking a piece from the keyboard shows where it can go, so focus moves to the first of those squares,
+  // which Tab alone might not reach, since the board is drawn top to bottom.
+  const firstTarget = targets[0] ?? null;
+  useEffect(() => {
+    const board = boardRef.current;
+    if (firstTarget === null || !board?.contains(document.activeElement)) return;
+    board.querySelector<HTMLElement>(`[data-square="${firstTarget}"]`)?.focus();
+  }, [firstTarget]);
   const [lifted, setLifted] = useState<{ square: number; x: number; y: number } | null>(null);
   const [over, setOver] = useState<number | null>(null);
 
@@ -186,6 +195,7 @@ export function DamaBoard({
               if (!echo) onTap(square);
             }}
             aria-label={label}
+            aria-pressed={movable.includes(square) ? path[0] === square : undefined}
           >
             {contents}
           </button>

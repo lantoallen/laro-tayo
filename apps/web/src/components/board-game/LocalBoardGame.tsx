@@ -9,6 +9,7 @@ import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { resultTitle } from "@/components/game/results";
 import { LEVEL_LABELS, YOU, botName, type BoardGameSettings } from "@/components/game/settings";
+import { useBoardFocus } from "@/components/game/useBoardFocus";
 import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { colorWord, promptFor, type BoardGameConfig } from "./types";
@@ -31,6 +32,7 @@ export function LocalBoardGame<State, Move>({
   onRematch: () => void;
   onExit: () => void;
 }) {
+  const boardRef = useBoardFocus<HTMLDivElement>();
   const { game, Board, Rules } = config;
   const players = Math.min(game.maxSeats, Math.max(game.minSeats, settings.players));
   const [state, setState] = useState(() => game.setup({ seats: players, firstSeat }));
@@ -132,7 +134,7 @@ export function LocalBoardGame<State, Move>({
 
       {/* Everyone else above the board, in the order they play. You below it. */}
       <div className="flex flex-col gap-1.5">{seats.filter((seat) => seat !== YOU).map(row)}</div>
-      <div className="mx-auto w-full max-w-[32rem]">
+      <div className="mx-auto w-full max-w-[32rem]" ref={boardRef} tabIndex={-1} role="group" aria-label="Board">
         <Board state={state} you={you} onMove={humanSeat === null ? undefined : move} />
       </div>
       {row(YOU)}

@@ -4,6 +4,7 @@ import type { Seat } from "@laro/games";
 import { legalMoves, result, storeOf, type SungkaEvent, type SungkaState } from "@laro/games/sungka";
 import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
 import { SEAT_COLORS } from "@/components/game/settings";
+import { useBoardFocus } from "@/components/game/useBoardFocus";
 import {
   onlineNote,
   RoomBar,
@@ -39,6 +40,7 @@ export function OnlineSungka(props: OnlineProps) {
 }
 
 function OnlineGame({ update, status, error, send }: OnlineProps) {
+  const boardRef = useBoardFocus<HTMLDivElement>();
   const { room } = update;
   const you = room.you;
   const { game, sowing, frame, events, board, show, restart, finish } = useSowing(
@@ -89,7 +91,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
         note={onlineNote(room, top)}
       />
 
-      <div className="relative">
+      <div className="relative" ref={boardRef} tabIndex={-1} role="group" aria-label="Board">
         <Board
           board={board}
           names={names}
