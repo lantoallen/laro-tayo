@@ -15,11 +15,13 @@ export default function StartPage() {
 
       <ul aria-label="Games" className="mt-8 flex w-full flex-wrap justify-center gap-2">
         {GAMES.map((game) => (
-          <li key={game.id} className={`w-[calc(25%-0.375rem)] ${TILE}`}>
+          <li key={game.id} className={`w-[calc(33.333%-0.334rem)] ${TILE}`}>
             <div className="grid aspect-[4/3] place-items-center px-2">
               <GameArt id={game.id} className="max-h-[75%] w-full" />
             </div>
-            <p className={`border-t-[3px] border-outline py-1 font-display text-[0.6rem] ${COLOR_CLASSES[game.color]}`}>
+            <p
+              className={`border-t-[3px] border-outline px-1 py-1 font-display text-xs leading-tight ${COLOR_CLASSES[game.color]}`}
+            >
               {game.name}
             </p>
           </li>
