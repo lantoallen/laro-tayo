@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { gameFor, isGameId, type GameId } from "@laro/rooms";
-import { GAMES } from "@/lib/games";
-import { useIsClient, usePlayer, type LocalPlayer } from "@/lib/player";
+import { roomGame } from "@/lib/games";
+import { savePlayerName, useIsClient, usePlayer, type LocalPlayer } from "@/lib/player";
 import { ONLINE_ENABLED, roomPath } from "@/lib/rooms";
 import { useMatch } from "@/lib/useMatch";
+import { NameField } from "./NameField";
 import { RoomMessage } from "./RoomMessage";
 import "./match.css";
 
@@ -39,25 +40,33 @@ export function MatchScreen() {
       </RoomMessage>
     );
   }
-  const href = gamePage(gameId as GameId);
+  const { name, href } = roomGame(gameId) ?? { name: game.name, href: "/games" };
   if (!isClient) return <RoomMessage title="Finding a game..." />;
-  if (!player) {
-    return (
-      <RoomMessage title="Pick a name first">
-        <p>Other players see your name, so choose one before looking for a game.</p>
-        <Link href={href} className="btn btn-primary">
-          Back to {game.name}
-        </Link>
-      </RoomMessage>
-    );
-  }
-  return <Looking gameId={gameId as GameId} name={game.name} href={href} players={players} player={player} />;
+  if (!player) return <NameFirst name={name} />;
+  return <Looking gameId={gameId as GameId} name={name} href={href} players={players} player={player} />;
 }
 
-/** The page a room's game is played from. Games with more than one way to play, like "sinking-tiles-together", share their page. */
-function gamePage(gameId: GameId): string {
-  const info = GAMES.find((game) => gameId === game.id || gameId.startsWith(`${game.id}-`));
-  return info?.href ?? "/games";
+/** For someone who came from a link and hasn't picked a name yet. */
+function NameFirst({ name }: { name: string }) {
+  const [typed, setTyped] = useState("");
+  return (
+    <main className="mx-auto max-w-md px-4 pt-6 pb-16">
+      <h1 className="text-2xl font-bold">Find a game of {name}</h1>
+      <p className="mt-2 text-muted">Pick a name so the other players know who you are.</p>
+      <form
+        className="mt-6 space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          savePlayerName(typed);
+        }}
+      >
+        <NameField value={typed} onChange={setTyped} />
+        <button type="submit" className="btn btn-primary w-full py-3.5">
+          Find a game
+        </button>
+      </form>
+    </main>
+  );
 }
 
 function Looking({

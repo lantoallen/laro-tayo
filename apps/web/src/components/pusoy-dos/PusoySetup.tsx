@@ -89,7 +89,7 @@ export function PusoySetup({
         )}
         {online && (
           <>
-            <PlayWithField value={playWith} onChange={setPlayWith} />
+            <PlayWithField value={playWith} onChange={setPlayWith} game="pusoy-dos" players={players} />
             <p className="-mt-3 text-sm text-muted">
               {anyone
                 ? "You'll play whoever else is looking for a game right now."
