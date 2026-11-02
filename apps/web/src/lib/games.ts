@@ -67,7 +67,7 @@ export const GAMES: GameInfo[] = [
     group: "filipino",
     color: "yellow",
     href: "/pusoy-dos",
-    modes: ["bot"],
+    modes: ["bot", "online"],
   },
   {
     id: "hulaan-mo",

@@ -12,6 +12,7 @@ import { JAK_EN_POY } from "@/components/jak-en-poy/config";
 import { MEMORY } from "@/components/memory/config";
 import { MORRIS } from "@/components/morris/config";
 import { PIG } from "@/components/pig/config";
+import { OnlinePusoy } from "@/components/pusoy-dos/OnlinePusoy";
 import { REVERSI } from "@/components/reversi/config";
 import { SEA_BATTLE } from "@/components/sea-battle/config";
 import { SINKING_TILES, SINKING_TILES_TOGETHER } from "@/components/sinking-tiles/config";
@@ -127,6 +128,8 @@ function Game(props: OnlineProps) {
       return <OnlineBoardGame config={PIG} {...props} />;
     case "jak-en-poy":
       return <OnlineBoardGame config={JAK_EN_POY} {...props} />;
+    case "pusoy-dos":
+      return <OnlinePusoy {...props} />;
     case "sinking-tiles":
       return <OnlineBoardGame config={SINKING_TILES} {...props} />;
     case "sinking-tiles-together":
