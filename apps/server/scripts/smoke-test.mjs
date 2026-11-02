@@ -147,6 +147,8 @@ const run = Math.random().toString(36).slice(2, 8);
 const first = seek(`smoke-seek-${run}-0`);
 await until(first, () => first.here >= 1, "the lobby to count the first seeker");
 check(first.code === null, "someone looking alone waits in the lobby");
+const { waiting } = await (await fetch(`${base}/match/waiting`)).json();
+check(waiting["snakes-and-ladders/4"] >= 1, "the lobby says how many are waiting for each game");
 const again = seek(`smoke-seek-${run}-0`);
 await until(first, () => first.closeCode !== null, "the first tab to stop looking");
 check(first.closeCode === 4409, "looking again in another tab takes over from the first");

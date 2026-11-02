@@ -93,6 +93,12 @@ export default {
       return json({ error: "Couldn't make a room. Try again." }, 503, origin);
     }
 
+    // How many are waiting for each game, so the site can point people at each other. Only counts, never who.
+    if (url.pathname === "/match/waiting" && request.method === "GET") {
+      const waiting = await env.LOBBY.get(env.LOBBY.idFromName("lobby")).waiting();
+      return json({ waiting }, 200, origin);
+    }
+
     // Everyone looking for a game with anyone waits in the one lobby.
     const match = url.pathname.match(/^\/match\/([^/]+)\/(\d)\/socket$/);
     if (match) {
@@ -338,6 +344,17 @@ export class LobbyObject extends DurableObject<Env> {
       // Already closed.
     }
     this.tellWaiting(wants, ws);
+  }
+
+  /** How many people are looking for each game, like { "dama/2": 1 }. Games nobody is looking for are left out. */
+  async waiting(): Promise<Record<string, number>> {
+    const counts: Record<string, number> = {};
+    for (const ws of this.ctx.getWebSockets()) {
+      const info = ws.deserializeAttachment() as SeekerInfo;
+      if (ws.readyState !== WebSocket.OPEN || info.playerId === null || info.matched) continue;
+      counts[info.wants] = (counts[info.wants] ?? 0) + 1;
+    }
+    return counts;
   }
 
   /** Puts the people who have waited longest in rooms, as many rooms as there are people for. */

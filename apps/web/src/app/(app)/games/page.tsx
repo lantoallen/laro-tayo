@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { GameList } from "@/components/games/GameList";
+import { LookingNow } from "@/components/games/LookingNow";
 import { About } from "@/components/landing/About";
 import { JoinByCode } from "@/components/room/JoinByCode";
 import { LiveDemo } from "@/components/landing/LiveDemo";
@@ -20,6 +21,7 @@ export default function GamesPage() {
           <h1 className="text-3xl font-bold">Pick a game</h1>
           <JoinByCode />
         </div>
+        <LookingNow />
         <GameList />
         <WaysToPlay />
         <LiveDemo />

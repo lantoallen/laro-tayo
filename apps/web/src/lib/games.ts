@@ -211,3 +211,16 @@ export const COLOR_CLASSES: Record<GameColor, string> = {
   yellow: "bg-yellow text-yellow-ink",
   ink: "bg-ink text-bg",
 };
+
+/** Ways of playing a game that have their own kind of room, named for how they're shown. */
+const ROOM_VARIANTS: Record<string, string> = { "sinking-tiles-together": "Sinking Tiles, all at once" };
+
+/**
+ * The name and page for a kind of room. A game with more than one way to play
+ * online, like "sinking-tiles-together", shares its game's page.
+ */
+export function roomGame(roomGameId: string): { name: string; href: string } | null {
+  const game = GAMES.find((info) => roomGameId === info.id || roomGameId.startsWith(`${info.id}-`));
+  if (!game?.href) return null;
+  return { name: ROOM_VARIANTS[roomGameId] ?? game.name, href: game.href };
+}

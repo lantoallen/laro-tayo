@@ -74,7 +74,7 @@ export function SungkaSetup({
         )}
         {online && (
           <>
-            <PlayWithField value={playWith} onChange={setPlayWith} />
+            <PlayWithField value={playWith} onChange={setPlayWith} game="sungka" players={2} />
             <p className="-mt-3 text-sm text-muted">
               {anyone
                 ? "You'll play whoever else is looking for a game right now."

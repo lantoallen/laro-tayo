@@ -89,7 +89,7 @@ export function BoardGameSetup<State, Move>({
         {settings.mode === "local" && <p className="-mt-3 text-sm text-muted">Take turns on one phone.</p>}
         {online && (
           <>
-            <PlayWithField value={playWith} onChange={setPlayWith} />
+            <PlayWithField value={playWith} onChange={setPlayWith} game={config.roomId} players={players} />
             <p className="-mt-3 text-sm text-muted">
               {anyone
                 ? "You'll play whoever else is looking for a game right now."
