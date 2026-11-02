@@ -9,18 +9,20 @@ const TILE = "overflow-hidden rounded-xl border-[3px] border-outline bg-surface 
 /** The start screen people see first. "Get started" takes them into the app. */
 export default function StartPage() {
   return (
-    <main className="mx-auto flex min-h-svh max-w-md flex-col items-center justify-center px-6 py-10 text-center">
+    <main className="mx-auto flex min-h-svh max-w-md flex-col items-center justify-center px-4 py-8 text-center">
       <Logo large className="text-5xl" />
-      <p className="mt-8 text-lg font-medium text-muted">Filipino games and classics you can play on your phone.</p>
+      <p className="mt-6 text-lg font-medium text-muted">Filipino games and classics you can play on your phone.</p>
 
-      <ul aria-label="Games" className="mt-8 flex w-full flex-wrap justify-center gap-2">
+      <ul aria-label="Games" className="mt-6 flex w-full flex-wrap justify-center gap-2">
         {GAMES.map((game) => (
-          <li key={game.id} className={`w-[calc(33.333%-0.334rem)] ${TILE}`}>
+          // Four a row, or three on the narrowest phones, so every name fits in two lines.
+          <li key={game.id} className={`flex w-[calc(25%-0.375rem)] flex-col max-[359px]:w-[calc(33.333%-0.334rem)] ${TILE}`}>
             <div className="grid aspect-[4/3] place-items-center px-2">
               <GameArt id={game.id} className="max-h-[75%] w-full" />
             </div>
+            {/* Room for two lines in every tile, so the rows line up whether a name wraps or not. */}
             <p
-              className={`border-t-[3px] border-outline px-1 py-1 font-display text-xs leading-tight ${COLOR_CLASSES[game.color]}`}
+              className={`mt-auto grid min-h-[2.6rem] place-items-center border-t-[3px] border-outline px-0.5 py-1 text-xs leading-tight font-bold tracking-tight ${COLOR_CLASSES[game.color]}`}
             >
               {game.name}
             </p>
@@ -28,7 +30,7 @@ export default function StartPage() {
         ))}
       </ul>
 
-      <Link href="/games" className="btn btn-primary mt-10 w-full py-4 text-lg">
+      <Link href="/games" className="btn btn-primary mt-6 w-full py-4 text-lg">
         Get started
       </Link>
       <p className="mt-4 text-sm text-muted">Free, no ads, and nothing to download.</p>
