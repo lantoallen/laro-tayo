@@ -2,6 +2,16 @@ import type { MouseEvent } from "react";
 import { RANKS, SUITS, cardName, rankOf, suitOf, type Card } from "@laro/games/pusoy-dos";
 import "./pusoy.css";
 
+/**
+ * What a card is called out loud. Picture cards and aces start with the letter
+ * shown on them, like "J, jack of diamonds", so someone using voice control can
+ * say what they see.
+ */
+function spokenName(card: Card): string {
+  const rank = RANKS[rankOf(card)];
+  return /^\d/.test(rank) ? cardName(card) : `${rank}, ${cardName(card)}`;
+}
+
 /** One card, face up. Hearts and diamonds are red. */
 export function PlayingCard({
   card,
@@ -41,7 +51,7 @@ export function PlayingCard({
 
   if (!onTap) {
     return (
-      <span className={className} role="img" aria-label={cardName(card)}>
+      <span className={className} role="img" aria-label={spokenName(card)}>
         {face}
       </span>
     );
@@ -53,7 +63,7 @@ export function PlayingCard({
       className={className}
       onClick={onTap}
       aria-pressed={selected}
-      aria-label={cardName(card)}
+      aria-label={spokenName(card)}
     >
       {face}
     </button>
