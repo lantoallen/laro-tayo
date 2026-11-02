@@ -89,8 +89,19 @@ export function movesFor(view: PusoyView, seat: Seat): PusoyMove[] {
   return view.table ? [...plays, []] : plays;
 }
 
-export function legalMoves(state: PusoyState, seat: Seat): PusoyMove[] {
-  return movesFor(viewFor(state, seat), seat);
+/** Every legal move for a seat, from the whole game or from that seat's view of it. */
+export function legalMoves(state: PusoyState | PusoyView, seat: Seat): PusoyMove[] {
+  return movesFor("hands" in state ? viewFor(state, seat) : state, seat);
+}
+
+/**
+ * The seats that passed since the last play. Turns go round in order, so
+ * they're the ones right after whoever played, as many as there were passes.
+ */
+export function passedSeats(state: PusoyState | PusoyView): Seat[] {
+  if (!state.table) return [];
+  const players = "hands" in state ? state.hands.length : state.counts.length;
+  return Array.from({ length: state.passes }, (_, i) => (state.table!.seat + 1 + i) % players);
 }
 
 export function play(state: PusoyState, seat: Seat, move: PusoyMove): MoveOutcome<PusoyState, PusoyEvent> {

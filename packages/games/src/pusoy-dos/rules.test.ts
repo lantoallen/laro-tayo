@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createRng, pick } from "../engine/rng";
 import { IllegalMoveError, type Seat } from "../engine/types";
 import { THREE_OF_CLUBS, describe as read } from "./cards";
-import { legalMoves, play, result, setup, viewFor, type PusoyState } from "./rules";
+import { legalMoves, passedSeats, play, result, setup, viewFor, type PusoyState } from "./rules";
 
 /** A state with the given hands, where seat 0 is about to start a fresh round. */
 function stateWith(hands: number[][], extra: Partial<PusoyState> = {}): PusoyState {
@@ -144,5 +144,29 @@ describe("random games", () => {
       }
       expect(result(state)!.scores[state.winner!]).toBe(0);
     }
+  });
+});
+
+describe("from a seat's view", () => {
+  it("finds the same legal moves as from the whole game", () => {
+    const state = setup({ rng: createRng(12) });
+    const seat = state.turn!;
+    expect(legalMoves(viewFor(state, seat), seat)).toEqual(legalMoves(state, seat));
+    expect(legalMoves(viewFor(state, seat), (seat + 1) % 4)).toEqual([]);
+  });
+
+  it("tells who passed since the last play", () => {
+    const rng = createRng(5);
+    let state = setup({ rng });
+    const opener = state.turn!;
+    state = play(state, opener, legalMoves(state, opener)[0]).state;
+    expect(passedSeats(state)).toEqual([]);
+    state = play(state, state.turn!, []).state;
+    state = play(state, state.turn!, []).state;
+    expect(passedSeats(state)).toEqual([(opener + 1) % 4, (opener + 2) % 4]);
+    expect(passedSeats(viewFor(state, 0))).toEqual(passedSeats(state));
+    // Once the last player passes too, the round is over and the table is cleared.
+    state = play(state, state.turn!, []).state;
+    expect(passedSeats(state)).toEqual([]);
   });
 });

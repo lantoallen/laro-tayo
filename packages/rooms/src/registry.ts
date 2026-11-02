@@ -6,6 +6,7 @@ import { jakEnPoy } from "@laro/games/jak-en-poy";
 import { memory } from "@laro/games/memory";
 import { morris } from "@laro/games/morris";
 import { pig } from "@laro/games/pig";
+import { pusoyDos } from "@laro/games/pusoy-dos";
 import { reversi } from "@laro/games/reversi";
 import { seaBattle } from "@laro/games/sea-battle";
 import { sinkingTiles, sinkingTilesTogether } from "@laro/games/sinking-tiles";
@@ -30,6 +31,7 @@ export const GAMES = {
   "snakes-and-ladders": snakesAndLadders,
   pig,
   "jak-en-poy": jakEnPoy,
+  "pusoy-dos": pusoyDos,
   "sinking-tiles": sinkingTiles,
   "sinking-tiles-together": sinkingTilesTogether,
 } satisfies Record<string, AnyGame>;
