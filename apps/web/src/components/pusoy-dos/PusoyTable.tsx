@@ -17,6 +17,7 @@ import {
 } from "@laro/games/pusoy-dos";
 import { StatusLine, type Notice } from "@/components/game/parts";
 import { SEAT_COLORS } from "@/components/game/settings";
+import { useBoardFocus } from "@/components/game/useBoardFocus";
 import { CardBack, PlayingCard } from "./PlayingCard";
 import { label, noticeFor, playName } from "./words";
 
@@ -119,14 +120,13 @@ export function PusoyTable({
     setSelected(picked.includes(card) ? picked.filter((c) => c !== card) : [...picked, card]);
   }
 
-  // Between turns the cards can't be picked and Play turns off. Focus stays on the hand, instead of going back to
-  // the top of the page, so someone using a keyboard or screen reader is one Tab from their cards next turn.
-  const handRef = useRef<HTMLDivElement>(null);
+  // Between turns the cards can't be picked and Play turns off. Focus stays on your hand, so someone using a
+  // keyboard or screen reader is one Tab from their cards next turn.
+  const handRef = useBoardFocus<HTMLElement>();
 
   function submit(move: PusoyMove) {
     setSelected([]);
     setHint(null);
-    if (handRef.current?.closest("section")?.contains(document.activeElement)) handRef.current.focus();
     onMove(move);
   }
 
@@ -286,10 +286,8 @@ export function PusoyTable({
       />
 
       {you !== null && (
-        <section aria-label="Your hand">
+        <section ref={handRef} tabIndex={-1} aria-label="Your hand">
           <div
-            ref={handRef}
-            tabIndex={-1}
             className={`pd-hand ${canMove ? "pd-hand-live" : ""}`}
             style={{ "--count": Math.max(hand.length, 2) } as CSSProperties}
             onPointerDown={onPointerDown}

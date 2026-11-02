@@ -7,11 +7,12 @@ import {
   type TilesState,
 } from "@laro/games/sinking-tiles";
 import type { BoardGameConfig } from "@/components/board-game/types";
+import { who } from "@/components/game/MoveSaid";
 import type { Notice } from "@/components/game/parts";
 import { listNames } from "@/components/game/results";
 import { FOUR_COLORS, FOUR_SWATCHES } from "@/components/game/settings";
 import { Rules } from "./Rules";
-import { TilesBoard } from "./TilesBoard";
+import { TilesBoard, direction } from "./TilesBoard";
 
 /** Says who fell in, or who bumped into whom, on the last move or round. */
 function notice(state: TilesState, names: readonly string[], you: Seat | null): Notice | null {
@@ -37,6 +38,16 @@ function notice(state: TilesState, names: readonly string[], you: Seat | null): 
   return { tone: "info", text: `${listNames(bump.seats.map((seat) => names[seat]))} bumped into each other` };
 }
 
+/**
+ * Who stepped which way on the last move, or in the last round when everyone moves at once, like "The bot stepped
+ * up and left." Bumps and falls are in the notice under the board, which is read out too.
+ */
+function said(state: TilesState, names: readonly string[], you: Seat | null): string | null {
+  const steps = state.last?.steps ?? [];
+  if (steps.length === 0) return null;
+  return steps.map(({ seat, from, to }) => `${who(seat, names, you)} stepped ${direction(state.radius, from, to)}.`).join(" ");
+}
+
 function resultDetail(state: TilesState, names: readonly string[]): string {
   const winners = state.at.some((tile) => tile !== null) ? [] : (state.last?.fell.map((fall) => fall.seat) ?? []);
   if (winners.length > 1) return `${listNames(winners.map((seat) => names[seat]))} fell in at the same time.`;
@@ -53,6 +64,7 @@ const SHARED = {
   Rules,
   stat: { label: "Ways out", value: (state: TilesState, seat: Seat) => openSteps(state, seat) },
   notice,
+  said,
   resultDetail,
 } satisfies Partial<BoardGameConfig<TilesState, TilesMove>>;
 

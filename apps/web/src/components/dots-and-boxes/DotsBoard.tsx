@@ -28,7 +28,7 @@ function lineAt(line: number) {
   return { horizontal, row, col, x: PAD + col * STEP, y: PAD + row * STEP };
 }
 
-function lineLabel(line: number): string {
+export function lineLabel(line: number): string {
   const { horizontal, row, col } = lineAt(line);
   if (horizontal) return row < SIZE ? `Top of row ${row + 1}, box ${col + 1}` : `Bottom of row ${SIZE}, box ${col + 1}`;
   return col < SIZE ? `Left of row ${row + 1}, box ${col + 1}` : `Right of row ${row + 1}, box ${SIZE}`;

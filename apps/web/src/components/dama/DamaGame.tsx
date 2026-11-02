@@ -8,11 +8,13 @@ import { RulesButton } from "@/components/game/RulesButton";
 import { SoundButton } from "@/components/game/SoundButton";
 import { PlayerRow, PRIMARY_BUTTON, ResultCard, SECONDARY_BUTTON, StatusLine } from "@/components/game/parts";
 import { LEVEL_LABELS, SEAT_COLORS } from "@/components/game/settings";
+import { MoveSaid } from "@/components/game/MoveSaid";
+import { useBoardFocus } from "@/components/game/useBoardFocus";
 import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { DamaBoard } from "./DamaBoard";
 import { Rules } from "./Rules";
-import { latestNotice } from "./notices";
+import { latestNotice, saidFor } from "./notices";
 import { seatNames, type DamaSettings } from "./settings";
 import { DELAYS, useDamaPlayback, type Speed } from "./useDamaPlayback";
 import { useMoveSelection } from "./useMoveSelection";
@@ -31,6 +33,7 @@ export function DamaGame({
   onRematch: () => void;
   onExit: () => void;
 }) {
+  const boardRef = useBoardFocus<HTMLDivElement>();
   const [speed, setSpeed] = useState<Speed>("normal");
   const { game, playing, frame, board, last, events, mover, move } = useDamaPlayback(() => setup({ firstSeat }), speed);
   const vsBot = settings.mode === "bot";
@@ -116,7 +119,7 @@ export function DamaGame({
         color={SEAT_COLORS.blue}
       />
 
-      <div className="relative mx-auto w-full max-w-[32rem]">
+      <div className="relative mx-auto w-full max-w-[32rem]" ref={boardRef} tabIndex={-1} role="group" aria-label="Board">
         <DamaBoard
           board={board}
           movable={movable}
@@ -154,6 +157,7 @@ export function DamaGame({
         status={status}
         turn={turnLabel === null ? null : { label: turnLabel, color: seatColor(shownTurn!) }}
       />
+      <MoveSaid text={saidFor(events, mover, vsBot ? ["You", "The bot"] : names, vsBot ? 0 : null)} moment={game.turns} />
     </main>
   );
 }

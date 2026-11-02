@@ -36,7 +36,7 @@ function frame(radius: number) {
 }
 
 /** Which way a step from one tile to the next goes on screen, like "up and left". */
-function direction(radius: number, from: number, to: number): string {
+export function direction(radius: number, from: number, to: number): string {
   const a = boardFor(radius).hexes[from];
   const b = boardFor(radius).hexes[to];
   const dq = b.q - a.q;

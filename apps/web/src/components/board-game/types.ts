@@ -48,6 +48,11 @@ export interface BoardGameConfig<State, Move> {
    * the screen, or null in pass and play, where every message uses names.
    */
   notice?: (state: State, names: readonly string[], you: Seat | null) => Notice | null;
+  /**
+   * The last move in words, like "The bot dropped a disc in column 4." Screen readers read it out after every move,
+   * so someone who can't see the board knows what the other players did. `you` works as for `notice`.
+   */
+  said?: (state: State, names: readonly string[], you: Seat | null) => string | null;
   /** What to say while someone else, or a bot, is partway through their turn. Null for the usual message. */
   othersTurn?: (state: State, name: string) => string | null;
   /** The line under "You win" once the game is over. */

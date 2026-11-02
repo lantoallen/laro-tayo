@@ -16,7 +16,7 @@ import type { BoardProps } from "@/components/board-game/types";
 import "./sea.css";
 
 const FILES = "ABCDEFGHIJ";
-const cellName = (cell: number) => `${FILES[colOf(cell)]}${rowOf(cell) + 1}`;
+export const cellName = (cell: number) => `${FILES[colOf(cell)]}${rowOf(cell) + 1}`;
 
 /** A 10 by 10 grid of water showing one fleet and the shots fired at it. */
 function Waters({

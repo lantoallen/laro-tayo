@@ -110,6 +110,14 @@ This uses Cloudflare's free Workers plan.
 
 If the site moves to a new domain, add it to `ALLOWED_ORIGINS` in `apps/server/wrangler.jsonc` and deploy again.
 
+## Playing with a keyboard or a screen reader
+
+Every game can be played without a mouse or touch. Squares, columns, cards, and buttons that can be played are real buttons with names, like "Row 2, column 3: empty" or "J, jack of diamonds", and Tab reaches them. A few things keep that working as the game goes on:
+
+- The squares you can press come and go with every move. `useBoardFocus` in `apps/web/src/components/game` keeps focus on the board when the one you pressed goes away, instead of letting it fall back to the top of the page, and puts it back on the same button if that's back within two seconds, like Roll in Pig. A game that has just started, or whose rules were just closed, focuses its board too.
+- After every move a screen reader reads out what happened, like "The bot dropped a disc in column 4." or "Ben fired at C4. A miss." Board games describe their last move with `said` in their config, and Dama and Sungka with `saidFor` in their notices. Turns, notices, and errors are read from the status line under the board.
+- In Dama, picking a piece moves focus to the first square it can go to.
+
 ## Installing and playing offline
 
 The site can be added to a phone's home screen and opened like an app. Android and desktop Chrome get an "Add to home screen" button on the start page and in the footer. On an iPhone, the start page explains how to do it from Safari's Share menu. The icons are drawn by `apps/web/src/lib/appIcon.tsx`.

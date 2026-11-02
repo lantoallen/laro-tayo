@@ -1,9 +1,10 @@
 import type { Seat } from "@laro/games";
 import { countDiscs, otherSeat, reversi, type ReversiMove, type ReversiState } from "@laro/games/reversi";
 import type { BoardGameConfig } from "@/components/board-game/types";
+import { who } from "@/components/game/MoveSaid";
 import { SEAT_COLORS } from "@/components/game/settings";
 import type { Notice } from "@/components/game/parts";
-import { ReversiBoard } from "./ReversiBoard";
+import { ReversiBoard, squareName } from "./ReversiBoard";
 import { Rules } from "./Rules";
 
 /** Says when someone had to pass, since the same player then goes twice in a row. */
@@ -15,8 +16,17 @@ function notice(state: ReversiState, names: readonly string[], you: Seat | null)
   return { tone: "info", text: `${who} no moves. ${next}` };
 }
 
+/** The last disc in words, like "The bot played d3 and flipped 2 discs." */
+function said(state: ReversiState, names: readonly string[], you: Seat | null): string | null {
+  if (!state.last) return null;
+  const { seat, square, flipped } = state.last;
+  const discs = flipped.length === 1 ? "1 disc" : `${flipped.length} discs`;
+  return `${who(seat, names, you)} played ${squareName(square)} and flipped ${discs}.`;
+}
+
 export const REVERSI: BoardGameConfig<ReversiState, ReversiMove> = {
   game: reversi,
+  said,
   href: "/reversi",
   roomId: "reversi",
   tagline: "Trap the other player's discs to flip them to your color.",

@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import { moversOf, type Seat } from "@laro/games";
 import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
 import { RoundClock } from "@/components/game/RoundClock";
+import { MoveSaid } from "@/components/game/MoveSaid";
+import { useBoardFocus } from "@/components/game/useBoardFocus";
 import {
   onlineNote,
   RoomBar,
@@ -42,6 +44,7 @@ export function OnlineBoardGame<State, Move>(props: Props<State, Move>) {
 }
 
 function OnlineTable<State, Move>({ config, update, status, error, send }: Props<State, Move>) {
+  const boardRef = useBoardFocus<HTMLDivElement>();
   const { game, Board, Rules } = config;
   const { room } = update;
   const state = room.view as State;
@@ -99,6 +102,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
 
   const errorNotice: Notice | null = error ? { tone: "bad", text: error } : null;
   const notice = errorNotice ?? timedOutNotice(update) ?? config.notice?.(state, names, you) ?? null;
+  const said = room.moveCount === 0 ? null : (config.said?.(state, names, you) ?? null);
 
   const row = (seat: Seat) => {
     const color = colorWord(config.colors[seat]);
@@ -118,7 +122,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
     <main className="mx-auto flex max-w-4xl flex-col gap-3 px-4 pb-8">
       <RoomBar room={room} rules={<Rules />} />
       <div className="flex flex-col gap-1.5">{above.map(row)}</div>
-      <div className="mx-auto w-full max-w-[32rem]">
+      <div className="mx-auto w-full max-w-[32rem]" ref={boardRef} tabIndex={-1} role="group" aria-label="Board">
         <Board state={state} you={you} onMove={yourTurn ? move : undefined} />
       </div>
       {row(bottom)}
@@ -150,6 +154,7 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
           />
         </>
       )}
+      <MoveSaid text={said} moment={room.moveCount} />
     </main>
   );
 }

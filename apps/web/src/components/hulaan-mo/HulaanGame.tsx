@@ -13,6 +13,7 @@ import {
 import { LeaveButton } from "@/components/game/LeaveButton";
 import { RulesButton } from "@/components/game/RulesButton";
 import { SoundButton } from "@/components/game/SoundButton";
+import { useBoardFocus } from "@/components/game/useBoardFocus";
 import { playSound, useResultSound } from "@/lib/sound";
 import { Rules } from "./Rules";
 import { TEAM_CLASSES, teamName } from "./settings";
@@ -47,6 +48,7 @@ export function HulaanGame({
   onRematch: () => void;
   onExit: () => void;
 }) {
+  const boardRef = useBoardFocus<HTMLDivElement>();
   const [game, dispatch] = useReducer(safeReduce, settings, (s) => createGame(s));
   const [countdown, setCountdown] = useState<number | null>(null);
   const [endsAt, setEndsAt] = useState(0);
@@ -136,114 +138,117 @@ export function HulaanGame({
         </div>
       </div>
 
-      {!holdingUp && <Scores scores={game.scores} highlight={game.phase === "over" ? leaders(game) : [game.team]} />}
+      {/* Buttons here come and go as the turn goes on, so focus stays in here instead of jumping to the top. */}
+      <div ref={boardRef} tabIndex={-1} role="group" aria-label="Game" className="flex flex-col gap-4">
+        {!holdingUp && <Scores scores={game.scores} highlight={game.phase === "over" ? leaders(game) : [game.team]} />}
 
-      {game.phase === "ready" && countdown === null && (
-        <section className="card p-5 text-center">
-          <p className={`mx-auto w-fit rounded-lg px-3 py-1 font-display ${TEAM_CLASSES[game.team]}`}>
-            {teamName(game.team)}
-          </p>
-          <h1 className="mt-3 text-2xl">Your turn</h1>
-          <p className="mt-1 text-sm text-muted">
-            Turn {game.round + 1} of {settings.rounds}
-          </p>
-          <p className="mt-4 text-pretty">
-            Pick one guesser. They hold the phone up to their forehead with the screen facing the team.
-          </p>
-          <p className="mt-2 text-sm text-muted">The rest of the team answers with only yes, no, or maybe.</p>
-          <button type="button" onClick={() => {
-              playSound("tick");
-              setCountdown(COUNTDOWN_FROM);
-            }} className="btn btn-primary mt-6 w-full py-3.5">
-            Start the timer
-          </button>
-        </section>
-      )}
-
-      {countdown !== null && (
-        <section className="card grid min-h-80 place-items-center p-5 text-center" aria-live="assertive">
-          <div>
-            <p className="font-display text-8xl">{countdown}</p>
-            <p className="mt-4 font-semibold">Hold the phone up to your forehead</p>
-          </div>
-        </section>
-      )}
-
-      {playing && (
-        <section className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-4 flex-1 overflow-hidden rounded-full border-2 border-outline bg-surface">
-              <div
-                className={`h-full ${secondsLeft <= 10 ? "bg-red" : "bg-yellow"}`}
-                style={{ width: `${(secondsLeft / settings.seconds) * 100}%` }}
-              />
-            </div>
-            <span className="w-12 text-right font-display text-xl tabular-nums" aria-label={`${secondsLeft} seconds left`}>
-              {secondsLeft}
-            </span>
-          </div>
-          <div className="card @container grid min-h-64 place-items-center p-6 text-center">
-            <p
-              className="font-display leading-tight break-words"
-              style={{ fontSize: game.word ? wordSize(game.word) : undefined }}
-              aria-live="polite"
-            >
-              {game.word}
+        {game.phase === "ready" && countdown === null && (
+          <section className="card p-5 text-center">
+            <p className={`mx-auto w-fit rounded-lg px-3 py-1 font-display ${TEAM_CLASSES[game.team]}`}>
+              {teamName(game.team)}
             </p>
-          </div>
-          <p className="text-center text-sm text-muted">
-            {teamName(game.team)}: {guessed} so far. Answer only yes, no, or maybe.
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                playSound("flip");
-                dispatch({ type: "skip" });
-              }}
-              className="btn btn-secondary py-6 text-lg"
-            >
-              Skip
+            <h1 className="mt-3 text-2xl">Your turn</h1>
+            <p className="mt-1 text-sm text-muted">
+              Turn {game.round + 1} of {settings.rounds}
+            </p>
+            <p className="mt-4 text-pretty">
+              Pick one guesser. They hold the phone up to their forehead with the screen facing the team.
+            </p>
+            <p className="mt-2 text-sm text-muted">The rest of the team answers with only yes, no, or maybe.</p>
+            <button type="button" onClick={() => {
+                playSound("tick");
+                setCountdown(COUNTDOWN_FROM);
+              }} className="btn btn-primary mt-6 w-full py-3.5">
+              Start the timer
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                playSound("match");
-                dispatch({ type: "got" });
-              }}
-              className="btn btn-primary py-6 text-lg"
-            >
-              Got it
+          </section>
+        )}
+
+        {countdown !== null && (
+          <section className="card grid min-h-80 place-items-center p-5 text-center" aria-live="assertive">
+            <div>
+              <p className="font-display text-8xl">{countdown}</p>
+              <p className="mt-4 font-semibold">Hold the phone up to your forehead</p>
+            </div>
+          </section>
+        )}
+
+        {playing && (
+          <section className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-4 flex-1 overflow-hidden rounded-full border-2 border-outline bg-surface">
+                <div
+                  className={`h-full ${secondsLeft <= 10 ? "bg-red" : "bg-yellow"}`}
+                  style={{ width: `${(secondsLeft / settings.seconds) * 100}%` }}
+                />
+              </div>
+              <span className="w-12 text-right font-display text-xl tabular-nums" aria-label={`${secondsLeft} seconds left`}>
+                {secondsLeft}
+              </span>
+            </div>
+            <div className="card @container grid min-h-64 place-items-center p-6 text-center">
+              <p
+                className="font-display leading-tight break-words"
+                style={{ fontSize: game.word ? wordSize(game.word) : undefined }}
+                aria-live="polite"
+              >
+                {game.word}
+              </p>
+            </div>
+            <p className="text-center text-sm text-muted">
+              {teamName(game.team)}: {guessed} so far. Answer only yes, no, or maybe.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  playSound("flip");
+                  dispatch({ type: "skip" });
+                }}
+                className="btn btn-secondary py-6 text-lg"
+              >
+                Skip
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  playSound("match");
+                  dispatch({ type: "got" });
+                }}
+                className="btn btn-primary py-6 text-lg"
+              >
+                Got it
+              </button>
+            </div>
+          </section>
+        )}
+
+        {game.phase === "summary" && (
+          <section className="card p-5">
+            <h1 className="text-2xl">Time&apos;s up</h1>
+            <p className="mt-1 text-muted">
+              {teamName(game.team)} got {guessed} {guessed === 1 ? "word" : "words"}.
+            </p>
+            <ul className="mt-4 divide-y divide-line border-y border-line">
+              {game.turnWords.map((result, i) => (
+                <li key={`${result.word}-${i}`} className="flex items-center justify-between py-2">
+                  <span className="font-semibold">{result.word}</span>
+                  <span className={result.got ? "font-semibold text-blue" : "text-muted"}>
+                    {result.got ? "Got it" : "Missed"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <button type="button" onClick={() => dispatch({ type: "next" })} className="btn btn-primary mt-5 w-full">
+              {lastTurn
+                ? "See the scores"
+                : `Next: ${teamName(game.team === settings.teams - 1 ? 0 : game.team + 1)}`}
             </button>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
 
-      {game.phase === "summary" && (
-        <section className="card p-5">
-          <h1 className="text-2xl">Time&apos;s up</h1>
-          <p className="mt-1 text-muted">
-            {teamName(game.team)} got {guessed} {guessed === 1 ? "word" : "words"}.
-          </p>
-          <ul className="mt-4 divide-y divide-line border-y border-line">
-            {game.turnWords.map((result, i) => (
-              <li key={`${result.word}-${i}`} className="flex items-center justify-between py-2">
-                <span className="font-semibold">{result.word}</span>
-                <span className={result.got ? "font-semibold text-blue" : "text-muted"}>
-                  {result.got ? "Got it" : "Missed"}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <button type="button" onClick={() => dispatch({ type: "next" })} className="btn btn-primary mt-5 w-full">
-            {lastTurn
-              ? "See the scores"
-              : `Next: ${teamName(game.team === settings.teams - 1 ? 0 : game.team + 1)}`}
-          </button>
-        </section>
-      )}
-
-      {game.phase === "over" && <Final state={game} onRematch={onRematch} onExit={onExit} />}
+        {game.phase === "over" && <Final state={game} onRematch={onRematch} onExit={onExit} />}
+      </div>
     </main>
   );
 }

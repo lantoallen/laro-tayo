@@ -4,6 +4,8 @@ import type { Seat } from "@laro/games";
 import { countPieces, fullMoves, legalMoves, result, type DamaEvent, type DamaState } from "@laro/games/dama";
 import { PlayerRow, StatusLine, type Notice } from "@/components/game/parts";
 import { SEAT_COLORS } from "@/components/game/settings";
+import { MoveSaid } from "@/components/game/MoveSaid";
+import { useBoardFocus } from "@/components/game/useBoardFocus";
 import {
   onlineNote,
   RoomBar,
@@ -22,7 +24,7 @@ import { useRecordResult } from "@/lib/record";
 import { useResultSound } from "@/lib/sound";
 import { DamaBoard } from "./DamaBoard";
 import { Rules } from "./Rules";
-import { latestNotice } from "./notices";
+import { latestNotice, saidFor } from "./notices";
 import { useDamaPlayback } from "./useDamaPlayback";
 import { useMoveSelection } from "./useMoveSelection";
 
@@ -39,6 +41,7 @@ export function OnlineDama(props: OnlineProps) {
 }
 
 function OnlineGame({ update, status, error, send }: OnlineProps) {
+  const boardRef = useBoardFocus<HTMLDivElement>();
   const { room } = update;
   const you = room.you;
   const { game, playing, frame, board, last, events, mover, show, restart } = useDamaPlayback(
@@ -103,7 +106,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
         note={onlineNote(room, top)}
       />
 
-      <div className="relative mx-auto w-full max-w-[32rem]">
+      <div className="relative mx-auto w-full max-w-[32rem]" ref={boardRef} tabIndex={-1} role="group" aria-label="Board">
         <DamaBoard
           board={board}
           perspective={bottom}
@@ -140,6 +143,7 @@ function OnlineGame({ update, status, error, send }: OnlineProps) {
         status={statusText}
         turn={turnLabel === null ? null : { label: turnLabel, color: seatColor(turn!) }}
       />
+      <MoveSaid text={saidFor(events, mover, names, you)} moment={room.moveCount} />
     </main>
   );
 }

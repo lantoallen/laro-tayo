@@ -1,5 +1,6 @@
 import type { Seat } from "@laro/games";
 import { storeOf, type SungkaEvent } from "@laro/games/sungka";
+import { who } from "@/components/game/MoveSaid";
 import type { Notice } from "@/components/game/parts";
 
 /**
@@ -36,4 +37,23 @@ export function latestNotice(
   let notice: Notice | null = null;
   for (const event of events) notice = noticeFor(event, names, you) ?? notice;
   return notice;
+}
+
+/** The last move in words for screen readers, like "The bot sowed 5 shells from house 3. The bot goes again." */
+export function saidFor(events: readonly SungkaEvent[], names: readonly [string, string], you: Seat | null): string | null {
+  const parts: string[] = [];
+  for (const event of events) {
+    if (event.type === "pickup" && parts.length === 0) {
+      const seat = event.slot < storeOf(0) ? 0 : 1;
+      const shells = event.count === 1 ? "1 shell" : `${event.count} shells`;
+      parts.push(`${who(seat, names, you)} sowed ${shells} from house ${(event.slot % 8) + 1}.`);
+    }
+    if (event.type === "capture") {
+      const seat = event.store === storeOf(0) ? 0 : 1;
+      parts.push(`${who(seat, names, you)} captured ${event.count} shells.`);
+    }
+    if (event.type === "extraTurn") parts.push(event.seat === you ? "You go again." : `${names[event.seat]} goes again.`);
+    if (event.type === "pass") parts.push(`${who(event.seat, names, you)} had no shells, so the turn was skipped.`);
+  }
+  return parts.length > 0 ? parts.join(" ") : null;
 }
