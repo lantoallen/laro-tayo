@@ -94,7 +94,7 @@ export function PusoyGame({
               type="button"
               onClick={() => setSpeed(speed === "normal" ? "fast" : "normal")}
               aria-pressed={speed === "fast"}
-              aria-label="Faster"
+              aria-label="2x speed"
               className="btn btn-secondary btn-small h-9 aria-pressed:bg-yellow aria-pressed:text-yellow-ink"
             >
               2x
