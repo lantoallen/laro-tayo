@@ -5,7 +5,7 @@
 // When this is first installed, it saves the games page, every game it links to, and what each page needs.
 //
 // Change CACHE when this file changes in a way that should throw away what was saved before.
-const CACHE = "laro-tayo-1";
+const CACHE = "laro-tayo-2";
 const BUILD_FILE = /^\/_next\/static\//;
 /** Each update to the site adds new build files. Only the newest this many are kept. */
 const MAX_BUILD_FILES = 400;
@@ -85,8 +85,8 @@ async function networkFirst(event) {
   const cache = await caches.open(CACHE);
   const saved = await cache.match(path);
   const fromNetwork = fetch(request).then(async (response) => {
-    // Rooms only work online, so there's no point keeping them.
-    if (response.ok && !response.redirected && !path.startsWith("/room/")) await cache.put(path, response.clone());
+    // Rooms and the page for finding a game only work online, so there's no point keeping them.
+    if (response.ok && !response.redirected && !onlineOnly(path)) await cache.put(path, response.clone());
     return response;
   });
   // Keep running until the network copy is saved, even if the saved copy was shown first. If the network
@@ -100,7 +100,7 @@ async function networkFirst(event) {
     return await Promise.race([fromNetwork, slow]);
   } catch {
     if (saved) return saved;
-    if (!path.startsWith("/room/")) {
+    if (!onlineOnly(path)) {
       const games = await cache.match("/games");
       if (games) return games;
     }
@@ -112,6 +112,11 @@ async function dropOldBuildFiles(cache) {
   const files = (await cache.keys()).filter((request) => BUILD_FILE.test(new URL(request.url).pathname));
   // Keys come back oldest first.
   for (const request of files.slice(0, Math.max(0, files.length - MAX_BUILD_FILES))) await cache.delete(request);
+}
+
+/** Pages that need the room server: a room, and the page for finding a game with anyone. */
+function onlineOnly(path) {
+  return path.startsWith("/room/") || path.startsWith("/match/");
 }
 
 function offlinePage() {
