@@ -8,7 +8,7 @@ export function LiveDemo() {
         Watch a game
       </h2>
       <p className="mt-1 max-w-xl text-muted">
-        Sungka is the first game you can play. These two bots are playing it live, right on this page.
+        Here&apos;s Sungka, the Filipino shell game. These two bots are playing it live, right on this page.
       </p>
       <div className="mt-6">
         <SungkaDemo />

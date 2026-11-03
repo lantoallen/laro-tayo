@@ -12,7 +12,7 @@ const WAYS = [
   {
     title: "Online",
     text: ONLINE_ENABLED
-      ? "Make a room, send friends the link or tell them the code, and play on your own phones from anywhere."
+      ? "Make a room and send friends the link or the code, or play anyone who's looking for a game right now. Everyone plays on their own phone."
       : "In the works. You'll send a friend a link and play from anywhere.",
   },
 ];

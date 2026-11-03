@@ -3,7 +3,7 @@ import { DamaApp } from "@/components/dama/DamaApp";
 
 export const metadata: Metadata = {
   title: "Dama",
-  description: "Play Dama, Filipino checkers, against a bot or with a friend on one phone.",
+  description: "Play Dama, Filipino checkers, against a bot, with a friend on one phone, or online.",
 };
 
 export default function DamaPage() {
