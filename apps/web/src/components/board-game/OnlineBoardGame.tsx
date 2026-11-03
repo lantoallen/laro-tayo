@@ -154,7 +154,8 @@ function OnlineTable<State, Move>({ config, update, status, error, send }: Props
           />
         </>
       )}
-      <MoveSaid text={said} moment={room.moveCount} />
+      {/* When everyone moves at once, every pick is a move, but there's only something to say once a round. */}
+      <MoveSaid text={said} moment={roundKey ?? room.moveCount} />
     </main>
   );
 }

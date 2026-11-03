@@ -165,7 +165,8 @@ export function LocalBoardGame<State, Move>({
           />
         </>
       )}
-      <MoveSaid text={said} moment={moves} />
+      {/* When everyone moves at once, every pick is a move, but there's only something to say once a round. */}
+      <MoveSaid text={said} moment={game.timer ? game.timer.round(state) : moves} />
     </main>
   );
 }
