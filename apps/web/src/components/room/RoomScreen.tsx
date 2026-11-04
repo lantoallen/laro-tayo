@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ROOM_VERSION, isRoomCode } from "@laro/rooms";
 import { OnlineBoardGame } from "@/components/board-game/OnlineBoardGame";
 import { OnlineDama } from "@/components/dama/OnlineDama";
@@ -19,6 +19,7 @@ import { SINKING_TILES, SINKING_TILES_TOGETHER } from "@/components/sinking-tile
 import { SNAKES_AND_LADDERS } from "@/components/snakes-and-ladders/config";
 import { OnlineSungka } from "@/components/sungka/OnlineSungka";
 import { TIC_TAC_TOE } from "@/components/tic-tac-toe/config";
+import { roomGame } from "@/lib/games";
 import { savePlayerName, useIsClient, usePlayer, type LocalPlayer } from "@/lib/player";
 import { ONLINE_ENABLED } from "@/lib/rooms";
 import { useRoom } from "@/lib/useRoom";
@@ -77,6 +78,16 @@ function JoinForm() {
 
 function Room({ code, player }: { code: string; player: LocalPlayer }) {
   const { status, update, error, send, serverVersion, reactions } = useRoom(code, player);
+  // The page title says "Join my game" for people opening an invite. Once you're in, name the game instead.
+  const gameName = update ? roomGame(update.room.gameId)?.name : undefined;
+  useEffect(() => {
+    if (!gameName) return;
+    const previous = document.title;
+    document.title = `${gameName} | Laro Tayo!`;
+    return () => {
+      document.title = previous;
+    };
+  }, [gameName]);
 
   if (status === "missing") {
     return (
