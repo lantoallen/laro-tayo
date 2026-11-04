@@ -2,7 +2,7 @@
 
 Filipino games and classics you can play on your phone, at https://laro-tayo.vercel.app.
 
-There are fifteen games so far. Five are Filipino: Sungka, Dama (Filipino checkers), and Jak-en-poy (rock, paper, scissors) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online by sending a friend a link or the room code. Pusoy Dos, the card game, is played by two to four against bots or online. It has no pass and play, since each hand is secret. Hulaan Mo is a guessing game for a group sharing one phone.
+There are fifteen games so far. Five are Filipino: Sungka, Dama (Filipino checkers), and Jak-en-poy (rock, paper, scissors) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online, by sending a friend a link or the room code, or by playing anyone who is looking for a game. Pusoy Dos, the card game, is played by two to four against bots or online. It has no pass and play, since each hand is secret. Hulaan Mo is a guessing game for a group sharing one phone.
 
 The other nine are classics played everywhere: Four in a Row, Reversi, Dots and Boxes, Memory, Nine Men's Morris, Sea Battle, Tic-Tac-Toe, Snakes and Ladders, and Pig. They can be played the same three ways, except Sea Battle, which hides each player's ships and so is played against the bot or online. Snakes and Ladders, Pig, Memory, and Dots and Boxes take two to four players, and the rest are for two.
 
