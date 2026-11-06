@@ -17,6 +17,7 @@
     "./sea-battle": "./src/sea-battle/index.ts",
     "./tic-tac-toe": "./src/tic-tac-toe/index.ts",
     "./snakes-and-ladders": "./src/snakes-and-ladders/index.ts",
+    "./nim": "./src/nim/index.ts",
     "./pig": "./src/pig/index.ts",
     "./jak-en-poy": "./src/jak-en-poy/index.ts",
     "./sinking-tiles": "./src/sinking-tiles/index.ts"
