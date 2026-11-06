@@ -15,6 +15,7 @@ const FRAMES: Record<GameId, string> = {
   "tic-tac-toe": "50 0 60 60",
   "snakes-and-ladders": "50 0 60 60",
   pig: "36 0 88 60",
+  nim: "40 0 80 60",
   "jak-en-poy": "26 0 108 60",
   "sinking-tiles": "40 0 80 60",
 };
@@ -36,6 +37,7 @@ export function GameArt({ id, className }: { id: GameId; className?: string }) {
       {id === "tic-tac-toe" && <NoughtsAndCrosses />}
       {id === "snakes-and-ladders" && <SnakeAndLadder />}
       {id === "pig" && <TwoDice />}
+      {id === "nim" && <Sticks />}
       {id === "jak-en-poy" && <RockPaperScissors />}
       {id === "sinking-tiles" && <FloatingTiles />}
     </svg>
@@ -386,6 +388,23 @@ function SnakeAndLadder() {
 }
 
 /** Two dice, one showing a 6 and one a 1. */
+function Sticks() {
+  const piles = [
+    [46, 3],
+    [66, 5],
+    [86, 4],
+  ];
+  return (
+    <>
+      {piles.map(([x, count]) =>
+        Array.from({ length: count }, (_, i) => (
+          <rect key={`${x}${i}`} x={x} y={52 - (i + 1) * 9} width="12" height="6" rx="3" fill="var(--wood)" />
+        )),
+      )}
+    </>
+  );
+}
+
 function TwoDice() {
   const pips6 = [
     [-6, -7],

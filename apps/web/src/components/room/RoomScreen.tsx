@@ -11,6 +11,7 @@ import { FOUR_IN_A_ROW } from "@/components/four-in-a-row/config";
 import { JAK_EN_POY } from "@/components/jak-en-poy/config";
 import { MEMORY } from "@/components/memory/config";
 import { MORRIS } from "@/components/morris/config";
+import { NIM } from "@/components/nim/config";
 import { PIG } from "@/components/pig/config";
 import { OnlinePusoy } from "@/components/pusoy-dos/OnlinePusoy";
 import { REVERSI } from "@/components/reversi/config";
@@ -135,6 +136,8 @@ function Game(props: OnlineProps) {
       return <OnlineBoardGame config={TIC_TAC_TOE} {...props} />;
     case "snakes-and-ladders":
       return <OnlineBoardGame config={SNAKES_AND_LADDERS} {...props} />;
+    case "nim":
+      return <OnlineBoardGame config={NIM} {...props} />;
     case "pig":
       return <OnlineBoardGame config={PIG} {...props} />;
     case "jak-en-poy":

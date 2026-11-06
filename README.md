@@ -4,7 +4,7 @@ Filipino games and classics you can play on your phone, at https://laro-tayo.ver
 
 There are fifteen games so far. Five are Filipino: Sungka, Dama (Filipino checkers), and Jak-en-poy (rock, paper, scissors) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online, by sending a friend a link or the room code, or by playing anyone who is looking for a game. Pusoy Dos, the card game, is played by two to four against bots or online. It has no pass and play, since each hand is secret. Hulaan Mo is a guessing game for a group sharing one phone.
 
-The other nine are classics played everywhere: Four in a Row, Reversi, Dots and Boxes, Memory, Nine Men's Morris, Sea Battle, Tic-Tac-Toe, Snakes and Ladders, and Pig. They can be played the same three ways, except Sea Battle, which hides each player's ships and so is played against the bot or online. Snakes and Ladders, Pig, Memory, and Dots and Boxes take two to four players, and the rest are for two.
+The other ten are classics played everywhere: Four in a Row, Reversi, Dots and Boxes, Memory, Nine Men's Morris, Sea Battle, Tic-Tac-Toe, Snakes and Ladders, Pig, and Nim. They can be played the same three ways, except Sea Battle, which hides each player's ships and so is played against the bot or online. Snakes and Ladders, Pig, Memory, and Dots and Boxes take two to four players, and the rest are for two.
 
 Sinking Tiles was made for Laro Tayo!: two to four players step across tiles floating on the water, every tile sinks after its second step, and the last one standing wins. Players can take turns, which works all three ways, or move all at once, where everyone picks a tile in secret each round, against bots or online.
 
@@ -59,7 +59,7 @@ packages/games   Game rules in plain TypeScript, no React
   src/pusoy-dos  Pusoy Dos cards, rules, bots, and tests
   src/hulaan-mo  Hulaan Mo word packs, game logic, and tests
   src/four-in-a-row, src/reversi, src/dots-and-boxes, src/memory, src/morris, src/sea-battle,
-  src/tic-tac-toe, src/snakes-and-ladders, src/pig, src/jak-en-poy, src/sinking-tiles
+  src/tic-tac-toe, src/snakes-and-ladders, src/pig, src/nim, src/jak-en-poy, src/sinking-tiles
                  Rules, bots, and tests for the games that share their screens
 packages/rooms   Online room logic: seats, turns, rematches, and the messages sent over the socket
 apps/server      The room server, a Cloudflare Worker
