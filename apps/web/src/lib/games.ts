@@ -12,6 +12,7 @@ export type GameId =
   | "tic-tac-toe"
   | "snakes-and-ladders"
   | "pig"
+  | "nim"
   | "jak-en-poy"
   | "sinking-tiles";
 
@@ -177,6 +178,16 @@ export const GAMES: GameInfo[] = [
     group: "classic",
     color: "blue",
     href: "/pig",
+    modes: ["bot", "local", "online"],
+  },
+  {
+    id: "nim",
+    name: "Nim",
+    players: "2 players",
+    tagline: "Take sticks from a pile. Whoever takes the last one wins.",
+    group: "classic",
+    color: "red",
+    href: "/nim",
     modes: ["bot", "local", "online"],
   },
   {

@@ -16,6 +16,7 @@ const BOARD_GAMES = [
   "tic-tac-toe",
   "snakes-and-ladders",
   "pig",
+  "nim",
   "jak-en-poy",
   "sinking-tiles",
   "sinking-tiles-together",

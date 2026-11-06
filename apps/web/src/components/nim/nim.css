@@ -1,0 +1,66 @@
+.nim {
+  display: grid;
+  gap: 0.75rem;
+  width: min(100%, 26rem);
+  margin-inline: auto;
+  padding: 1rem;
+  border: 3px solid var(--outline);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 5px 5px 0 var(--outline);
+}
+
+.nim-pile {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.nim-stick,
+.nim-gone {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 4.25rem;
+  border-radius: 999px;
+}
+
+.nim-stick {
+  display: block;
+  border: 2px solid var(--outline);
+  padding: 0;
+  background: var(--wood);
+}
+
+button.nim-stick {
+  cursor: pointer;
+}
+
+/* Hovering or focusing a stick lights it up with the ones that would go with it. */
+button.nim-stick:hover,
+button.nim-stick:hover ~ .nim-stick,
+button.nim-stick:focus-visible,
+button.nim-stick:focus-visible ~ .nim-stick {
+  background: var(--red, #ce1126);
+}
+
+.nim-gone {
+  border: 2px dashed color-mix(in srgb, var(--outline) 25%, transparent);
+}
+
+.nim-fresh {
+  animation: nim-fade 600ms ease-out;
+}
+
+@keyframes nim-fade {
+  from {
+    border-color: var(--outline);
+    background: color-mix(in srgb, var(--wood) 50%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nim-fresh {
+    animation: none;
+  }
+}
