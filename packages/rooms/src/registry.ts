@@ -5,6 +5,7 @@ import { fourInARow } from "@laro/games/four-in-a-row";
 import { jakEnPoy } from "@laro/games/jak-en-poy";
 import { memory } from "@laro/games/memory";
 import { morris } from "@laro/games/morris";
+import { nim } from "@laro/games/nim";
 import { pig } from "@laro/games/pig";
 import { pusoyDos } from "@laro/games/pusoy-dos";
 import { reversi } from "@laro/games/reversi";
@@ -30,6 +31,7 @@ export const GAMES = {
   "tic-tac-toe": ticTacToe,
   "snakes-and-ladders": snakesAndLadders,
   pig,
+  nim,
   "jak-en-poy": jakEnPoy,
   "pusoy-dos": pusoyDos,
   "sinking-tiles": sinkingTiles,

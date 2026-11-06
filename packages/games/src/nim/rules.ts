@@ -42,8 +42,8 @@ export function legalMoves(state: NimState, seat: Seat): NimMove[] {
 /** Takes sticks from one pile. Whoever takes the last stick of all wins. */
 export function play(state: NimState, seat: Seat, move: NimMove): MoveOutcome<NimState, NimEvent> {
   if (state.turn !== seat) throw new IllegalMoveError(`It's not seat ${seat}'s turn`);
-  const size = state.piles[move.pile];
-  if (!Number.isInteger(move.count) || size === undefined || move.count < 1 || move.count > size) {
+  const size = typeof move === "object" && move !== null ? state.piles[move.pile] : undefined;
+  if (!Number.isInteger(move?.count) || size === undefined || move.count < 1 || move.count > size) {
     throw new IllegalMoveError(`You can't take ${JSON.stringify(move)}`);
   }
   const piles = state.piles.map((old, pile) => (pile === move.pile ? old - move.count : old));
