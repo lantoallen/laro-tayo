@@ -2,7 +2,7 @@
 
 Filipino games and classics you can play on your phone, at https://laro-tayo.vercel.app.
 
-There are fifteen games so far. Five are Filipino: Sungka, Dama (Filipino checkers), and Jak-en-poy (rock, paper, scissors) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online, by sending a friend a link or the room code, or by playing anyone who is looking for a game. Pusoy Dos, the card game, is played by two to four against bots or online. It has no pass and play, since each hand is secret. Hulaan Mo is a guessing game for a group sharing one phone.
+There are sixteen games so far. Five are Filipino: Sungka, Dama (Filipino checkers), and Jak-en-poy (rock, paper, scissors) can be played against a bot (easy, medium or hard), by passing one phone back and forth, or online, by sending a friend a link or the room code, or by playing anyone who is looking for a game. Pusoy Dos, the card game, is played by two to four against bots or online. It has no pass and play, since each hand is secret. Hulaan Mo is a guessing game for a group sharing one phone.
 
 The other ten are classics played everywhere: Four in a Row, Reversi, Dots and Boxes, Memory, Nine Men's Morris, Sea Battle, Tic-Tac-Toe, Snakes and Ladders, Pig, and Nim. They can be played the same three ways, except Sea Battle, which hides each player's ships and so is played against the bot or online. Snakes and Ladders, Pig, Memory, and Dots and Boxes take two to four players, and the rest are for two.
 
@@ -258,6 +258,13 @@ The snakes are drawn from the same points the pieces follow when they slide (`ap
 - The first to 100 points wins, as soon as they reach it.
 
 Each player's view leaves out the dice seed, so nobody can work out the next roll. Easy banks at 10 points, medium at 20, and hard adjusts around 20 depending on the score, taking more risks when behind and rolling on when anyone else is close to winning. Over 4,000 games each, medium beat easy 78% of the time, hard beat easy 80%, and hard beat medium 55%. In a game this lucky, that's about as much as skill can do.
+
+## Nim rules used here
+
+- There are three piles of 3, 4 and 5 sticks. On your turn, take one or more sticks from a single pile.
+- Whoever takes the last stick wins. In the screen, tapping a stick takes it and every stick after it in its pile.
+
+The piles are balanced when the XOR of their sizes, the nim-sum, is zero. A player who leaves them balanced can keep doing so and wins, and from 3, 4, 5 the first player can do it. Hard always plays that move when there is one, and otherwise takes a single stick from the biggest pile to make the game last. Medium plays it about two times in three and easy about one in seven, picking at random the rest of the time, so hard never loses when it goes first.
 
 ## Sinking Tiles rules
 
